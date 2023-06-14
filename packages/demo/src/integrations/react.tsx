@@ -1,18 +1,21 @@
 import { createRoot } from 'react-dom/client'
 
 import { useTimescape } from 'timescape/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-// eslint-disable-next-line react-refresh/only-export-components
 const ReactDemo = () => {
   const [date, setDate] = useState<Date | undefined>(new Date())
-  const { getRootProps, getInputProps } = useTimescape({
+  const { getRootProps, getInputProps, remove } = useTimescape({
     date,
     onChangeDate: (nextDate) => {
       console.log('Date changed to', nextDate)
       setDate(nextDate)
     },
   })
+
+  useEffect(() => {
+    return () => remove()
+  }, [remove])
 
   return (
     <div className="timescape-root" {...getRootProps()}>

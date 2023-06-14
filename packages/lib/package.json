@@ -14,12 +14,10 @@
   },
   "exports": {
     ".": {
-      "development": "./src/index.ts",
-      "production": "./dist/index.js"
+      "import": "./dist/index.js"
     },
     "./*": {
-      "development": "./src/integrations/*.ts",
-      "production": "./dist/*.js"
+      "import": "./dist/*.js"
     },
     "./chunk-*": null
   },

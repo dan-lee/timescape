@@ -4,6 +4,7 @@ import {
   useState,
   useRef,
   useLayoutEffect,
+  useCallback,
   type MutableRefObject,
 } from 'react'
 
@@ -50,8 +51,6 @@ export const useTimescape = ({
     if (digits !== undefined) manager.digits = digits
   }, [manager, minDate, maxDate, hour12, wrapAround, digits])
 
-  useEffect(() => () => manager.remove(), [manager])
-
   return {
     getInputProps: (
       type: DateType,
@@ -71,5 +70,6 @@ export const useTimescape = ({
       ref: (element: HTMLElement | null) =>
         element && manager.registerRoot(element),
     }),
+    remove: useCallback(() => manager.remove(), [manager]),
   } as const
 }
