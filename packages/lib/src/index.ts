@@ -216,12 +216,10 @@ export class TimescapeManager implements Options {
 
   public remove() {
     this.#rootListener?.()
-    this.#registry.forEach(({ inputElement, shadowElement, listeners }) => {
+    this.#registry.forEach(({ shadowElement, listeners }) => {
       listeners.forEach((remove) => remove())
-      inputElement.remove()
       shadowElement.remove()
     })
-    this.#rootElement?.remove()
     this.#resizeObserver.disconnect()
     this.#mutationObserver.disconnect()
   }

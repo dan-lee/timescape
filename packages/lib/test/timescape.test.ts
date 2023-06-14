@@ -192,7 +192,6 @@ describe('timescape', () => {
 
       manager.remove()
 
-      Object.values(fields).forEach((f) => expect(f).not.toBeInTheDocument())
       Object.values(fields).forEach((f) => {
         const node = f as unknown as HappyDomNode
         const listeners = node._listeners
@@ -200,7 +199,6 @@ describe('timescape', () => {
           expect(l).toHaveLength(0)
         })
       })
-      expect(container.innerHTML.trim()).toBe('')
     })
   })
 
