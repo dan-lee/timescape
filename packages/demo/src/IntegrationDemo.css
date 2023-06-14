@@ -1,0 +1,57 @@
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  background: transparent;
+}
+
+:root {
+  --main-color: #6c70ff;
+}
+
+.timescape-root {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: fit-content;
+  border: 1px solid #bbb;
+  padding: 5px;
+  user-select: none;
+  border-radius: 10px;
+  transition: 100ms;
+}
+
+.timescape-root:focus-within {
+  outline: 1px solid var(--main-color);
+  border-color: var(--main-color);
+}
+
+.timescape-input {
+  font-variant-numeric: tabular-nums;
+  height: fit-content;
+  font-size: 18px;
+  color: #333;
+  border: none;
+  outline: none;
+  cursor: default;
+  user-select: none;
+  max-width: 50px;
+}
+
+.timescape-input::selection {
+  background: none;
+}
+
+.timescape-input:focus {
+  background-color: var(--main-color);
+  color: #fff;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.separator {
+  font-size: 80%;
+  color: #8c8c8c;
+  margin: 0;
+}

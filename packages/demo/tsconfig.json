@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "skipLibCheck": true,
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+
+    // just for the demo to be able to import from timescape like in a real app
+    "paths": {
+      "timescape": ["../lib/src/index.ts"],
+      "timescape/*": ["../lib/src/integrations/*.ts"]
+    }
+  },
+  "include": ["src", ".storybook"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

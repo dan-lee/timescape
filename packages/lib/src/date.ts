@@ -1,0 +1,118 @@
+import { DateType } from './index.ts'
+
+export const isSameSeconds = (ts1: number, ts2: number) =>
+  Math.floor(ts1 / 1000) === Math.floor(ts2 / 1000)
+
+export const daysInMonth = (date: Date) => {
+  const month = date.getMonth()
+  const year = date.getFullYear()
+  return new Date(year, month + 1, 0).getDate()
+}
+
+export const add = (date: Date, type: DateType, amount: number) => {
+  const newDate = new Date(date)
+
+  switch (type) {
+    case 'days':
+      newDate.setDate(newDate.getDate() + amount)
+      break
+    case 'months':
+      newDate.setMonth(newDate.getMonth() + amount)
+      break
+    case 'years':
+      newDate.setFullYear(newDate.getFullYear() + amount)
+      break
+    case 'hours':
+      newDate.setHours(newDate.getHours() + amount)
+      break
+    case 'minutes':
+      newDate.setMinutes(newDate.getMinutes() + amount)
+      break
+    case 'seconds':
+      newDate.setSeconds(newDate.getSeconds() + amount)
+      break
+  }
+
+  return newDate
+}
+
+export const set = (date: Date, type: DateType, value: number) => {
+  const newDate = new Date(date)
+
+  switch (type) {
+    case 'days':
+      newDate.setDate(value)
+      break
+    case 'months':
+      // Set the day of the month to the minimum of the current day of the month
+      // and the last day of the new month
+      const currentDay = newDate.getDate()
+      const daysInNewMonth = daysInMonth(new Date(newDate.getFullYear(), value))
+      newDate.setDate(Math.min(currentDay, daysInNewMonth))
+      newDate.setMonth(value)
+      break
+    case 'years':
+      newDate.setFullYear(value)
+      break
+    case 'hours':
+      newDate.setHours(value)
+      break
+    case 'minutes':
+      newDate.setMinutes(value)
+      break
+    case 'seconds':
+      newDate.setSeconds(value)
+      break
+    case 'am/pm':
+      newDate.setHours(value)
+      break
+  }
+
+  return newDate
+}
+
+export const get = (date: Date, type: DateType) => {
+  switch (type) {
+    case 'days':
+      return date.getDate()
+    case 'months':
+      return date.getMonth()
+    case 'years':
+      return date.getFullYear()
+    case 'hours':
+      return date.getHours()
+    case 'minutes':
+      return date.getMinutes()
+    case 'seconds':
+      return date.getSeconds()
+    case 'am/pm':
+      return date.getHours()
+  }
+}
+
+export const format = (
+  date: Date,
+  type: DateType,
+  hour12?: boolean,
+  digits: 'numeric' | '2-digit' = '2-digit',
+) => {
+  const digitCount = digits === '2-digit' ? 2 : 1
+
+  switch (type) {
+    case 'years':
+      return String(date.getFullYear()).padStart(4, '0')
+    case 'months':
+      return String(date.getMonth() + 1).padStart(digitCount, '0')
+    case 'days':
+      return String(date.getDate()).padStart(digitCount, '0')
+    case 'hours':
+      const hours = hour12 ? date.getHours() % 12 || 12 : date.getHours()
+      return String(hours).padStart(digitCount, '0')
+    case 'minutes':
+      return String(date.getMinutes()).padStart(2, '0')
+    case 'seconds':
+      return String(date.getSeconds()).padStart(2, '0')
+    case 'am/pm':
+      return date.getHours() < 12 ? 'AM' : 'PM'
+  }
+}
