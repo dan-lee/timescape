@@ -359,6 +359,11 @@ A typical anatomy of a timescape component may look like this:
   outline: none;
   cursor: default;
   user-select: none;
+
+  /* For the calculation of the input width these are important */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .timescape input:focus {

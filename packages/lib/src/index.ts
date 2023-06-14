@@ -547,6 +547,7 @@ export class TimescapeManager implements Options {
 
     if (shadowElement && shadowElement.textContent !== value) {
       shadowElement.textContent = value || element.placeholder
+      element.style.width = `${shadowElement.getBoundingClientRect().width}px`
     }
   }
 
