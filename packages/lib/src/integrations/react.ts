@@ -25,28 +25,32 @@ export const useTimescape = ({
   const manager = useRef(new TimescapeManager(date))
   const timestamp = date?.getTime()
   const onChangeDateRef = useRef(onChangeDate)
-
-  useEffect(() => {
-    manager.current = new TimescapeManager(manager.current.date)
-
-    return () => manager.current.remove()
-  }, [])
-
   useLayoutEffect(() => {
     onChangeDateRef.current = onChangeDate
   }, [onChangeDate])
 
   useEffect(() => {
+    manager.current.resync()
+
+    return () => {
+      manager.current.remove()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!manager.current) return
     manager.current.date = timestamp
   }, [timestamp])
 
   useEffect(() => {
-    manager.current.subscribe((nextDate) => {
+    manager.current?.subscribe((nextDate) => {
       onChangeDateRef.current?.(nextDate)
     })
   }, [])
 
   useEffect(() => {
+    if (!manager.current) return
+
     manager.current.minDate = minDate
     manager.current.maxDate = maxDate
 
@@ -65,14 +69,14 @@ export const useTimescape = ({
     ) => ({
       ref: (element: HTMLInputElement | null) => {
         if (element) {
-          manager.current.registerElement(element, type, opts?.autofocus)
+          manager.current?.registerElement(element, type, opts?.autofocus)
           if (opts?.ref) opts.ref.current = element
         }
       },
     }),
     getRootProps: () => ({
       ref: (element: HTMLElement | null) =>
-        element && manager.current.registerRoot(element),
+        element && manager.current?.registerRoot(element),
     }),
   } as const
 }

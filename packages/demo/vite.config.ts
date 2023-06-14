@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process'
+import path from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import vue from '@vitejs/plugin-vue'
@@ -62,12 +63,12 @@ export default defineConfig({
   resolve: {
     alias: {
       vue: 'vue/dist/vue.esm-bundler.js',
-      'timescape/preact': '../lib/src/integrations/preact.ts',
-      'timescape/react': '../lib/src/integrations/react.ts',
-      'timescape/solid': '../lib/src/integrations/solid.ts',
-      'timescape/svelte': '../lib/src/integrations/svelte.ts',
-      'timescape/vue': '../lib/src/integrations/vue.ts',
-      timescape: '../lib/src/index.ts',
+      'timescape/preact': path.resolve('../lib/src/integrations/preact.ts'),
+      'timescape/react': path.resolve('../lib/src/integrations/react.ts'),
+      'timescape/solid': path.resolve('../lib/src/integrations/solid.ts'),
+      'timescape/svelte': path.resolve('../lib/src/integrations/svelte.ts'),
+      'timescape/vue': path.resolve('../lib/src/integrations/vue.ts'),
+      timescape: path.resolve('../lib/src/index.ts'),
     },
   },
 })

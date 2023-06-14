@@ -15,6 +15,7 @@ type RegistryEntry = {
   inputElement: HTMLInputElement
   shadowElement: HTMLSpanElement
   intermediateValue: string
+  autofocus?: boolean
   listeners: Array<() => void>
 }
 type Registry = Map<DateType, RegistryEntry>
@@ -132,6 +133,19 @@ export class TimescapeManager implements Options {
     this.#setValidatedDate(timestamp ? new Date(timestamp) : undefined)
   }
 
+  public resync() {
+    if (this.#rootElement) {
+      this.#rootListener?.()
+      this.registerRoot(this.#rootElement)
+    }
+
+    Array.from(this.#registry).forEach(([type, entry]) => {
+      entry.listeners.forEach((listener) => listener())
+      this.#registry.delete(type)
+      this.registerElement(entry.inputElement, type, entry.autofocus, true)
+    })
+  }
+
   public subscribe(callback: (timestamp: Date | undefined) => void) {
     this.#subscribers.add(callback)
   }
@@ -155,13 +169,10 @@ export class TimescapeManager implements Options {
     element: HTMLInputElement,
     type: DateType,
     autofocus?: boolean,
+    domExists = false,
   ) {
-    if (
-      this.#registry.has(type) &&
-      // in case when the component gets remounted the elements are not the same
-      // it should be re-registered
-      element === this.#registry.get(type)?.inputElement
-    ) {
+    const registryEntry = this.#registry.get(type)
+    if (!domExists && element === registryEntry?.inputElement) {
       return
     }
 
@@ -181,11 +192,13 @@ export class TimescapeManager implements Options {
       element.inputMode = 'numeric'
     }
 
-    const shadowElement = document.createElement('span')
-    shadowElement.setAttribute('aria-hidden', 'true')
-    shadowElement.textContent = element.placeholder
-    shadowElement.dataset.type = type
-    shadowElement.style.cssText = `
+    let shadowElement
+    if (!domExists || !registryEntry?.shadowElement) {
+      shadowElement = document.createElement('span')
+      shadowElement.setAttribute('aria-hidden', 'true')
+      shadowElement.textContent = element.value || element.placeholder
+      shadowElement.dataset.type = type
+      shadowElement.style.cssText = `
       display: inline-block;
       position: absolute;
       left: -9999px;
@@ -194,15 +207,19 @@ export class TimescapeManager implements Options {
       pointer-events: none;
       white-space: pre;
       `
-    this.#copyStyles(element, shadowElement)
-    this.#resizeObserver.observe(shadowElement)
+      this.#copyStyles(element, shadowElement)
+      this.#resizeObserver.observe(shadowElement)
 
-    const appendTo = this.#rootElement || document.body
-    appendTo.appendChild(shadowElement)
+      const appendTo = this.#rootElement || document.body
+      appendTo.appendChild(shadowElement)
+    } else {
+      shadowElement = registryEntry.shadowElement
+    }
 
     this.#registry.set(type, {
       type,
       inputElement: element,
+      autofocus,
       shadowElement,
       intermediateValue: '',
       listeners: this.#createListeners(element),
@@ -220,6 +237,7 @@ export class TimescapeManager implements Options {
       listeners.forEach((remove) => remove())
       shadowElement.remove()
     })
+    this.#subscribers.clear()
     this.#resizeObserver.disconnect()
     this.#mutationObserver.disconnect()
   }
@@ -547,7 +565,6 @@ export class TimescapeManager implements Options {
 
     if (shadowElement && shadowElement.textContent !== value) {
       shadowElement.textContent = value || element.placeholder
-      element.style.width = `${shadowElement.getBoundingClientRect().width}px`
     }
   }
 
