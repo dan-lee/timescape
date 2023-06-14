@@ -1,7 +1,6 @@
 import { TimescapeManager, $NOW, type DateType, type Options } from '..'
 import {
   useEffect,
-  useState,
   useRef,
   useLayoutEffect,
   useCallback,
@@ -24,9 +23,13 @@ export const useTimescape = ({
   digits = '2-digit',
   onChangeDate,
 }: TimescapeOptions) => {
-  const [manager] = useState(() => new TimescapeManager(date))
+  const manager = useRef(new TimescapeManager(date)).current
   const timestamp = date?.getTime()
   const onChangeDateRef = useRef(onChangeDate)
+
+  useEffect(() => {
+    return () => manager.remove()
+  }, [manager])
 
   useLayoutEffect(() => {
     onChangeDateRef.current = onChangeDate
