@@ -1,21 +1,17 @@
 import { createRoot } from 'react-dom/client'
 
 import { useTimescape } from 'timescape/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 const ReactDemo = () => {
   const [date, setDate] = useState<Date | undefined>(new Date())
-  const { getRootProps, getInputProps, remove } = useTimescape({
+  const { getRootProps, getInputProps } = useTimescape({
     date,
     onChangeDate: (nextDate) => {
       console.log('Date changed to', nextDate)
       setDate(nextDate)
     },
   })
-
-  useEffect(() => {
-    return () => remove()
-  }, [remove])
 
   return (
     <div className="timescape-root" {...getRootProps()}>
