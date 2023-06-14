@@ -8,7 +8,7 @@ Key features such as accessibility and keyboard navigation are at the core of `t
 
 <img src="./assets/timescape.webp" height="120" />
 
-See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#examples) of how to use it +CodeSandboxes for more demonstrations.
+See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#examples) of how to use it + [StackBlitz ⚡️](https://stackblitz.com/@dan-lee/collections/timescape) for more demonstrations.
 
 <a href="https://stellate.co">
   <picture>
@@ -30,13 +30,13 @@ See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#ex
 ## Installation
 
 ```shell
-// pnpm
+# pnpm
 pnpm add timescape
 
-// yarn
+# yarn
 yarn add timescape
 
-// npm
+# npm
 npm install --save timescape
 ```
 
@@ -44,6 +44,8 @@ npm install --save timescape
 
 <details open>
 <summary>React</summary>
+
+[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-react?file=src%2FApp.tsx)
 
 ```tsx
 import { useTimescape } from 'timescape/react'
@@ -79,6 +81,8 @@ function App() {
 
 <details>
 <summary>Preact</summary>
+
+[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-preact?file=src%2Fapp.tsx)
 
 This package uses Preact signals, if you want to use it without just use the React implementation in compat mode.
 
@@ -116,6 +120,8 @@ function App() {
 <details>
 <summary>Vue</summary>
 
+[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-vue?file=src%2FApp.vue)
+
 ```vue
 <template>
   <div class="timescape-root" :ref="registerRoot()">
@@ -152,6 +158,8 @@ const { registerElement, registerRoot } = useTimescape(options)
 <details>
 <summary>Svelte</summary>
 
+[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-svelte?file=src%2FApp.svelte)
+
 ```svelte
 <script lang="ts">
   import { createTimescape } from 'timescape/svelte'
@@ -181,6 +189,8 @@ const { registerElement, registerRoot } = useTimescape(options)
 
 <details>
 <summary>Solid</summary>
+
+[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-solid?file=src%2FApp.tsx)
 
 ```tsx
 import { useTimescape } from 'timescape/solid'

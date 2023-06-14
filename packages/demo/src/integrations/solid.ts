@@ -17,7 +17,7 @@ const App = () => {
     console.log('Date changed to', date())
   })
 
-  return html` <div class="timescape-root" ...${getRootProps()}>
+  return html`<div class="timescape-root" ...${getRootProps()}>
     <input class="timescape-input" ...${getInputProps('days')} />
     <span class="separator">/</span>
     <input class="timescape-input" ...${getInputProps('months')} />
