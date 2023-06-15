@@ -11,6 +11,7 @@ coverage
 node_modules
 dist
 dist-ssr
+output
 storybook-dist
 storybook-static
 *.local
