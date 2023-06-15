@@ -6,14 +6,14 @@ Crafted in TypeScript, `timescape` is your toolkit to build custom date and time
 
 Key features such as accessibility and keyboard navigation are at the core of `timescape`, allowing you to focus on creating user-centric date and time inputs that integrate seamlessly into your projects.
 
-<img src="./assets/timescape.webp" height="120" />
+<img src="./assets/timescape.webp" style="max-height:120px" />
 
 See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#examples) of how to use it + [StackBlitz ⚡️](https://stackblitz.com/@dan-lee/collections/timescape) for more demonstrations.
 
-<a href="https://stellate.co">
+<a href="https://stellate.co" target="_blank">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/badge-dark.svg" />
-    <img src="assets/badge-light.svg" alt="Sponsored by Stellate" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/dan-lee/timescape/main/assets/badge-dark.svg" />
+    <img src="https://raw.githubusercontent.com/dan-lee/timescape/main/assets/badge-light.svg" alt="Sponsored by Stellate" />
   </picture>
 </a>
 
