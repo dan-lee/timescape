@@ -369,6 +369,8 @@ A typical anatomy of a timescape component may look like this:
   outline: none;
   cursor: default;
   user-select: none;
+  /* For touch devices where input fields are not set to readonly */
+  caret-color: transparent;
 
   /* For the calculation of the input width these are important */
   font-family: inherit;

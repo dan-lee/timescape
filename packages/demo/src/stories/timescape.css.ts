@@ -28,6 +28,7 @@ export const input = style({
   cursor: 'default',
   userSelect: 'none',
   maxWidth: '50px',
+  caretColor: 'transparent',
 
   '::selection': {
     background: 'none',

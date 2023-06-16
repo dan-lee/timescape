@@ -37,6 +37,7 @@ button {
   outline: none;
   cursor: default;
   user-select: none;
+  caret-color: transparent;
   max-width: 50px;
 }
 

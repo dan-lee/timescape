@@ -1,4 +1,4 @@
-import { addListener } from './util'
+import { addListener, isTouchDevice } from './util'
 import { get, set, add, daysInMonth, isSameSeconds, format } from './date.ts'
 
 export type DateType =
@@ -177,7 +177,7 @@ export class TimescapeManager implements Options {
     }
 
     element.type = 'text'
-    element.readOnly = true
+    element.readOnly = !isTouchDevice()
     element.tabIndex = 0
     element.enterKeyHint = 'next'
     element.spellcheck = false
@@ -352,6 +352,8 @@ export class TimescapeManager implements Options {
         break
       case 'ArrowLeft':
         this.#focusNextField(type, -1)
+        break
+      case 'Backspace':
         break
       default:
         const { key } = e

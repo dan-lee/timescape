@@ -18,3 +18,8 @@ export const addListener = <T extends EventTarget, U extends EventNames<T>>(
 
   return () => node.removeEventListener(type, typedListener, options)
 }
+
+export const isTouchDevice = () =>
+  'ontouchstart' in window ||
+  navigator.maxTouchPoints > 0 ||
+  (navigator as any).msMaxTouchPoints > 0
