@@ -26,6 +26,7 @@ See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#ex
 - **⏰ Date and time flexibility**: Supports min/max dates and 24/12 hour clock formats.
 - **🪶 Lightweight**: No external dependencies.
 - **🔀 Enhanced input fields**: A supercharged `<input type="date/time">`, offering additional flexibility.
+- **🤳 Touch device support**: Use it on any device, including touch devices.
 
 ## Installation
 
@@ -43,7 +44,7 @@ npm install --save timescape
 ## Examples
 
 <details open>
-<summary>React</summary>
+  <summary><strong>React</strong></summary>
 
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-react?file=src%2FApp.tsx)
 
@@ -80,7 +81,7 @@ function App() {
 </details>
 
 <details>
-<summary>Preact</summary>
+<summary><strong>Preact</strong></summary>
 
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-preact?file=src%2Fapp.tsx)
 
@@ -118,7 +119,7 @@ function App() {
 </details>
 
 <details>
-<summary>Vue</summary>
+<summary><strong>Vue</strong></summary>
 
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-vue?file=src%2FApp.vue)
 
@@ -156,7 +157,7 @@ const { registerElement, registerRoot } = useTimescape(options)
 </details>
 
 <details>
-<summary>Svelte</summary>
+<summary><strong>Svelte</strong></summary>
 
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-svelte?file=src%2FApp.svelte)
 
@@ -188,7 +189,7 @@ const { registerElement, registerRoot } = useTimescape(options)
 </details>
 
 <details>
-<summary>Solid</summary>
+<summary><strong>Solid</strong></summary>
 
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-solid?file=src%2FApp.tsx)
 
@@ -224,7 +225,7 @@ function App() {
 </details>
 
 <details>
-<summary>Vanilla JS</summary>
+<summary><strong>Vanilla JS</strong></summary>
 
 ```tsx
 import { TimescapeManager } from 'timescape'
@@ -309,6 +310,10 @@ import { NOW } from 'timescape/svelte'
 ## Anatomy & styling
 
 The component is designed to be as un-opinionated as possible, so it doesn't come with any styling out of the box. You can style it however you want, but here are some tips to get you started.
+
+This is how it could look like:
+
+<img src="https://github.com/dan-lee/timescape/assets/571589/bac69b8c-e108-43db-8203-2dcbdb5030eb" height="250" />
 
 A typical anatomy of a timescape component may look like this:
 
