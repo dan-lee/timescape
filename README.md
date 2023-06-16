@@ -50,7 +50,6 @@ npm install --save timescape
 
 ```tsx
 import { useTimescape } from 'timescape/react'
-import { useEffect } from 'react'
 
 function App() {
   const { getRootProps, getInputProps } = useTimescape({
@@ -61,7 +60,7 @@ function App() {
   })
 
   return (
-    <div {...getRootProps()}>
+    <div className="timescape" {...getRootProps()}>
       <input {...getInputProps('days')} />
       <span>/</span>
       <input {...getInputProps('months')} />
@@ -105,7 +104,7 @@ function App() {
   })
 
   return (
-    <div {...getRootProps()}>
+    <div className="timescape" {...getRootProps()}>
       <input {...getInputProps('days')} />
       <span>/</span>
       <input {...getInputProps('months')} />
@@ -125,12 +124,12 @@ function App() {
 
 ```vue
 <template>
-  <div class="timescape-root" :ref="registerRoot()">
-    <input :ref="registerElement('days')" class="timescape-input" />
+  <div class="timescape" :ref="registerRoot()">
+    <input :ref="registerElement('days')" />
     <span>/</span>
-    <input :ref="registerElement('months')" class="timescape-input" />
+    <input :ref="registerElement('months')" />
     <span>/</span>
-    <input :ref="registerElement('years')" class="timescape-input" />
+    <input :ref="registerElement('years')" />
   </div>
 </template>
 
@@ -139,7 +138,6 @@ import { useTimescape, type UseTimescapeOptions } from 'timescape/vue'
 import { ref, computed, watchEffect, reactive } from 'vue'
 
 const date = ref(new Date())
-const dateString = computed(() => date.value.toLocaleString('en-UK'))
 
 watchEffect(() => {
   console.log('Date changed to', date.value)
@@ -177,12 +175,12 @@ const { registerElement, registerRoot } = useTimescape(options)
   })
 </script>
 
-<div use:rootProps>
-  <input use:inputProps={'days'} class="timescape-input" />
+<div class="timescape" use:rootProps>
+  <input use:inputProps={'days'} />
   <span>/</span>
-  <input use:inputProps={'months'} class="timescape-input" />
+  <input use:inputProps={'months'} />
   <span>/</span>
-  <input use:inputProps={'years'} class="timescape-input" />
+  <input use:inputProps={'years'} />
 </div>
 ```
 
@@ -211,7 +209,7 @@ function App() {
   })
 
   return (
-    <div {...getRootProps()}>
+    <div class="timescape" {...getRootProps()}>
       <input {...getInputProps('days')} />
       <span>/</span>
       <input {...getInputProps('months')} />
@@ -234,7 +232,7 @@ const container = document.createElement('div')
 document.body.appendChild(container)
 
 container.innerHTML = ` 
-  <div id="timescape-root">
+  <div class="timescape" id="timescape-root">
     <input data-type="days" placeholder="dd" />
     <span>/</span>
     <input data-type="months" placeholder="mm" />
@@ -374,6 +372,7 @@ A typical anatomy of a timescape component may look like this:
   outline: none;
   cursor: default;
   user-select: none;
+  box-sizing: content-box;
   /* For touch devices where input fields are not set to readonly */
   caret-color: transparent;
 
