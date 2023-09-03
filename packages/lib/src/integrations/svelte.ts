@@ -13,7 +13,7 @@ export type CreateTimescapeOptions = Writable<{ date?: Date } & Options>
 export const createTimescape = (options: CreateTimescapeOptions) => {
   const manager = new TimescapeManager(get(options).date)
 
-  manager.subscribe((nextDate) => {
+  manager.on('changeDate', (nextDate) => {
     options.update((value) => ({ ...value, date: nextDate }))
   })
 

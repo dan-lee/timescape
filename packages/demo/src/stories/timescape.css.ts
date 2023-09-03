@@ -19,6 +19,16 @@ export const root = style({
   },
 })
 
+export const invalid = style({
+  borderColor: '#eb5839 !important',
+  outlineColor: '#eb5839 !important',
+})
+
+export const flex = style({
+  display: 'flex',
+  alignItems: 'center',
+})
+
 export const input = style({
   fontVariantNumeric: 'tabular-nums',
   height: 'fit-content',

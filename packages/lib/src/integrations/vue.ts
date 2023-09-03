@@ -8,7 +8,7 @@ export type UseTimescapeOptions = { date?: Date } & Options
 export function useTimescape(options: UseTimescapeOptions) {
   const manager = new TimescapeManager(options.date)
 
-  manager.subscribe((nextDate) => {
+  manager.on('changeDate', (nextDate) => {
     options.date = nextDate
   })
 

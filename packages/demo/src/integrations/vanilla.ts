@@ -24,7 +24,7 @@ export const renderTo = (container: HTMLElement) => {
 
   const manager = new TimescapeManager()
 
-  manager.subscribe((date) => {
+  manager.on('changeDate', (date) => {
     console.log('changed date', date)
     document.getElementById('result')!.innerHTML = date
       ? date.toLocaleString('en-UK')

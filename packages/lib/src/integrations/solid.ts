@@ -9,7 +9,7 @@ export const useTimescape = ([options, setOptions]: TimescapeOptions) => {
   const manager = new TimescapeManager(options().date)
 
   createEffect(() => {
-    manager.subscribe((nextDate) => {
+    manager.on('changeDate', (nextDate) => {
       setOptions((options) => ({ ...options, date: nextDate }))
     })
   })

@@ -1,4 +1,4 @@
-import { addListener, isTouchDevice } from './util'
+import { addListener, isTouchDevice, createPubSub, type Callback } from './util'
 import { get, set, add, daysInMonth, isSameSeconds, format } from './date.ts'
 
 export type DateType =
@@ -32,6 +32,11 @@ export type Options = {
   snapToStep?: boolean
 }
 
+type Events = {
+  changeDate: Date | undefined
+  focusWrap: 'start' | 'end'
+}
+
 export class TimescapeManager implements Options {
   minDate?: Options['minDate']
   maxDate?: Options['maxDate']
@@ -40,10 +45,9 @@ export class TimescapeManager implements Options {
   wrapAround?: Options['wrapAround'] = false
   snapToStep?: Options['snapToStep'] = false
 
-  #options: Options
   #timestamp: number | undefined
   #registry: Registry = new Map()
-  #subscribers = new Set<(timestamp: Date | undefined) => void>()
+  #pubsub: ReturnType<typeof createPubSub<Events>>
   #rootElement?: HTMLElement
   #rootListener?: () => void
   #cursorPosition = 0
@@ -88,6 +92,7 @@ export class TimescapeManager implements Options {
 
   constructor(initialDate?: Date, options?: Options) {
     this.#timestamp = initialDate?.getTime()
+    this.#pubsub = createPubSub<Events>()
 
     if (options) {
       this.minDate = options.minDate
@@ -96,8 +101,6 @@ export class TimescapeManager implements Options {
       this.digits = options.digits
       this.wrapAround = options.wrapAround
     }
-
-    this.#options = options ?? {}
 
     return new Proxy(this, {
       get: (target: this, property: keyof this & string) => {
@@ -146,10 +149,6 @@ export class TimescapeManager implements Options {
       this.#registry.delete(type)
       this.registerElement(entry.inputElement, type, entry.autofocus, true)
     })
-  }
-
-  public subscribe(callback: (timestamp: Date | undefined) => void) {
-    this.#subscribers.add(callback)
   }
 
   public registerRoot(element: HTMLElement) {
@@ -227,7 +226,7 @@ export class TimescapeManager implements Options {
       listeners: this.#createListeners(element),
     })
 
-    this.subscribe(() => this.#syncElement(element))
+    this.on('changeDate', () => this.#syncElement(element))
     this.#syncElement(element)
 
     return element
@@ -239,12 +238,12 @@ export class TimescapeManager implements Options {
       listeners.forEach((remove) => remove())
       shadowElement.remove()
     })
-    this.#subscribers.clear()
+    this.#pubsub.events = {}
     this.#resizeObserver.disconnect()
     this.#mutationObserver.disconnect()
   }
 
-  focusField(which: DateType | number = 0) {
+  public focusField(which: DateType | number = 0) {
     const entries = [...this.#registry.values()]
     const type =
       typeof which === 'number'
@@ -252,6 +251,10 @@ export class TimescapeManager implements Options {
         : entries.find(({ type }) => type === which)?.type
 
     type && this.#registry.get(type)?.inputElement.focus()
+  }
+
+  public on<E extends keyof Events>(event: E, callback: Callback<Events[E]>) {
+    return this.#pubsub.on(event, callback)
   }
 
   #copyStyles = (from: HTMLElement, to: HTMLElement) => {
@@ -622,7 +625,7 @@ export class TimescapeManager implements Options {
   #setValidatedDate(date: Date | undefined) {
     if (!date) {
       this.#timestamp = undefined
-      this.#subscribers.forEach((subscriber) => subscriber(undefined))
+      this.#pubsub.emit('changeDate', undefined)
       return
     }
 
@@ -640,7 +643,7 @@ export class TimescapeManager implements Options {
     }
 
     this.#timestamp = date.getTime()
-    this.#subscribers.forEach((subscriber) => subscriber(date))
+    this.#pubsub.emit('changeDate', date)
   }
 
   #focusNextField(type: DateType, offset = 1, wrap = true) {
@@ -651,6 +654,14 @@ export class TimescapeManager implements Options {
       ? types[(index + offset + types.length) % types.length]
       : types[index + offset]
     if (nextIndex) this.#registry.get(nextIndex)?.inputElement.focus()
+
+    if (
+      wrap &&
+      ((index === 0 && offset <= -1) ||
+        (index === types.length - 1 && offset >= 1))
+    ) {
+      this.#pubsub.emit('focusWrap', offset === -1 ? 'start' : 'end')
+    }
   }
 }
 

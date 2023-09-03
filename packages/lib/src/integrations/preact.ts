@@ -9,7 +9,7 @@ type UseTimescapeOptions = Signal<{ date?: Date } & Options>
 export const useTimescape = (options: UseTimescapeOptions) => {
   const [manager] = useState(() => new TimescapeManager(options.value.date))
 
-  manager.subscribe((nextDate) => {
+  manager.on('changeDate', (nextDate) => {
     options.value = { ...options.value, date: nextDate }
   })
 

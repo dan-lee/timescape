@@ -1,8 +1,8 @@
-import { DateType } from 'timescape'
+import { type DateType } from 'timescape'
 import { useTimescape } from 'timescape/react'
 import type { Meta, StoryObj } from '@storybook/react'
 import { root, input, separator } from './timescape.css.ts'
-import { AllHTMLAttributes, useEffect } from 'react'
+import { type AllHTMLAttributes, useEffect } from 'react'
 import { within, userEvent } from '@storybook/testing-library'
 import { expect } from '@storybook/jest'
 
@@ -246,7 +246,7 @@ type Story = StoryObj<typeof TimeInputComponent>
 
 export const DateTime: Story = {
   play: async ({ canvasElement }) => {
-    const canvas = await within(canvasElement)
+    const canvas = within(canvasElement)
 
     const days = canvas.getByTestId<HTMLInputElement>('days')
     const months = canvas.getByTestId<HTMLInputElement>('months')
