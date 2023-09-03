@@ -2,7 +2,7 @@ import { DateType } from 'timescape'
 import { useTimescape } from 'timescape/react'
 import type { Meta, StoryObj } from '@storybook/react'
 import { root, input, separator } from './timescape.css.ts'
-import { useEffect } from 'react'
+import { AllHTMLAttributes, useEffect } from 'react'
 import { within, userEvent } from '@storybook/testing-library'
 import { expect } from '@storybook/jest'
 
@@ -15,8 +15,10 @@ const TimeInputComponent = ({
   digits,
   wrapAround,
   withSeconds,
+  snapToStep,
   demoType,
   autofocus,
+  getOtherAttributes,
 }: {
   controlledDate: Date | 'unset'
   minDate: Date
@@ -26,7 +28,9 @@ const TimeInputComponent = ({
   wrapAround: boolean
   withSeconds: boolean
   autofocus: DateType
+  snapToStep: boolean
   demoType: 'date' | 'time' | 'datetime'
+  getOtherAttributes?: (type: DateType) => AllHTMLAttributes<HTMLInputElement>
 }) => {
   const [date, setDate] = useDateContext()
   useEffect(() => {
@@ -42,6 +46,7 @@ const TimeInputComponent = ({
     hour12,
     digits,
     wrapAround,
+    snapToStep,
     onChangeDate: (nextDate) => {
       setDate(nextDate)
     },
@@ -51,27 +56,30 @@ const TimeInputComponent = ({
     <>
       <input
         className={input}
-        {...getInputProps('days', { autofocus: autofocus === 'days' })}
-        data-testid="days"
         placeholder="dd"
+        data-testid="days"
+        {...getOtherAttributes?.('days')}
+        {...getInputProps('days', { autofocus: autofocus === 'days' })}
       />
       <span className={separator}>/</span>
       <input
         className={input}
+        placeholder="mm"
+        data-testid="months"
+        {...getOtherAttributes?.('months')}
         {...getInputProps('months', {
           autofocus: autofocus === 'months',
         })}
-        data-testid="months"
-        placeholder="mm"
       />
       <span className={separator}>/</span>
       <input
         className={input}
+        placeholder="yyyy"
+        data-testid="years"
+        {...getOtherAttributes?.('years')}
         {...getInputProps('years', {
           autofocus: autofocus === 'years',
         })}
-        data-testid="years"
-        placeholder="yyyy"
       />
     </>
   )
@@ -82,11 +90,12 @@ const TimeInputComponent = ({
       <input
         key="seconds"
         className={input}
+        placeholder="ss"
+        data-testid="seconds"
+        {...getOtherAttributes?.('seconds')}
         {...getInputProps('seconds', {
           autofocus: autofocus === 'seconds',
         })}
-        data-testid="seconds"
-        placeholder="ss"
       />
     </>
   )
@@ -95,10 +104,11 @@ const TimeInputComponent = ({
     <input
       key="ampm"
       className={input}
+      data-testid="ampm"
+      {...getOtherAttributes?.('am/pm')}
       {...getInputProps('am/pm', {
         autofocus: autofocus === 'am/pm',
       })}
-      data-testid="ampm"
     />
   )
 
@@ -106,20 +116,22 @@ const TimeInputComponent = ({
     <>
       <input
         className={input}
+        placeholder="hh"
+        data-testid="hours"
+        {...getOtherAttributes?.('hours')}
         {...getInputProps('hours', {
           autofocus: autofocus === 'hours',
         })}
-        data-testid="hours"
-        placeholder="hh"
       />
       <span className={separator}>:</span>
       <input
         className={input}
+        placeholder="mm"
+        data-testid="minutes"
+        {...getOtherAttributes?.('minutes')}
         {...getInputProps('minutes', {
           autofocus: autofocus === 'minutes',
         })}
-        data-testid="minutes"
-        placeholder="mm"
       />
       {withSeconds && SecondsInput}
       {hour12 && AmPmInput}
@@ -167,6 +179,17 @@ export default {
       description: 'Wrap around when reaching the end of the range',
       control: 'boolean',
       defaultValue: false,
+    },
+    snapToStep: {
+      name: 'Snap to step',
+      description: 'Snap to step when scrolling',
+      control: 'boolean',
+      defaultValue: false,
+    },
+    getOtherAttributes: {
+      table: {
+        disable: true,
+      },
     },
     digits: {
       name: 'Digits',
@@ -316,5 +339,27 @@ export const Placeholder: Story = {
     controlledDate: 'unset',
     withSeconds: true,
     demoType: 'datetime',
+  },
+}
+
+export const Step: Story = {
+  name: 'Step (15 min)',
+  args: {
+    demoType: 'time',
+    getOtherAttributes: (type) => ({
+      step: type === 'minutes' ? 12 : undefined,
+    }),
+  },
+}
+
+export const SnapToStep: Story = {
+  name: 'Step with snapping (2hr / 15 min)',
+  args: {
+    snapToStep: true,
+    controlledDate: new Date('2023-01-01 11:13:00'),
+    demoType: 'time',
+    getOtherAttributes: (type) => ({
+      step: type === 'minutes' ? 15 : type === 'hours' ? 2 : undefined,
+    }),
   },
 }

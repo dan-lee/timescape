@@ -393,6 +393,71 @@ describe('timescape', () => {
     })
   })
 
+  describe('steps', () => {
+    it('should take step into account', () => {
+      container = document.createElement('div')
+      manager = new TimescapeManager()
+      container.innerHTML = `
+        <div data-testid="root">
+          <input data-testid="minutes" step="15" />
+        </div>
+      `
+      document.body.appendChild(container)
+
+      const { minutes } = getFields()
+
+      manager.date = new Date('2021-01-01 01:13:43')
+      manager.registerRoot(container)
+      manager.registerElement(minutes, 'minutes')
+
+      minutes.focus()
+      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      expect(minutes).toHaveValue('28')
+    })
+
+    it('should work with snapToStep', () => {
+      container = document.createElement('div')
+      manager = new TimescapeManager()
+      container.innerHTML = `
+        <div data-testid="root">
+          <input data-testid="hours" step="3" />
+          <input data-testid="minutes" step="15" />
+          <input data-testid="seconds" step="30" />
+        </div>
+      `
+      document.body.appendChild(container)
+
+      const { hours, minutes, seconds } = getFields()
+
+      manager.snapToStep = true
+      manager.date = new Date('2021-01-01 01:13:43')
+      manager.registerRoot(container)
+      manager.registerElement(hours, 'hours')
+      manager.registerElement(minutes, 'minutes')
+      manager.registerElement(seconds, 'seconds')
+
+      const fields = getFields()
+
+      fields.hours.focus()
+      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      expect(fields.hours).toHaveValue('00')
+      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      expect(fields.hours).toHaveValue('21')
+
+      fields.minutes.focus()
+      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      expect(fields.minutes).toHaveValue('15')
+      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      expect(fields.minutes).toHaveValue('30')
+
+      fields.seconds.focus()
+      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      expect(fields.seconds).toHaveValue('00')
+      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      expect(fields.seconds).toHaveValue('30')
+    })
+  })
+
   describe('min and max date', () => {
     it('should not allow dates before minDate', () => {
       document.body.appendChild(container)

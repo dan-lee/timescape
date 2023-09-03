@@ -29,6 +29,7 @@ export type Options = {
   hour12?: boolean
   digits?: 'numeric' | '2-digit'
   wrapAround?: boolean
+  snapToStep?: boolean
 }
 
 export class TimescapeManager implements Options {
@@ -37,6 +38,7 @@ export class TimescapeManager implements Options {
   hour12?: Options['hour12'] = false
   digits?: Options['digits'] = '2-digit'
   wrapAround?: Options['wrapAround'] = false
+  snapToStep?: Options['snapToStep'] = false
 
   #options: Options
   #timestamp: number | undefined
@@ -355,9 +357,23 @@ export class TimescapeManager implements Options {
           this.#setValidatedDate(add(date, 'hours', isAM ? 12 : -12))
           break
         }
-        const elementStep = Number(inputElement.step)
-        const factor = e.key === 'ArrowUp' ? 1 : -1
-        const step = (elementStep || 1) * factor
+
+        const elementStep = Number(inputElement.step) || 1
+
+        let step
+        if (this.snapToStep) {
+          const value = get(date, type)
+
+          if (e.key === 'ArrowUp') {
+            step = Math.ceil((value + 1) / elementStep) * elementStep - value
+          } else {
+            step = Math.floor((value - 1) / elementStep) * elementStep - value
+          }
+        } else {
+          const factor = e.key === 'ArrowUp' ? 1 : -1
+
+          step = elementStep * factor
+        }
 
         this.#setValidatedDate(
           this.wrapAround

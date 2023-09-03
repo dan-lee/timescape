@@ -19,6 +19,7 @@ export function useTimescape(options: UseTimescapeOptions) {
       options.hour12,
       options.wrapAround,
       options.digits,
+      options.snapToStep,
     ],
     ([minDate, maxDate, hour12, wrapAround, digits]) => {
       manager.minDate = minDate as UseTimescapeOptions['minDate']
@@ -30,6 +31,9 @@ export function useTimescape(options: UseTimescapeOptions) {
         manager.digits = digits as UseTimescapeOptions['digits']
       if (wrapAround !== undefined)
         manager.wrapAround = wrapAround as UseTimescapeOptions['wrapAround']
+      if (options.snapToStep !== undefined)
+        manager.snapToStep =
+          options.snapToStep as UseTimescapeOptions['snapToStep']
     },
     { immediate: true },
   )

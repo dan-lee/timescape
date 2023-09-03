@@ -24,6 +24,10 @@ export const useTimescape = (options: UseTimescapeOptions) => {
       manager.digits = options.value.digits
     if (options.value.wrapAround !== undefined)
       manager.wrapAround = options.value.wrapAround
+    if (options.value.hour12 !== undefined)
+      manager.hour12 = options.value.hour12
+    if (options.value.snapToStep !== undefined)
+      manager.snapToStep = options.value.snapToStep
   })
 
   useEffect(() => () => manager.remove(), [manager])

@@ -23,6 +23,8 @@ export const useTimescape = ([options, setOptions]: TimescapeOptions) => {
     if (options().digits !== undefined) manager.digits = options().digits
     if (options().wrapAround !== undefined)
       manager.wrapAround = options().wrapAround
+    if (options().snapToStep !== undefined)
+      manager.snapToStep = options().snapToStep
   })
 
   onCleanup(() => manager.remove())

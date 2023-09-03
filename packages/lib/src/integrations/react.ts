@@ -20,6 +20,7 @@ export const useTimescape = ({
   hour12 = false,
   wrapAround = false,
   digits = '2-digit',
+  snapToStep = false,
   onChangeDate,
 }: TimescapeOptions) => {
   const manager = useRef(new TimescapeManager(date))
@@ -57,7 +58,8 @@ export const useTimescape = ({
     if (hour12 !== undefined) manager.current.hour12 = hour12
     if (wrapAround !== undefined) manager.current.wrapAround = wrapAround
     if (digits !== undefined) manager.current.digits = digits
-  }, [minDate, maxDate, hour12, wrapAround, digits])
+    if (snapToStep !== undefined) manager.current.snapToStep = snapToStep
+  }, [minDate, maxDate, hour12, wrapAround, digits, snapToStep])
 
   return {
     getInputProps: (
