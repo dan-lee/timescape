@@ -63,12 +63,16 @@ const IframeComponent = ({ integration }: { integration: Integration }) => {
     }
   }, [])
 
+  const src = import.meta.env.DEV
+    ? `http://localhost:5173/integrations.html?value=${integration}`
+    : `./integrations.html?value=${integration}`
+
   return (
     <div>
       <iframe
         title={`${integration} integration demo`}
         role="presentation"
-        src={`./integrations.html?value=${integration}`}
+        src={src}
         className={styles.iframe}
       />
       <Badge integration={integration} />
