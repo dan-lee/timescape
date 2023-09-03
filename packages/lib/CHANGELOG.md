@@ -1,5 +1,11 @@
 # timescape
 
+## 0.3.0
+
+### Minor Changes
+
+- 68cd9f1: Add `snapToStep` option
+
 ## 0.2.1
 
 ### Patch Changes
