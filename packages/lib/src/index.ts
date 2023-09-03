@@ -317,6 +317,23 @@ export class TimescapeManager implements Options {
     return date
   }
 
+  #clearIntermediateState(registryEntry: RegistryEntry) {
+    const { intermediateValue, type } = registryEntry
+    if (intermediateValue) {
+      this.#setValidatedDate(
+        set(
+          this.#currentDate,
+          type,
+          type === 'months'
+            ? Number(intermediateValue) - 1
+            : Number(intermediateValue),
+        ),
+      )
+      registryEntry.intermediateValue = ''
+      this.#cursorPosition = 0
+    }
+  }
+
   #handleKeyDown(e: KeyboardEvent) {
     const registryEntry = [...this.#registry.values()].find(
       ({ inputElement }) => inputElement === e.target,
@@ -329,6 +346,7 @@ export class TimescapeManager implements Options {
     switch (e.key) {
       case 'ArrowUp':
       case 'ArrowDown':
+        this.#clearIntermediateState(registryEntry)
         const date = this.#currentDate
 
         if (type === 'am/pm') {
@@ -500,6 +518,12 @@ export class TimescapeManager implements Options {
   #handleBlur(e: FocusEvent) {
     requestAnimationFrame(() => {
       if (e.target !== document.activeElement) {
+        const registryEntry = [...this.#registry.values()].find(
+          ({ inputElement }) => inputElement === e.target,
+        )
+        if (registryEntry) {
+          this.#clearIntermediateState(registryEntry)
+        }
         const target = e.target as HTMLInputElement
         target.removeAttribute('aria-selected')
       }
