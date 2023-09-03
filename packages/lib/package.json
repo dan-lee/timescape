@@ -12,6 +12,9 @@
     "build": "tsup",
     "prepublishOnly": "pnpm test run && pnpm typecheck && pnpm build && cp ../../README.md . && cp ../../LICENSE ."
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.js"
