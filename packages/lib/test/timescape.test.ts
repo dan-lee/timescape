@@ -746,6 +746,33 @@ describe('timescape', () => {
       fireEvent.keyDown(document.activeElement, { key: 'ArrowRight' })
       expect(fields.days).toHaveValue('9')
     })
+
+    it('should allow up/down keys when there is an intermediate value', () => {
+      document.body.appendChild(container)
+
+      const fields = getFields()
+
+      fields.minutes.focus()
+      fireEvent.keyDown(document.activeElement, { key: '3' })
+      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      expect(fields.minutes).toHaveValue('04')
+
+      fields.months.focus()
+      fireEvent.keyDown(document.activeElement, { key: '1' })
+      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      expect(fields.months).toHaveValue('12')
+    })
+
+    it('should set value to intermediate value when focus is lost', () => {
+      document.body.appendChild(container)
+
+      const fields = getFields()
+
+      fields.minutes.focus()
+      fireEvent.keyDown(document.activeElement, { key: '3' })
+      fields.hours.focus()
+      expect(fields.minutes).toHaveValue('03')
+    })
   })
 
   it('should support setting options on constructor', () => {
