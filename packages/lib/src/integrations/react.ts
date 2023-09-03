@@ -88,14 +88,9 @@ export const useTimescape = ({
 export const useTimescapeRange = ({
   fromDate,
   toDate,
-  minDate,
-  maxDate,
-  hour12 = false,
-  wrapAround = false,
-  digits = '2-digit',
-  snapToStep = false,
   onChangeFromDate,
   onChangeToDate,
+  ...rest
 }: {
   fromDate?: Date
   toDate?: Date
@@ -104,24 +99,14 @@ export const useTimescapeRange = ({
 } & Options) => {
   const from = useTimescape({
     date: fromDate,
-    minDate,
-    maxDate,
-    hour12,
-    wrapAround,
-    digits,
-    snapToStep,
     onChangeDate: onChangeFromDate,
+    ...rest,
   })
 
   const to = useTimescape({
     date: toDate,
-    minDate,
-    maxDate,
-    hour12,
-    wrapAround,
-    digits,
-    snapToStep,
     onChangeDate: onChangeToDate,
+    ...rest,
   })
   const [isValid, setIsValid] = useState(true)
 
@@ -129,7 +114,6 @@ export const useTimescapeRange = ({
     const unsubFrom = from.manager.on('focusWrap', (type) => {
       to.manager.focusField(type === 'start' ? -1 : 0)
     })
-
     const unsubTo = to.manager.on('focusWrap', (type) => {
       from.manager.focusField(type === 'end' ? 0 : -1)
     })
@@ -141,21 +125,14 @@ export const useTimescapeRange = ({
   }, [to.manager, from.manager])
 
   useEffect(() => {
-    const unsubFrom = from.manager.on('changeDate', () => {
-      const fromDate = from.manager.date
-      const toDate = to.manager.date
+    const validate = () => {
       setIsValid(
-        fromDate && toDate ? fromDate.getTime() <= toDate.getTime() : true,
+        (from.manager.date?.getTime() ?? 0) <=
+          (to.manager.date?.getTime() ?? 0),
       )
-    })
-
-    const unsubTo = to.manager.on('changeDate', () => {
-      const fromDate = from.manager.date
-      const toDate = to.manager.date
-      setIsValid(
-        fromDate && toDate ? fromDate.getTime() <= toDate.getTime() : true,
-      )
-    })
+    }
+    const unsubFrom = from.manager.on('changeDate', validate)
+    const unsubTo = to.manager.on('changeDate', validate)
 
     return () => {
       unsubFrom()

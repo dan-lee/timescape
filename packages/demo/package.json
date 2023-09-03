@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "dev": "pnpm storybook",
+    "dev": "concurrently -n 'integration,storybook' 'pnpm vite --port 4949' 'pnpm storybook'",
     "dev:integrations": "vite build && concurrently 'pnpm storybook' 'vite build -l error -w'",
     "build": "pnpm typecheck && vite build && pnpm build-storybook",
     "preview": "vite preview",

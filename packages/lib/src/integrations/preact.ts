@@ -1,6 +1,6 @@
 import { TimescapeManager, $NOW, type DateType, type Options } from '..'
 import { useEffect, useState, type MutableRef } from 'preact/hooks'
-import { effect, type Signal } from '@preact/signals'
+import { useSignalEffect, type Signal, useSignal } from '@preact/signals'
 
 export { $NOW, type DateType }
 
@@ -13,7 +13,7 @@ export const useTimescape = (options: UseTimescapeOptions) => {
     options.value = { ...options.value, date: nextDate }
   })
 
-  effect(() => {
+  useSignalEffect(() => {
     manager.date = options.value.date
     manager.minDate = options.value.minDate
     manager.maxDate = options.value.maxDate
@@ -48,5 +48,78 @@ export const useTimescape = (options: UseTimescapeOptions) => {
       ref: (element: HTMLElement | null) =>
         element && manager.registerRoot(element),
     }),
+    manager,
+  } as const
+}
+
+export const useTimescapeRange = (
+  options: Signal<
+    {
+      fromDate?: Date
+      toDate?: Date
+      onChangeFromDate?: (nextDate: Date | undefined) => void
+      onChangeToDate?: (nextDate: Date | undefined) => void
+    } & Options
+  >,
+) => {
+  const { fromDate, onChangeFromDate, ...fromRest } = options.value
+  const fromProps = useSignal({
+    date: fromDate,
+    onChangeDate: onChangeFromDate,
+    ...fromRest,
+  })
+
+  const { toDate, onChangeToDate, ...rest } = options.value
+  const toProps = useSignal({
+    date: toDate,
+    onChangeDate: onChangeToDate,
+    ...rest,
+  })
+
+  const from = useTimescape(fromProps)
+  const to = useTimescape(toProps)
+  const [isValid, setIsValid] = useState(true)
+
+  useEffect(() => {
+    const unsubFrom = from.manager.on('focusWrap', (type) => {
+      to.manager.focusField(type === 'start' ? -1 : 0)
+    })
+    const unsubTo = to.manager.on('focusWrap', (type) => {
+      from.manager.focusField(type === 'end' ? 0 : -1)
+    })
+
+    return () => {
+      unsubFrom()
+      unsubTo()
+    }
+  }, [to.manager, from.manager])
+
+  useEffect(() => {
+    const validate = () => {
+      setIsValid(
+        (from.manager.date?.getTime() ?? 0) <=
+          (to.manager.date?.getTime() ?? 0),
+      )
+    }
+
+    const unsubFrom = from.manager.on('changeDate', validate)
+    const unsubTo = to.manager.on('changeDate', validate)
+
+    return () => {
+      unsubFrom()
+      unsubTo()
+    }
+  }, [from.manager, to.manager])
+
+  return {
+    isValid,
+    from: {
+      getInputProps: from.getInputProps,
+      getRootProps: from.getRootProps,
+    },
+    to: {
+      getInputProps: to.getInputProps,
+      getRootProps: to.getRootProps,
+    },
   } as const
 }

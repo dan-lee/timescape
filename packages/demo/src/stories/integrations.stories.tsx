@@ -64,7 +64,7 @@ const IframeComponent = ({ integration }: { integration: Integration }) => {
   }, [])
 
   const src = import.meta.env.DEV
-    ? `http://localhost:5173/integrations.html?value=${integration}`
+    ? `http://localhost:4949/integrations.html?value=${integration}`
     : `./integrations.html?value=${integration}`
 
   return (
