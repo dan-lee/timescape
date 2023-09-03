@@ -24,6 +24,7 @@ export const createTimescape = (options: CreateTimescapeOptions) => {
     if (value.hour12 !== undefined) manager.hour12 = value.hour12
     if (value.digits !== undefined) manager.digits = value.digits
     if (value.wrapAround !== undefined) manager.wrapAround = value.wrapAround
+    if (value.snapToStep !== undefined) manager.snapToStep = value.snapToStep
   })
 
   const date = derived(options, ($options) => $options.date)

@@ -276,6 +276,7 @@ type Options = {
   hour12?: boolean
   wrapAround?: boolean
   digits?: 'numeric' | '2-digit'
+  snapToStep?: boolean
 }
 ```
 
@@ -286,6 +287,7 @@ type Options = {
 | `hour12`     | `false`     | If set to `true`, the time input will use a 12-hour format (with AM/PM). If set to `false`, it will use a 24-hour format.                                                                                                                                                                                                                                        |
 | `digits`     | `'2-digit'` | Controls the display of the day and month in the date input. `'numeric'` displays as 1-12 for month and 1-31 for day, while `'2-digit'` displays as 01-12 for month and 01-31 for day. This follows [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#day) convention. |
 | `wrapAround` | `false`     | If set to `true`, the time input will wrap around from the end of one period (AM/PM or day) to the beginning of the next.                                                                                                                                                                                                                                        |
+| `snapToStep` | `false`     | If set to `true`, the input value will snap to the nearest step when the user uses arrow keys to increment/decrement values.                                                                                                                                                                                                                                     |
 
 ### `$NOW` value
 
@@ -304,6 +306,10 @@ import { $NOW } from 'timescape/react'
 // Svelte import names prohibit a $ prefix, so it's renamed to NOW there
 import { NOW } from 'timescape/svelte'
 ```
+
+### `step` on input elements
+
+The `step` attribute on the input elements is supported and will be used to increment/decrement the values when the user uses the arrow keys. The default value is `1`, but you can set it to any value you want. Also see [`snapToStep`](#options) if you want to snap to the nearest step.
 
 ## Anatomy & styling
 
