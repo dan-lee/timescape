@@ -327,11 +327,11 @@ The `step` attribute on the input elements is supported and will be used to incr
 
 ## Ranges
 
-`timescape` supports ranges for the date and time inputs. This means you have a start and end date/time, and the user can select a range between those two values. This is useful for things like booking systems, where you want to allow the user to select a range of dates.
+`timescape` supports ranges for the date/time inputs. This means a user can select a start and end. This is useful for things like booking systems, where you want to allow the user to select a range of dates.
 
-It is composed of two `timescape` instances, one for the start and one for the end. You can set their options independently, and they return the respective options and update functions in the `from` and `to` objects.
+This is achieved by using two `timescape` instances, one for the start and one for the end. You can set their options independently, and they return the respective options and update functions in the `from` and `to` objects.
 
-Example usage (this works the same for all libraries):
+Example usage (this works similar for all supported libraries):
 
 ```tsx
 import { useTimescapeRange } from 'timescape/react'
