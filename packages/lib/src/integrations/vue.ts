@@ -1,54 +1,77 @@
-import { TimescapeManager, $NOW, type Options, type DateType } from '..'
-import { onUnmounted, watch } from 'vue'
+import {
+  onUnmounted,
+  type ComponentPublicInstance,
+  ref,
+  watchEffect,
+} from 'vue'
 
-export { $NOW, type DateType }
+import {
+  TimescapeManager,
+  $NOW,
+  type DateType,
+  type Options,
+  type RangeOptions,
+} from '../index'
+import { marry } from '../range'
 
-export type UseTimescapeOptions = { date?: Date } & Options
+export { $NOW, type DateType, type Options, type RangeOptions }
 
-export function useTimescape(options: UseTimescapeOptions) {
-  const manager = new TimescapeManager(options.date)
+export const useTimescape = (options: Options = {}) => {
+  const optionsRef = ref(options)
+  const { date, ...rest } = options
+
+  const manager = new TimescapeManager(date, rest)
 
   manager.on('changeDate', (nextDate) => {
-    options.date = nextDate
+    optionsRef.value.date = nextDate
   })
 
-  watch(
-    () => [
-      options.minDate,
-      options.maxDate,
-      options.hour12,
-      options.wrapAround,
-      options.digits,
-      options.snapToStep,
-    ],
-    ([minDate, maxDate, hour12, wrapAround, digits]) => {
-      manager.minDate = minDate as UseTimescapeOptions['minDate']
-      manager.maxDate = maxDate as UseTimescapeOptions['maxDate']
-
-      if (hour12 !== undefined)
-        manager.hour12 = hour12 as UseTimescapeOptions['hour12']
-      if (digits !== undefined)
-        manager.digits = digits as UseTimescapeOptions['digits']
-      if (wrapAround !== undefined)
-        manager.wrapAround = wrapAround as UseTimescapeOptions['wrapAround']
-      if (options.snapToStep !== undefined)
-        manager.snapToStep =
-          options.snapToStep as UseTimescapeOptions['snapToStep']
-    },
-    { immediate: true },
-  )
-
-  watch(
-    () => options.date,
-    (nextDate) => (manager.date = nextDate),
-  )
+  watchEffect(() => {
+    manager.date = optionsRef.value.date
+    manager.minDate = optionsRef.value.minDate
+    manager.maxDate = optionsRef.value.maxDate
+    manager.digits = optionsRef.value.digits
+    manager.wrapAround = optionsRef.value.wrapAround
+    manager.hour12 = optionsRef.value.hour12
+    manager.snapToStep = optionsRef.value.snapToStep
+  })
 
   onUnmounted(() => manager.remove())
 
   return {
-    registerElement: (type: DateType) => (element: HTMLInputElement | null) =>
-      element && manager.registerElement(element, type),
-    registerRoot: () => (element: HTMLElement | null) =>
-      element && manager.registerRoot(element),
+    _manager: manager,
+    registerElement:
+      (type: DateType) => (element: Element | ComponentPublicInstance | null) =>
+        element instanceof HTMLInputElement &&
+        manager.registerElement(element, type),
+    registerRoot: () => (element: Element | ComponentPublicInstance | null) => {
+      element instanceof HTMLElement && manager.registerRoot(element)
+    },
+    options: optionsRef,
+  } as const
+}
+
+export const useTimescapeRange = (options: RangeOptions = {}) => {
+  const from = useTimescape(options.from)
+  const to = useTimescape(options.to)
+
+  marry(from._manager, to._manager)
+
+  return {
+    registerRangeRoot:
+      () => (element: Element | ComponentPublicInstance | null) => {
+        if (element instanceof HTMLElement) {
+          from._manager.registerRoot(element)
+          to._manager.registerRoot(element)
+        }
+      },
+    from: {
+      registerElement: from.registerElement,
+      options: from.options,
+    },
+    to: {
+      registerElement: to.registerElement,
+      options: to.options,
+    },
   } as const
 }

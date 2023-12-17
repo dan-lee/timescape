@@ -1,31 +1,38 @@
 import { html, render } from 'htm/preact'
-import { useComputed, useSignal, useSignalEffect } from '@preact/signals'
+import { useComputed, useSignalEffect } from '@preact/signals'
 import { useTimescape, useTimescapeRange } from 'timescape/preact'
 
 const PreactDemo = () => {
-  const options = useSignal({
+  const { getRootProps, getInputProps, options } = useTimescape({
     date: new Date(),
   })
 
-  const { getRootProps, getInputProps } = useTimescape(options)
-
-  const otherOptions = useSignal({
-    fromDate: new Date(),
-    toDate: new Date(),
+  const {
+    getRootProps: getRangeRootProps,
+    from,
+    to,
+  } = useTimescapeRange({
+    from: { date: new Date() },
+    to: { date: new Date('2024-12-31') },
   })
 
-  const { from, to, isValid } = useTimescapeRange(otherOptions)
-
-  const _dateString = useComputed(() =>
-    options.value.date.toLocaleString('en-UK'),
+  const _dateString = useComputed(
+    () => options.value.date?.toLocaleString('en-UK'),
   )
 
   useSignalEffect(() => {
     console.log('Date changed to', options.value)
   })
+  useSignalEffect(() => {
+    console.log('Range `from` changed to', from.options.value.date)
+  })
+  useSignalEffect(() => {
+    console.log('Range `to` changed to', to.options.value.date)
+  })
 
   return html`
     <div>
+      Simple date time:
       <div class="timescape-root" ...${getRootProps()}>
         <input class="timescape-input" ...${getInputProps('days')} />
         <span class="separator">/</span>
@@ -40,18 +47,20 @@ const PreactDemo = () => {
         <span class="separator">:</span>
         <input class="timescape-input" ...${getInputProps('seconds')} />
       </div>
-
-      <div>
-        <div ...${from.getRootProps()}>
-          <input class="timescape-input" ...${from.getInputProps('years')} />
-          <input class="timescape-input" ...${from.getInputProps('months')} />
-          <input class="timescape-input" ...${from.getInputProps('days')} />
-        </div>
-        <div ...${to.getRootProps()}>
-          <input class="timescape-input" ...${to.getInputProps('years')} />
-          <input class="timescape-input" ...${to.getInputProps('months')} />
-          <input class="timescape-input" ...${to.getInputProps('days')} />
-        </div>
+      <br />
+      Range:
+      <div class="timescape-root" ...${getRangeRootProps()}>
+        <input class="timescape-input" ...${from.getInputProps('years')} />
+        <span class="separator">/</span>
+        <input class="timescape-input" ...${from.getInputProps('months')} />
+        <span class="separator">/</span>
+        <input class="timescape-input" ...${from.getInputProps('days')} />
+        <span class="separator">–</span>
+        <input class="timescape-input" ...${to.getInputProps('years')} />
+        <span class="separator">/</span>
+        <input class="timescape-input" ...${to.getInputProps('months')} />
+        <span class="separator">/</span>
+        <input class="timescape-input" ...${to.getInputProps('days')} />
       </div>
     </div>
   `

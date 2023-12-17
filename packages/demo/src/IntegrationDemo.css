@@ -17,14 +17,16 @@ button {
   gap: 2px;
   width: fit-content;
   border: 1px solid #bbb;
+  outline: 1px solid transparent;
   padding: 5px;
   user-select: none;
   border-radius: 10px;
   transition: 100ms;
+  background-color: #fff;
 }
 
 .timescape-root:focus-within {
-  outline: 1px solid var(--main-color);
+  outline-color: var(--main-color);
   border-color: var(--main-color);
 }
 
@@ -49,7 +51,7 @@ button {
   background-color: var(--main-color);
   color: #fff;
   border-radius: 6px;
-  padding: 2px;
+  padding-inline: 2px;
 }
 
 .separator {

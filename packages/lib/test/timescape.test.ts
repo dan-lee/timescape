@@ -45,14 +45,14 @@ beforeEach(() => {
 })
 
 const getFields = () => {
-  const root = queryByTestId<HTMLDivElement>(container, 'root')
-  const years = queryByTestId<HTMLInputElement>(container, 'years')
-  const months = queryByTestId<HTMLInputElement>(container, 'months')
-  const days = queryByTestId<HTMLInputElement>(container, 'days')
-  const hours = queryByTestId<HTMLInputElement>(container, 'hours')
-  const minutes = queryByTestId<HTMLInputElement>(container, 'minutes')
-  const seconds = queryByTestId<HTMLInputElement>(container, 'seconds')
-  const ampm = queryByTestId<HTMLInputElement>(container, 'am/pm')
+  const root = queryByTestId<HTMLDivElement>(container, 'root')!
+  const years = queryByTestId<HTMLInputElement>(container, 'years')!
+  const months = queryByTestId<HTMLInputElement>(container, 'months')!
+  const days = queryByTestId<HTMLInputElement>(container, 'days')!
+  const hours = queryByTestId<HTMLInputElement>(container, 'hours')!
+  const minutes = queryByTestId<HTMLInputElement>(container, 'minutes')!
+  const seconds = queryByTestId<HTMLInputElement>(container, 'seconds')!
+  const ampm = queryByTestId<HTMLInputElement>(container, 'am/pm')!
 
   return { root, years, months, days, hours, minutes, seconds, ampm }
 }
@@ -230,7 +230,7 @@ describe('timescape', () => {
         years,
       ]
       for (const element of elements) {
-        fireEvent.keyDown(document.activeElement, { key: 'ArrowRight' })
+        fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
         expect(element).toHaveFocus()
       }
     })
@@ -253,7 +253,7 @@ describe('timescape', () => {
         ampm,
       ]
       for (const element of orderedElements) {
-        fireEvent.keyDown(document.activeElement, { key: 'ArrowLeft' })
+        fireEvent.keyDown(document.activeElement!, { key: 'ArrowLeft' })
         expect(element).toHaveFocus()
       }
     })
@@ -264,86 +264,86 @@ describe('timescape', () => {
 
       // years
       fields.years.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
 
       expect(fields.years).toHaveValue('2022')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 31 Dec 2022 23:59:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.years.value).toMatchInlineSnapshot('"2021"')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
       )
 
       // months
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.months).toHaveValue('01')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Mon, 31 Jan 2022 23:59:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.months).toHaveValue('12')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
       )
 
       // days
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.days).toHaveValue('01')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 01 Jan 2022 23:59:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.days).toHaveValue('31')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
       )
 
       // hours
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.hours).toHaveValue('00')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 01 Jan 2022 00:59:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.hours).toHaveValue('23')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
       )
 
       // minutes
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.minutes).toHaveValue('00')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 01 Jan 2022 00:00:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.minutes).toHaveValue('59')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
       )
 
       // seconds
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('00')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 01 Jan 2022 00:00:00 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.seconds).toHaveValue('59')
-      expect(manager.date.toUTCString()).toMatchInlineSnapshot(
+      expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
       )
     })
@@ -357,7 +357,7 @@ describe('timescape', () => {
       expect(fields.ampm).toHaveValue('PM')
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.hours).toHaveValue('12')
       expect(fields.minutes).toHaveValue('00')
       expect(fields.seconds).toHaveValue('00')
@@ -381,14 +381,14 @@ describe('timescape', () => {
       fields.days.focus()
       expect(fields.days).toHaveFocus()
 
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowRight' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
       expect(fields.months).toHaveFocus()
 
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowRight' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
       expect(fields.years).toHaveFocus()
 
       // cycle from beginning, other fields have been removed
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowRight' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
       expect(fields.days).toHaveFocus()
     })
   })
@@ -411,7 +411,7 @@ describe('timescape', () => {
       manager.registerElement(minutes, 'minutes')
 
       minutes.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(minutes).toHaveValue('28')
     })
 
@@ -439,21 +439,21 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.hours).toHaveValue('00')
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.hours).toHaveValue('21')
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.minutes).toHaveValue('15')
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.minutes).toHaveValue('30')
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('00')
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('30')
     })
   })
@@ -467,7 +467,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.seconds).toHaveValue('00')
       expect(fields.minutes).toHaveValue('00')
       expect(fields.hours).toHaveValue('00')
@@ -477,8 +477,8 @@ describe('timescape', () => {
 
       // type in a value
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement, { key: '0' })
-      fireEvent.keyDown(document.activeElement, { key: '5' })
+      fireEvent.keyDown(document.activeElement!, { key: '0' })
+      fireEvent.keyDown(document.activeElement!, { key: '5' })
       expect(fields.days).toHaveFocus()
 
       expect(fields.seconds).toHaveValue('00')
@@ -497,7 +497,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('00')
       expect(fields.minutes).toHaveValue('00')
       expect(fields.hours).toHaveValue('00')
@@ -507,8 +507,8 @@ describe('timescape', () => {
 
       // type in a value
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement, { key: '1' })
-      fireEvent.keyDown(document.activeElement, { key: '0' })
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '0' })
       expect(fields.days).toHaveFocus()
 
       expect(fields.seconds).toHaveValue('00')
@@ -528,7 +528,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('00')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('23')
@@ -544,7 +544,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('00')
       expect(fields.hours).toHaveValue('23')
@@ -560,7 +560,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('00')
@@ -576,7 +576,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('23')
@@ -592,7 +592,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('23')
@@ -609,7 +609,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('12')
@@ -626,11 +626,11 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.years.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.years).toHaveValue('2022')
 
       fields.ampm.focus()
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.ampm).toHaveValue('AM')
     })
   })
@@ -642,15 +642,15 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
       expect(fields.seconds).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement, { key: '9' })
+      fireEvent.keyDown(document.activeElement!, { key: '9' })
       expect(fields.seconds).toHaveValue('19')
 
       // when value entered bigger than '5', it will focus next field
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement, { key: '7' })
+      fireEvent.keyDown(document.activeElement!, { key: '7' })
       expect(fields.seconds).toHaveValue('07')
       expect(fields.ampm).toHaveFocus()
     })
@@ -661,15 +661,15 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
       expect(fields.minutes).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement, { key: '9' })
+      fireEvent.keyDown(document.activeElement!, { key: '9' })
       expect(fields.minutes).toHaveValue('19')
 
       // when value entered bigger than '5', it will focus next field
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement, { key: '7' })
+      fireEvent.keyDown(document.activeElement!, { key: '7' })
       expect(fields.minutes).toHaveValue('07')
       expect(fields.seconds).toHaveFocus()
     })
@@ -680,15 +680,15 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
       expect(fields.hours).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement, { key: '9' })
+      fireEvent.keyDown(document.activeElement!, { key: '9' })
       expect(fields.hours).toHaveValue('19')
 
       // when value entered bigger than '2', it will focus next field
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement, { key: '3' })
+      fireEvent.keyDown(document.activeElement!, { key: '3' })
       expect(fields.hours).toHaveValue('03')
       expect(fields.minutes).toHaveFocus()
     })
@@ -700,22 +700,22 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
       expect(fields.hours).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement, { key: '9' })
+      fireEvent.keyDown(document.activeElement!, { key: '9' })
       expect(fields.hours).toHaveValue('09')
 
       // when value 12 entered, it should change AM/PM
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement, { key: '1' })
-      fireEvent.keyDown(document.activeElement, { key: '2' })
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '2' })
       expect(fields.hours).toHaveValue('12')
       expect(fields.ampm).toHaveValue('PM')
 
       // when value entered bigger than '1', it will focus next field
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement, { key: '2' })
+      fireEvent.keyDown(document.activeElement!, { key: '2' })
       expect(fields.hours).toHaveValue('02')
       expect(fields.minutes).toHaveFocus()
     })
@@ -726,15 +726,15 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
       expect(fields.days).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement, { key: '9' })
+      fireEvent.keyDown(document.activeElement!, { key: '9' })
       expect(fields.days).toHaveValue('19')
 
       // when value entered bigger than '3', it will focus next field
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement, { key: '4' })
+      fireEvent.keyDown(document.activeElement!, { key: '4' })
       expect(fields.days).toHaveValue('04')
       expect(fields.hours).toHaveFocus()
     })
@@ -745,18 +745,18 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement, { key: '3' })
+      fireEvent.keyDown(document.activeElement!, { key: '3' })
       expect(fields.days).toHaveValue('03')
 
-      fireEvent.keyDown(document.activeElement, { key: '2' })
+      fireEvent.keyDown(document.activeElement!, { key: '2' })
       expect(fields.days).toHaveValue('31')
 
       manager.date = new Date(2021, 1, 1)
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement, { key: '2' })
+      fireEvent.keyDown(document.activeElement!, { key: '2' })
       expect(fields.days).toHaveValue('02')
 
-      fireEvent.keyDown(document.activeElement, { key: '9' })
+      fireEvent.keyDown(document.activeElement!, { key: '9' })
       expect(fields.days).toHaveValue('28')
     })
 
@@ -766,15 +766,15 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
       expect(fields.months).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement, { key: '9' })
+      fireEvent.keyDown(document.activeElement!, { key: '9' })
       expect(fields.months).toHaveValue('12')
 
       // when value entered bigger than '1', it will focus next field
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement, { key: '2' })
+      fireEvent.keyDown(document.activeElement!, { key: '2' })
       expect(fields.months).toHaveValue('02')
       expect(fields.days).toHaveFocus()
     })
@@ -785,16 +785,16 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.years.focus()
-      fireEvent.keyDown(document.activeElement, { key: '2' })
+      fireEvent.keyDown(document.activeElement!, { key: '2' })
       expect(fields.years).toHaveValue('0002')
 
-      fireEvent.keyDown(document.activeElement, { key: '0' })
+      fireEvent.keyDown(document.activeElement!, { key: '0' })
       expect(fields.years).toHaveValue('0020')
 
-      fireEvent.keyDown(document.activeElement, { key: '2' })
+      fireEvent.keyDown(document.activeElement!, { key: '2' })
       expect(fields.years).toHaveValue('0202')
 
-      fireEvent.keyDown(document.activeElement, { key: '0' })
+      fireEvent.keyDown(document.activeElement!, { key: '0' })
       expect(fields.years).toHaveValue('2020')
 
       expect(fields.months).toHaveFocus()
@@ -807,8 +807,8 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement, { key: '9' })
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowRight' })
+      fireEvent.keyDown(document.activeElement!, { key: '9' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
       expect(fields.days).toHaveValue('9')
     })
 
@@ -818,13 +818,13 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement, { key: '3' })
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowUp' })
+      fireEvent.keyDown(document.activeElement!, { key: '3' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
       expect(fields.minutes).toHaveValue('04')
 
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement, { key: '1' })
-      fireEvent.keyDown(document.activeElement, { key: 'ArrowDown' })
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
       expect(fields.months).toHaveValue('12')
     })
 
@@ -834,7 +834,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement, { key: '3' })
+      fireEvent.keyDown(document.activeElement!, { key: '3' })
       fields.hours.focus()
       expect(fields.minutes).toHaveValue('03')
     })
@@ -851,5 +851,22 @@ describe('timescape', () => {
     })
 
     document.body.appendChild(container)
+  })
+
+  it('should not focus initial field when root is clicked while other field is focused', async () => {
+    document.body.appendChild(container)
+
+    const { root, years, months } = getFields()
+
+    // root needs focus event to be triggered
+    fireEvent.focus(root)
+
+    expect(years).toHaveFocus()
+
+    fireEvent.click(months)
+    expect(months).toHaveFocus()
+
+    fireEvent.focus(root)
+    expect(months).toHaveFocus()
   })
 })

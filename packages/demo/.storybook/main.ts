@@ -1,18 +1,10 @@
 import { type StorybookConfig } from '@storybook/react-vite'
+import { getCodeEditorStaticDirs } from 'storybook-addon-code-editor/getStaticDirs'
 
 const config = {
-  stories: [
-    '../src/stories/timescape.stories.tsx',
-    '../src/**/*.stories.@(js|jsx|ts|tsx)',
-  ],
-  staticDirs: ['../dist'],
-  addons: [
-    '@storybook/addon-controls',
-    '@storybook/addon-interactions',
-    '@storybook/addon-a11y',
-    '@storybook/addon-links',
-    '@storybook/addon-essentials',
-  ],
+  stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
+  staticDirs: ['../dist', ...getCodeEditorStaticDirs()],
+  addons: ['storybook-addon-code-editor'],
   framework: {
     name: '@storybook/react-vite',
     options: {},
@@ -20,8 +12,6 @@ const config = {
   core: {
     disableTelemetry: true,
   },
-  docs: {
-    autodocs: 'tag',
-  },
+  docs: {},
 } satisfies StorybookConfig
 export default config

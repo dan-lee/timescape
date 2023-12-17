@@ -1,5 +1,10 @@
-import { addListener, isTouchDevice, createPubSub, type Callback } from './util'
-import { get, set, add, daysInMonth, isSameSeconds, format } from './date.ts'
+import {
+  addElementListener,
+  isTouchDevice,
+  createPubSub,
+  type Callback,
+} from './util'
+import { get, set, add, daysInMonth, isSameSeconds, format } from './date'
 
 export type DateType =
   | 'days'
@@ -24,12 +29,18 @@ export const $NOW = '$NOW' as const
 export type $NOW = typeof $NOW
 
 export type Options = {
+  date?: Date
   minDate?: Date | $NOW
   maxDate?: Date | $NOW
   hour12?: boolean
   digits?: 'numeric' | '2-digit'
   wrapAround?: boolean
   snapToStep?: boolean
+}
+
+export type RangeOptions = {
+  from?: Options & { date?: Date }
+  to?: Options & { date?: Date }
 }
 
 type Events = {
@@ -45,6 +56,7 @@ export class TimescapeManager implements Options {
   wrapAround?: Options['wrapAround'] = false
   snapToStep?: Options['snapToStep'] = false
 
+  #instanceId = Math.random().toString(36).slice(2)
   #timestamp: number | undefined
   #registry: Registry = new Map()
   #pubsub: ReturnType<typeof createPubSub<Events>>
@@ -153,15 +165,25 @@ export class TimescapeManager implements Options {
 
   public registerRoot(element: HTMLElement) {
     element.tabIndex = -1
+    element.setAttribute('role', 'group')
     this.#rootElement = element
 
-    this.#rootListener = addListener(element, 'focus', () => {
-      const hasActiveField = [...this.#registry.values()].some(
-        ({ inputElement }) => inputElement === document.activeElement,
-      )
-      if (hasActiveField) return
+    const hasOtherRoot =
+      element.dataset.timescapeInstance &&
+      element.dataset.timescapeInstance !== this.#instanceId
 
-      this.focusField()
+    if (!hasOtherRoot) element.dataset.timescapeInstance = this.#instanceId
+
+    this.#rootListener = addElementListener(element, 'focus', (e) => {
+      if (hasOtherRoot) return
+
+      const activeField = element.querySelector('input[aria-selected]')
+
+      if (activeField) {
+        if (e.relatedTarget instanceof HTMLElement) e.relatedTarget.focus()
+      } else {
+        this.focusField(0)
+      }
     })
     this.#mutationObserver.observe(element, { childList: true, subtree: true })
   }
@@ -184,6 +206,7 @@ export class TimescapeManager implements Options {
     element.spellcheck = false
     element.autocapitalize = 'off'
     element.setAttribute('role', 'spinbutton')
+    element.dataset.timescapeInput = ''
 
     if (autofocus) {
       requestAnimationFrame(() => element.focus())
@@ -287,13 +310,13 @@ export class TimescapeManager implements Options {
             type === 'minutes' || type === 'seconds'
               ? 2
               : this.digits === '2-digit'
-              ? 2
-              : 1,
+                ? 2
+                : 1,
             '0',
           )
       : this.#timestamp !== undefined
-      ? format(this.#currentDate, type, this.hour12, this.digits)
-      : ''
+        ? format(this.#currentDate, type, this.hour12, this.digits)
+        : ''
   }
 
   #wrapDateAround(step: number, type: DateType) {
@@ -596,14 +619,14 @@ export class TimescapeManager implements Options {
         (type === 'days'
           ? daysInMonth(this.#currentDate)
           : type === 'months'
-          ? 12
-          : type === 'years'
-          ? 9999
-          : type === 'hours'
-          ? 23
-          : type === 'minutes' || type === 'seconds'
-          ? 59
-          : ''
+            ? 12
+            : type === 'years'
+              ? 9999
+              : type === 'hours'
+                ? 23
+                : type === 'minutes' || type === 'seconds'
+                  ? 59
+                  : ''
         ).toString(),
       )
     }
@@ -615,10 +638,10 @@ export class TimescapeManager implements Options {
 
   #createListeners(element: HTMLInputElement) {
     return [
-      addListener(element, 'keydown', (e) => this.#handleKeyDown(e)),
-      addListener(element, 'click', (e) => this.#handleClick(e)),
-      addListener(element, 'focus', (e) => this.#handleFocus(e)),
-      addListener(element, 'focusout', (e) => this.#handleBlur(e)),
+      addElementListener(element, 'keydown', (e) => this.#handleKeyDown(e)),
+      addElementListener(element, 'click', (e) => this.#handleClick(e)),
+      addElementListener(element, 'focus', (e) => this.#handleFocus(e)),
+      addElementListener(element, 'focusout', (e) => this.#handleBlur(e)),
     ]
   }
 

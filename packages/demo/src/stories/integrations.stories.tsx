@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react'
+import { Meta } from '@storybook/react'
 import { useEffect } from 'react'
 
 import * as styles from './integrations.css'
@@ -88,22 +88,16 @@ const IframeComponent = ({ integration }: { integration: Integration }) => {
 
 export default {
   title: 'root/integrations',
-  component: IframeComponent,
+  component: () => null,
   parameters: {
     layout: 'fullscreen',
-  },
-  argTypes: {
-    integration: {
-      options: ['react', 'preact', 'solid', 'svelte', 'vue'],
-      table: { disable: true },
+    options: {
+      showPanel: false,
     },
   },
-} satisfies Meta<typeof IframeComponent>
-
-type Story = StoryObj<typeof IframeComponent>
-
-export const React: Story = { args: { integration: 'react' } }
-export const Preact: Story = { args: { integration: 'preact' } }
-export const Solid: Story = { args: { integration: 'solid' } }
-export const Svelte: Story = { args: { integration: 'svelte' } }
-export const Vue: Story = { args: { integration: 'vue' } }
+} satisfies Meta
+export const React = () => <IframeComponent integration="react" />
+export const Preact = () => <IframeComponent integration="preact" />
+export const Solid = () => <IframeComponent integration="solid" />
+export const Svelte = () => <IframeComponent integration="svelte" />
+export const Vue = () => <IframeComponent integration="vue" />

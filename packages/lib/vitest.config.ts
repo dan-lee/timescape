@@ -5,6 +5,6 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     globalSetup: './setupGlobals.ts',
-    setupFiles: './setupTests.ts',
+    setupFiles: ['./setupTests.ts'],
   },
 })

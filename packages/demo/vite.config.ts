@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process'
-import path from 'node:path'
+import * as path from 'node:path'
+import * as fs from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import vue from '@vitejs/plugin-vue'
@@ -27,8 +28,13 @@ const getVersions = () => {
     : {}
 }
 
+const reactTypes = fs.readFileSync('./generated/timescape-react.d.ts', 'utf8')
+
 export default defineConfig({
-  define: getVersions(),
+  define: {
+    __TIMESCAPE_REACT_TYPES__: JSON.stringify(reactTypes),
+    ...getVersions(),
+  },
   build: {
     rollupOptions: {
       input: {
@@ -59,6 +65,7 @@ export default defineConfig({
       'solid-js/web',
       'solid-js/h',
     ],
+    // exclude: ['storybook-addon-code-editor'],
   },
   resolve: {
     alias: {
