@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react'
 import vue from '@vitejs/plugin-vue'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
+import topLevelAwait from 'vite-plugin-top-level-await'
 
 const getVersions = () => {
   // Execute the pnpm command and parse the output
@@ -44,6 +45,7 @@ export default defineConfig({
   },
   // order matters for React Refresh while mixing different view libraries
   plugins: [
+    topLevelAwait(),
     svelte(),
     vue({
       include: [/\.vue$/],
