@@ -3,6 +3,7 @@ module.exports = {
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   parser: '@typescript-eslint/parser',
   parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+  ignorePatterns: ['node_modules/', 'dist/', 'public/', 'storybook-dist/'],
   rules: {
     'no-case-declarations': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',

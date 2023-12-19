@@ -1,5 +1,5 @@
 import { html, render } from 'htm/preact'
-import { useComputed, useSignalEffect } from '@preact/signals'
+import { useSignalEffect } from '@preact/signals'
 import { useTimescape, useTimescapeRange } from 'timescape/preact'
 
 const PreactDemo = () => {
