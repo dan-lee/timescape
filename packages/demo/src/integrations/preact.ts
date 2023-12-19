@@ -16,10 +16,6 @@ const PreactDemo = () => {
     to: { date: new Date('2024-12-31') },
   })
 
-  const _dateString = useComputed(
-    () => options.value.date?.toLocaleString('en-UK'),
-  )
-
   useSignalEffect(() => {
     console.log('Date changed to', options.value)
   })

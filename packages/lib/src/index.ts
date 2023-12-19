@@ -6,6 +6,8 @@ import {
 } from './util'
 import { get, set, add, daysInMonth, isSameSeconds, format } from './date'
 
+export { marry } from './range'
+
 export type DateType =
   | 'days'
   | 'months'

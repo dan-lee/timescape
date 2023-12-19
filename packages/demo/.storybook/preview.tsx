@@ -1,5 +1,4 @@
-import { type Parameters, type Decorator } from '@storybook/react'
-import * as styles from './styles.css'
+import { type Parameters } from '@storybook/react'
 import { setupMonaco } from 'storybook-addon-code-editor'
 
 setupMonaco({
@@ -21,29 +20,6 @@ setupMonaco({
 export const parameters: Parameters = {
   options: {
     // @ts-ignore
-    storySort: (a, b) => {
-      if (a.type === 'docs' && b.type !== 'docs') return 1
-      if (b.type === 'docs' && a.type !== 'docs') return -1
-      return b.title.localeCompare(a.title)
-    },
-  },
-  actions: { argTypesRegex: '^on[A-Z].*' },
-  controls: {
-    expanded: true,
-    matchers: {
-      color: /(background|color)$/i,
-      date: /Date$/,
-    },
+    storySort: (a, b) => b.title.localeCompare(a.title),
   },
 }
-
-export const decorators: Decorator[] = [
-  // (Story, ctx) =>
-  //   ctx.viewMode === 'story' && ctx.kind !== 'integrations' ? (
-  //     <div className={styles.background}>
-  //       <Story />
-  //     </div>
-  //   ) : (
-  //     <Story />
-  //   ),
-]
