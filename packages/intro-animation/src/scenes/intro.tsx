@@ -15,6 +15,7 @@ import {
 import { CameraView } from '@ksassnowski/motion-canvas-camera'
 import dayjs from 'dayjs'
 
+// eslint-disable-next-line react-refresh/only-export-components
 export default makeScene2D(function* (view) {
   view.fontFamily('Courier')
 

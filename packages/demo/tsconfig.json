@@ -23,6 +23,7 @@
       "timescape/*": ["../lib/src/integrations/*.ts"]
     }
   },
-  "include": ["src", ".storybook"],
+  "include": ["src", ".storybook/*"],
+  "exclude": ["generated/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

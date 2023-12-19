@@ -1,52 +1,95 @@
-import { TimescapeManager, type DateType } from 'timescape'
+import { TimescapeManager, type DateType, marry } from 'timescape'
 
 const prepare = (container: HTMLElement) => {
-  // this could be rendered as HTML already
   container.innerHTML = `
-    <div class='timescape-root'>
-      <input class='timescape-input' data-type='days' placeholder='dd' />
-      <span class='separator'>/</span>
-      <input class='timescape-input' data-type='months' placeholder='mm' />
-      <span class='separator'>/</span>
-      <input class='timescape-input' data-type='years' placeholder='yyyy' />
-      <span class='separator'>&nbsp;</span>
-      <input class='timescape-input' data-type='hours' placeholder='hh' />
-      <span class='separator'>:</span>
-      <input class='timescape-input' data-type='minutes' placeholder='mm' />
-      <span class='separator'>:</span>
-      <input class='timescape-input' data-type='seconds' placeholder='ss' />
+    Simple date time:
+    <div class="timescape-root simple">
+      <input class="timescape-input" data-type="years" />
+      <span class="separator">/</span>
+      <input class="timescape-input" data-type="months" />
+      <span class="separator">/</span>
+      <input class="timescape-input" data-type="days" />
+      <span class="separator">&nbsp;</span>
+      <input class="timescape-input" data-type="hours" />
+      <span class="separator">:</span>
+      <input class="timescape-input" data-type="minutes" />
+      <span class="separator">:</span>
+      <input class="timescape-input" data-type="seconds" />
     </div>
-  `
+    <br>
+    Range:
+    <div class="timescape-root range">
+      <input class="timescape-input" data-type="years" data-range="from" />
+      <span class="separator">/</span>
+      <input class="timescape-input" data-type="months" data-range="from"  />
+      <span class="separator">/</span>
+      <input class="timescape-input" data-type="days" data-range="from" />
+
+      <span class="separator">&mdash;</span>
+
+      <input class="timescape-input" data-type="years" data-range="to" />
+      <span class="separator">/</span>
+      <input class="timescape-input" data-type="months" data-range="to" />
+      <span class="separator">/</span>
+      <input class="timescape-input" data-type="days" data-range="to" />
+    </div>
+  `.trim()
 }
 
 export const renderTo = (container: HTMLElement) => {
   prepare(container)
 
-  const manager = new TimescapeManager()
+  const manager = new TimescapeManager(new Date())
 
-  manager.subscribe((date) => {
+  manager.on('changeDate', (date) => {
     console.log('changed date', date)
-    document.getElementById('result')!.innerHTML = date
-      ? date.toLocaleString('en-UK')
-      : ''
   })
 
-  manager.registerRoot(container.querySelector('.timescape-root')!)
+  const simple = container.querySelector<HTMLElement>('.timescape-root.simple')!
 
-  const elements =
-    container.querySelectorAll<HTMLInputElement>('.timescape-input')
+  manager.registerRoot(simple)
+
+  const elements = simple.querySelectorAll<HTMLInputElement>('.timescape-input')
 
   for (const element of elements) {
     manager.registerElement(element, element.dataset.type as DateType)
   }
 
-  document.getElementById('now')!.addEventListener('click', () => {
-    manager.date = new Date()
+  // Range
+
+  const fromManager = new TimescapeManager(new Date())
+  const toManager = new TimescapeManager(new Date('2025'))
+
+  fromManager.on('changeDate', (date) => {
+    console.log('changed range from', date)
   })
 
-  document.getElementById('reset')!.addEventListener('click', () => {
-    manager.date = undefined
+  toManager.on('changeDate', (date) => {
+    console.log('changed range to', date)
   })
+
+  marry(fromManager, toManager)
+
+  const range = container.querySelector<HTMLElement>('.timescape-root.range')!
+
+  fromManager.registerRoot(range)
+  toManager.registerRoot(range)
+
+  const fromElements = range.querySelectorAll<HTMLInputElement>(
+    '.timescape-input[data-range="from"]',
+  )
+
+  for (const element of fromElements) {
+    fromManager.registerElement(element, element.dataset.type as DateType)
+  }
+
+  const toElements = range.querySelectorAll<HTMLInputElement>(
+    '.timescape-input[data-range="to"]',
+  )
+
+  for (const element of toElements) {
+    toManager.registerElement(element, element.dataset.type as DateType)
+  }
 
   return () => {
     manager.remove()

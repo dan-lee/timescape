@@ -1,52 +1,87 @@
-import { TimescapeManager, $NOW, type DateType, type Options } from '..'
+import {
+  TimescapeManager,
+  $NOW,
+  type DateType,
+  type Options,
+  type RangeOptions,
+} from '../index'
 import { useEffect, useState, type MutableRef } from 'preact/hooks'
-import { effect, type Signal } from '@preact/signals'
+import * as signals from '@preact/signals'
+import { marry } from '../range'
 
-export { $NOW, type DateType }
+export { $NOW, type DateType, type Options, type RangeOptions }
 
-type UseTimescapeOptions = Signal<{ date?: Date } & Options>
+// This is to prevent the error: "Typescript inferred type cannot be named without reference".
+const { useSignalEffect, useSignal } = signals
 
-export const useTimescape = (options: UseTimescapeOptions) => {
-  const [manager] = useState(() => new TimescapeManager(options.value.date))
-
-  manager.subscribe((nextDate) => {
-    options.value = { ...options.value, date: nextDate }
+export const useTimescape = (options: Options = {}) => {
+  const [manager] = useState(() => {
+    const { date, ...rest } = options
+    return new TimescapeManager(date, rest)
   })
+  const optionsSignal = useSignal(options)
 
-  effect(() => {
-    manager.date = options.value.date
-    manager.minDate = options.value.minDate
-    manager.maxDate = options.value.maxDate
+  useEffect(() => {
+    return manager.on('changeDate', (nextDate) => {
+      optionsSignal.value = { ...optionsSignal.value, date: nextDate }
+    })
+  }, [manager, optionsSignal])
 
-    if (options.value.digits !== undefined)
-      manager.hour12 = options.value.hour12
-    if (options.value.digits !== undefined)
-      manager.digits = options.value.digits
-    if (options.value.wrapAround !== undefined)
-      manager.wrapAround = options.value.wrapAround
-    if (options.value.hour12 !== undefined)
-      manager.hour12 = options.value.hour12
-    if (options.value.snapToStep !== undefined)
-      manager.snapToStep = options.value.snapToStep
+  useSignalEffect(() => {
+    manager.date = optionsSignal.value.date
+    manager.minDate = optionsSignal.value.minDate
+    manager.maxDate = optionsSignal.value.maxDate
+    manager.digits = optionsSignal.value.digits
+    manager.wrapAround = optionsSignal.value.wrapAround
+    manager.hour12 = optionsSignal.value.hour12
+    manager.snapToStep = optionsSignal.value.snapToStep
   })
 
   useEffect(() => () => manager.remove(), [manager])
 
   return {
+    _manager: manager,
     getInputProps: (
       type: DateType,
       opts?: { ref?: MutableRef<HTMLInputElement | null>; autofocus?: boolean },
     ) => ({
       ref: (element: HTMLInputElement | null) => {
-        if (element) {
-          manager.registerElement(element, type, opts?.autofocus)
-          if (opts?.ref) opts.ref.current = element
-        }
+        if (!element) return
+        manager.registerElement(element, type, opts?.autofocus)
+        if (opts?.ref) opts.ref.current = element
       },
     }),
     getRootProps: () => ({
       ref: (element: HTMLElement | null) =>
         element && manager.registerRoot(element),
     }),
+    options: optionsSignal,
+  } as const
+}
+
+export const useTimescapeRange = (options: RangeOptions = {}) => {
+  const from = useTimescape(options.from)
+  const to = useTimescape(options.to)
+
+  useEffect(() => {
+    marry(from._manager, to._manager)
+  }, [from._manager, to._manager])
+
+  return {
+    getRootProps: () => ({
+      ref: (element: HTMLElement | null) => {
+        if (!element) return
+        from._manager.registerRoot(element)
+        to._manager.registerRoot(element)
+      },
+    }),
+    from: {
+      getInputProps: from.getInputProps,
+      options: from.options,
+    },
+    to: {
+      getInputProps: to.getInputProps,
+      options: to.options,
+    },
   } as const
 }

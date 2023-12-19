@@ -1,7 +1,10 @@
-import { DateType } from './index.ts'
+import { type DateType } from './index'
 
 export const isSameSeconds = (ts1: number, ts2: number) =>
   Math.floor(ts1 / 1000) === Math.floor(ts2 / 1000)
+
+const isLeapYear = (year: number) =>
+  (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
 
 export const daysInMonth = (date: Date) => {
   const month = date.getMonth()
@@ -9,6 +12,7 @@ export const daysInMonth = (date: Date) => {
   return new Date(year, month + 1, 0).getDate()
 }
 
+// Hopefully this can be replaced by the Temporal API in the future
 export const add = (date: Date, type: DateType, amount: number) => {
   const newDate = new Date(date)
 
@@ -17,10 +21,25 @@ export const add = (date: Date, type: DateType, amount: number) => {
       newDate.setDate(newDate.getDate() + amount)
       break
     case 'months':
+      const dayOfMonth = newDate.getDate()
       newDate.setMonth(newDate.getMonth() + amount)
+
+      // Check if the day of the month has changed after adding the months,
+      // which may happen due to different number of days in different months
+      if (newDate.getDate() !== dayOfMonth) {
+        newDate.setDate(0)
+      }
       break
     case 'years':
+      const isLeapDay = newDate.getMonth() === 1 && newDate.getDate() === 29
+
       newDate.setFullYear(newDate.getFullYear() + amount)
+
+      // If original date was a leap day (Feb 29) and the year of the new date
+      // isn't a leap year then adjust the new date to Feb 28
+      if (isLeapDay && !isLeapYear(newDate.getFullYear())) {
+        newDate.setMonth(1, 28)
+      }
       break
     case 'hours':
       newDate.setHours(newDate.getHours() + amount)

@@ -1,5 +1,12 @@
-import { addListener, isTouchDevice } from './util'
-import { get, set, add, daysInMonth, isSameSeconds, format } from './date.ts'
+import {
+  addElementListener,
+  isTouchDevice,
+  createPubSub,
+  type Callback,
+} from './util'
+import { get, set, add, daysInMonth, isSameSeconds, format } from './date'
+
+export { marry } from './range'
 
 export type DateType =
   | 'days'
@@ -24,12 +31,23 @@ export const $NOW = '$NOW' as const
 export type $NOW = typeof $NOW
 
 export type Options = {
+  date?: Date
   minDate?: Date | $NOW
   maxDate?: Date | $NOW
   hour12?: boolean
   digits?: 'numeric' | '2-digit'
   wrapAround?: boolean
   snapToStep?: boolean
+}
+
+export type RangeOptions = {
+  from?: Options & { date?: Date }
+  to?: Options & { date?: Date }
+}
+
+type Events = {
+  changeDate: Date | undefined
+  focusWrap: 'start' | 'end'
 }
 
 export class TimescapeManager implements Options {
@@ -40,10 +58,10 @@ export class TimescapeManager implements Options {
   wrapAround?: Options['wrapAround'] = false
   snapToStep?: Options['snapToStep'] = false
 
-  #options: Options
+  #instanceId = Math.random().toString(36).slice(2)
   #timestamp: number | undefined
   #registry: Registry = new Map()
-  #subscribers = new Set<(timestamp: Date | undefined) => void>()
+  #pubsub: ReturnType<typeof createPubSub<Events>>
   #rootElement?: HTMLElement
   #rootListener?: () => void
   #cursorPosition = 0
@@ -88,6 +106,7 @@ export class TimescapeManager implements Options {
 
   constructor(initialDate?: Date, options?: Options) {
     this.#timestamp = initialDate?.getTime()
+    this.#pubsub = createPubSub<Events>()
 
     if (options) {
       this.minDate = options.minDate
@@ -96,8 +115,6 @@ export class TimescapeManager implements Options {
       this.digits = options.digits
       this.wrapAround = options.wrapAround
     }
-
-    this.#options = options ?? {}
 
     return new Proxy(this, {
       get: (target: this, property: keyof this & string) => {
@@ -148,21 +165,27 @@ export class TimescapeManager implements Options {
     })
   }
 
-  public subscribe(callback: (timestamp: Date | undefined) => void) {
-    this.#subscribers.add(callback)
-  }
-
   public registerRoot(element: HTMLElement) {
     element.tabIndex = -1
+    element.setAttribute('role', 'group')
     this.#rootElement = element
 
-    this.#rootListener = addListener(element, 'focus', () => {
-      const hasActiveField = [...this.#registry.values()].some(
-        ({ inputElement }) => inputElement === document.activeElement,
-      )
-      if (hasActiveField) return
+    const hasOtherRoot =
+      element.dataset.timescapeInstance &&
+      element.dataset.timescapeInstance !== this.#instanceId
 
-      this.focusField()
+    if (!hasOtherRoot) element.dataset.timescapeInstance = this.#instanceId
+
+    this.#rootListener = addElementListener(element, 'focus', (e) => {
+      if (hasOtherRoot) return
+
+      const activeField = element.querySelector('input[aria-selected]')
+
+      if (activeField) {
+        if (e.relatedTarget instanceof HTMLElement) e.relatedTarget.focus()
+      } else {
+        this.focusField(0)
+      }
     })
     this.#mutationObserver.observe(element, { childList: true, subtree: true })
   }
@@ -185,6 +208,7 @@ export class TimescapeManager implements Options {
     element.spellcheck = false
     element.autocapitalize = 'off'
     element.setAttribute('role', 'spinbutton')
+    element.dataset.timescapeInput = ''
 
     if (autofocus) {
       requestAnimationFrame(() => element.focus())
@@ -227,7 +251,7 @@ export class TimescapeManager implements Options {
       listeners: this.#createListeners(element),
     })
 
-    this.subscribe(() => this.#syncElement(element))
+    this.on('changeDate', () => this.#syncElement(element))
     this.#syncElement(element)
 
     return element
@@ -239,12 +263,12 @@ export class TimescapeManager implements Options {
       listeners.forEach((remove) => remove())
       shadowElement.remove()
     })
-    this.#subscribers.clear()
+    this.#pubsub.events = {}
     this.#resizeObserver.disconnect()
     this.#mutationObserver.disconnect()
   }
 
-  focusField(which: DateType | number = 0) {
+  public focusField(which: DateType | number = 0) {
     const entries = [...this.#registry.values()]
     const type =
       typeof which === 'number'
@@ -252,6 +276,10 @@ export class TimescapeManager implements Options {
         : entries.find(({ type }) => type === which)?.type
 
     type && this.#registry.get(type)?.inputElement.focus()
+  }
+
+  public on<E extends keyof Events>(event: E, callback: Callback<Events[E]>) {
+    return this.#pubsub.on(event, callback)
   }
 
   #copyStyles = (from: HTMLElement, to: HTMLElement) => {
@@ -284,13 +312,13 @@ export class TimescapeManager implements Options {
             type === 'minutes' || type === 'seconds'
               ? 2
               : this.digits === '2-digit'
-              ? 2
-              : 1,
+                ? 2
+                : 1,
             '0',
           )
       : this.#timestamp !== undefined
-      ? format(this.#currentDate, type, this.hour12, this.digits)
-      : ''
+        ? format(this.#currentDate, type, this.hour12, this.digits)
+        : ''
   }
 
   #wrapDateAround(step: number, type: DateType) {
@@ -593,14 +621,14 @@ export class TimescapeManager implements Options {
         (type === 'days'
           ? daysInMonth(this.#currentDate)
           : type === 'months'
-          ? 12
-          : type === 'years'
-          ? 9999
-          : type === 'hours'
-          ? 23
-          : type === 'minutes' || type === 'seconds'
-          ? 59
-          : ''
+            ? 12
+            : type === 'years'
+              ? 9999
+              : type === 'hours'
+                ? 23
+                : type === 'minutes' || type === 'seconds'
+                  ? 59
+                  : ''
         ).toString(),
       )
     }
@@ -612,17 +640,17 @@ export class TimescapeManager implements Options {
 
   #createListeners(element: HTMLInputElement) {
     return [
-      addListener(element, 'keydown', (e) => this.#handleKeyDown(e)),
-      addListener(element, 'click', (e) => this.#handleClick(e)),
-      addListener(element, 'focus', (e) => this.#handleFocus(e)),
-      addListener(element, 'focusout', (e) => this.#handleBlur(e)),
+      addElementListener(element, 'keydown', (e) => this.#handleKeyDown(e)),
+      addElementListener(element, 'click', (e) => this.#handleClick(e)),
+      addElementListener(element, 'focus', (e) => this.#handleFocus(e)),
+      addElementListener(element, 'focusout', (e) => this.#handleBlur(e)),
     ]
   }
 
   #setValidatedDate(date: Date | undefined) {
     if (!date) {
       this.#timestamp = undefined
-      this.#subscribers.forEach((subscriber) => subscriber(undefined))
+      this.#pubsub.emit('changeDate', undefined)
       return
     }
 
@@ -640,7 +668,7 @@ export class TimescapeManager implements Options {
     }
 
     this.#timestamp = date.getTime()
-    this.#subscribers.forEach((subscriber) => subscriber(date))
+    this.#pubsub.emit('changeDate', date)
   }
 
   #focusNextField(type: DateType, offset = 1, wrap = true) {
@@ -651,6 +679,14 @@ export class TimescapeManager implements Options {
       ? types[(index + offset + types.length) % types.length]
       : types[index + offset]
     if (nextIndex) this.#registry.get(nextIndex)?.inputElement.focus()
+
+    if (
+      wrap &&
+      ((index === 0 && offset <= -1) ||
+        (index === types.length - 1 && offset >= 1))
+    ) {
+      this.#pubsub.emit('focusWrap', offset === -1 ? 'start' : 'end')
+    }
   }
 }
 

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "mainEntryPointFilePath": "<projectFolder>/dist/src/integrations/react.d.ts",
+  "bundledPackages": [],
+  "compiler": {},
+  "apiReport": { "enabled": false },
+  "docModel": { "enabled": false },
+  "dtsRollup": {
+    "enabled": true,
+    "publicTrimmedFilePath": "<projectFolder>/../demo/generated/timescape-react.d.ts"
+  },
+  "tsdocMetadata": { "enabled": false },
+  "messages": {
+    "compilerMessageReporting": {
+      "default": { "logLevel": "none" }
+    },
+    "extractorMessageReporting": {
+      "default": { "logLevel": "none" }
+    },
+    "tsdocMessageReporting": {
+      "default": { "logLevel": "none" }
+    }
+  }
+}

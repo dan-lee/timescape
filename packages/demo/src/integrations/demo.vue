@@ -1,10 +1,11 @@
 <template>
+  Simple date time:
   <div class="timescape-root" :ref="registerRoot()">
-    <input :ref="registerElement('days')" class="timescape-input" />
+    <input :ref="registerElement('years')" class="timescape-input" />
     <span class="separator">/</span>
     <input :ref="registerElement('months')" class="timescape-input" />
     <span class="separator">/</span>
-    <input :ref="registerElement('years')" class="timescape-input" />
+    <input :ref="registerElement('days')" class="timescape-input" />
     <span class="separator">&nbsp;</span>
     <input :ref="registerElement('hours')" class="timescape-input" />
     <span class="separator">:</span>
@@ -12,22 +13,40 @@
     <span class="separator">:</span>
     <input :ref="registerElement('seconds')" class="timescape-input" />
   </div>
+  <br />
+  Range:
+  <div class="timescape-root" :ref="registerRangeRoot()">
+    <input class="timescape-input" :ref="from.registerElement('years')" />
+    <span class="separator">/</span>
+    <input class="timescape-input" :ref="from.registerElement('months')" />
+    <span class="separator">/</span>
+    <input class="timescape-input" :ref="from.registerElement('days')" />
+    <span class="separator">–</span>
+    <input class="timescape-input" :ref="to.registerElement('years')" />
+    <span class="separator">/</span>
+    <input class="timescape-input" :ref="to.registerElement('months')" />
+    <span class="separator">/</span>
+    <input class="timescape-input" :ref="to.registerElement('days')" />
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { useTimescape, $NOW, type UseTimescapeOptions } from 'timescape/vue'
-import { ref, computed, watchEffect, reactive } from 'vue'
+import { useTimescape, useTimescapeRange } from 'timescape/vue'
+import { watchEffect } from 'vue'
 
-const date = ref(new Date())
-const dateString = computed(() => date.value.toLocaleString('en-UK'))
+const Y2K38 = new Date((2 ** 31 - 1) * 1000)
 
-watchEffect(() => {
-  console.log('Date changed to', date.value)
+const { registerElement, registerRoot, options } = useTimescape({
+  date: new Date(),
+  maxDate: Y2K38,
 })
 
-const options = reactive({
-  date,
-} as UseTimescapeOptions)
+watchEffect(() => {
+  console.log('Date changed to', options.value.date)
+})
 
-const { registerElement, registerRoot } = useTimescape(options)
+const { from, to, registerRangeRoot } = useTimescapeRange({
+  from: { date: new Date() },
+  to: { date: new Date('2024-12-12') },
+})
 </script>

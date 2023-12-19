@@ -1,67 +1,85 @@
-import { TimescapeManager, $NOW, type DateType, type Options } from '..'
 import {
   useEffect,
   useRef,
+  useState,
   useLayoutEffect,
   type MutableRefObject,
+  type SetStateAction,
+  type Dispatch,
 } from 'react'
+import {
+  TimescapeManager,
+  $NOW,
+  type DateType,
+  type Options,
+  type RangeOptions,
+} from '../index'
+import { marry } from '../range'
 
-export { $NOW, type DateType }
+export {
+  $NOW,
+  type DateType,
+  type ReactOptions as Options,
+  type ReactRangeOptions as RangeOptions,
+}
 
-type TimescapeOptions = {
-  date?: Date
+type ReactOptions = Options & {
   onChangeDate?: (nextDate: Date | undefined) => void
-} & Options
+}
 
-export const useTimescape = ({
-  date,
-  minDate,
-  maxDate,
-  hour12 = false,
-  wrapAround = false,
-  digits = '2-digit',
-  snapToStep = false,
-  onChangeDate,
-}: TimescapeOptions) => {
-  const manager = useRef(new TimescapeManager(date))
-  const timestamp = date?.getTime()
+export type UpdateFn = Dispatch<SetStateAction<Options>>
+
+export const useTimescape = (options: ReactOptions = {}) => {
+  const { date, onChangeDate, ...rest } = options
+  const [manager] = useState(() => new TimescapeManager(date, rest))
   const onChangeDateRef = useRef(onChangeDate)
   useLayoutEffect(() => {
     onChangeDateRef.current = onChangeDate
   }, [onChangeDate])
+  const [optionsState, update] = useState<ReactOptions>(() => ({
+    date,
+    ...rest,
+  }))
 
   useEffect(() => {
-    manager.current.resync()
+    // this is to work around StrictMode shenanigans
+    manager.resync()
 
     return () => {
-      manager.current.remove()
+      manager.remove()
     }
-  }, [])
+  }, [manager])
 
   useEffect(() => {
-    if (!manager.current) return
-    manager.current.date = timestamp
-  }, [timestamp])
-
-  useEffect(() => {
-    manager.current?.subscribe((nextDate) => {
+    return manager.on('changeDate', (nextDate) => {
       onChangeDateRef.current?.(nextDate)
+      update((value) => ({ ...value, date: nextDate }))
     })
-  }, [])
+  }, [manager])
+
+  const timestamp = optionsState.date?.getTime()
 
   useEffect(() => {
-    if (!manager.current) return
-
-    manager.current.minDate = minDate
-    manager.current.maxDate = maxDate
-
-    if (hour12 !== undefined) manager.current.hour12 = hour12
-    if (wrapAround !== undefined) manager.current.wrapAround = wrapAround
-    if (digits !== undefined) manager.current.digits = digits
-    if (snapToStep !== undefined) manager.current.snapToStep = snapToStep
-  }, [minDate, maxDate, hour12, wrapAround, digits, snapToStep])
+    manager.date = timestamp
+    manager.minDate = optionsState.minDate
+    manager.maxDate = optionsState.maxDate
+    manager.hour12 = optionsState.hour12
+    manager.wrapAround = optionsState.wrapAround
+    manager.digits = optionsState.digits
+    manager.snapToStep = optionsState.snapToStep
+  }, [
+    manager,
+    timestamp,
+    optionsState.minDate,
+    optionsState.maxDate,
+    optionsState.hour12,
+    optionsState.wrapAround,
+    optionsState.digits,
+    optionsState.snapToStep,
+  ])
 
   return {
+    _manager: manager,
     getInputProps: (
       type: DateType,
       opts?: {
@@ -70,15 +88,50 @@ export const useTimescape = ({
       },
     ) => ({
       ref: (element: HTMLInputElement | null) => {
-        if (element) {
-          manager.current?.registerElement(element, type, opts?.autofocus)
-          if (opts?.ref) opts.ref.current = element
-        }
+        if (!element) return
+        manager.registerElement(element, type, opts?.autofocus)
+        if (opts?.ref) opts.ref.current = element
       },
     }),
     getRootProps: () => ({
       ref: (element: HTMLElement | null) =>
-        element && manager.current?.registerRoot(element),
+        element && manager.registerRoot(element),
     }),
+    options: optionsState,
+    update,
+  } as const
+}
+
+export type ReactRangeOptions = RangeOptions & {
+  from?: { onChangeDate?: (nextDate: Date | undefined) => void }
+  to?: { onChangeDate?: (nextDate: Date | undefined) => void }
+}
+
+export const useTimescapeRange = (options: ReactRangeOptions) => {
+  const from = useTimescape(options.from)
+  const to = useTimescape(options.to)
+
+  useEffect(() => {
+    marry(from._manager, to._manager)
+  }, [from._manager, to._manager])
+
+  return {
+    getRootProps: () => ({
+      ref: (element: HTMLElement | null) => {
+        if (!element) return
+        from._manager.registerRoot(element)
+        to._manager.registerRoot(element)
+      },
+    }),
+    from: {
+      getInputProps: from.getInputProps,
+      options: from.options,
+      update: from.update,
+    },
+    to: {
+      getInputProps: to.getInputProps,
+      options: to.options,
+      update: to.update,
+    },
   } as const
 }

@@ -1,10 +1,12 @@
 import { execSync } from 'node:child_process'
-import path from 'node:path'
+import * as path from 'node:path'
+import * as fs from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import vue from '@vitejs/plugin-vue'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
+import topLevelAwait from 'vite-plugin-top-level-await'
 
 const getVersions = () => {
   // Execute the pnpm command and parse the output
@@ -27,8 +29,13 @@ const getVersions = () => {
     : {}
 }
 
+const reactTypes = fs.readFileSync('./generated/timescape-react.d.ts', 'utf8')
+
 export default defineConfig({
-  define: getVersions(),
+  define: {
+    __TIMESCAPE_REACT_TYPES__: JSON.stringify(reactTypes),
+    ...getVersions(),
+  },
   build: {
     rollupOptions: {
       input: {
@@ -38,6 +45,7 @@ export default defineConfig({
   },
   // order matters for React Refresh while mixing different view libraries
   plugins: [
+    topLevelAwait(),
     svelte(),
     vue({
       include: [/\.vue$/],
@@ -59,6 +67,7 @@ export default defineConfig({
       'solid-js/web',
       'solid-js/h',
     ],
+    // exclude: ['storybook-addon-code-editor'],
   },
   resolve: {
     alias: {

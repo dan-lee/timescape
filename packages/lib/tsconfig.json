@@ -13,10 +13,11 @@
     "esModuleInterop": true,
     "strict": true,
     "noUnusedLocals": false,
+    "outDir": "dist",
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src", "./setupTests.ts"],
+  "include": ["src", "test", "./setupTests.ts"],
   "exclude": ["node_modules", "dist"]
 }

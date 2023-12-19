@@ -52,12 +52,15 @@ npm install --save timescape
 import { useTimescape } from 'timescape/react'
 
 function App() {
-  const { getRootProps, getInputProps } = useTimescape({
+  const { getRootProps, getInputProps, options, update } = useTimescape({
     date: new Date(),
     onChangeDate: (nextDate) => {
       console.log('Date changed to', nextDate)
     },
   })
+
+  // To change any option:
+  // update((prev) => ({ ...prev, date: new Date() }))
 
   return (
     <div className="timescape" {...getRootProps()}>
@@ -93,23 +96,24 @@ import { effect, useComputed, useSignal } from '@preact/signals'
 import { useTimescape } from 'timescape/preact'
 
 function App() {
-  const options = useSignal({
+  const { getRootProps, getInputProps, options } = useTimescape({
     date: new Date(),
   })
-
-  const { getRootProps, getInputProps } = useTimescape(options)
 
   effect(() => {
     console.log('Date changed to', options.value.date)
   })
 
+  // To change any option:
+  // options.value = { ...options.value, date: new Date() }
+
   return (
     <div className="timescape" {...getRootProps()}>
-      <input {...getInputProps('days')} />
+      <input {...getInputProps('years')} />
       <span>/</span>
       <input {...getInputProps('months')} />
       <span>/</span>
-      <input {...getInputProps('years')} />
+      <input {...getInputProps('days')} />
     </div>
   )
 }
@@ -125,30 +129,29 @@ function App() {
 ```vue
 <template>
   <div class="timescape" :ref="registerRoot()">
-    <input :ref="registerElement('days')" />
+    <input :ref="registerElement('years')" />
     <span>/</span>
     <input :ref="registerElement('months')" />
     <span>/</span>
-    <input :ref="registerElement('years')" />
+    <input :ref="registerElement('days')" />
   </div>
+
+  <!-- Change any option -->
+  <button @click="options.date = new Date()">Change date</button>
 </template>
 
 <script lang="ts" setup>
 import { useTimescape, type UseTimescapeOptions } from 'timescape/vue'
-import { ref, computed, watchEffect, reactive } from 'vue'
-
-const date = ref(new Date())
+import { watchEffect } from 'vue'
 
 watchEffect(() => {
   console.log('Date changed to', date.value)
 })
 
-const options = reactive({
+const { registerElement, registerRoot, options } = useTimescape({
   date,
   minDate: new Date(),
 } as UseTimescapeOptions)
-
-const { registerElement, registerRoot } = useTimescape(options)
 </script>
 ```
 
@@ -162,17 +165,20 @@ const { registerElement, registerRoot } = useTimescape(options)
 ```svelte
 <script lang="ts">
   import { createTimescape } from 'timescape/svelte'
-  import { derived, writable } from 'svelte/store'
+  import { derived } from 'svelte/store'
 
-  const options = writable({
+  const { inputProps, rootProps, options } = createTimescape({
     date: new Date(),
   })
 
-  const { inputProps, rootProps } = createTimescape(options)
+  const date = derived(options, ($o) => $o.date)
 
   date.subscribe((nextDate) => {
     console.log('Date changed to', nextDate)
   })
+
+  // To change any option:
+  // options.update((prev) => ({ ...prev, date: new Date() }))
 </script>
 
 <div class="timescape" use:rootProps>
@@ -193,28 +199,28 @@ const { registerElement, registerRoot } = useTimescape(options)
 
 ```tsx
 import { useTimescape } from 'timescape/solid'
-import { createEffect, createMemo, createSignal } from 'solid-js'
+import { createEffect } from 'solid-js'
 
 function App() {
-  const options = createSignal({
+  const { getInputProps, getRootProps, options, update } = useTimescape({
     date: new Date(),
   })
 
-  const { getInputProps, getRootProps } = useTimescape(options)
-
-  const nextDate = createMemo(() => options[0]().date)
-
   createEffect(() => {
-    console.log('Date changed to', nextDate())
+    console.log('Date changed to', options.date)
   })
+
+  // To change any option:
+  // update('date', new Date())
+  // or update({ date: new Date() })
 
   return (
     <div class="timescape" {...getRootProps()}>
-      <input {...getInputProps('days')} />
+      <input {...getInputProps('years')} />
       <span>/</span>
       <input {...getInputProps('months')} />
       <span>/</span>
-      <input {...getInputProps('years')} />
+      <input {...getInputProps('days')} />
     </div>
   )
 }
@@ -269,8 +275,11 @@ timeManager.registerElement(
 
 ## Options
 
+The options passed to `timescape` are the _initial values_. `timescape` returns the options either as store/signal or with an updater function (depending on the library you are using).
+
 ```tsx
 type Options = {
+  date?: Date
   minDate?: Date | $NOW // see more about $NOW below
   maxDate?: Date | $NOW
   hour12?: boolean
@@ -282,6 +291,7 @@ type Options = {
 
 | Option       | Default     | Description                                                                                                                                                                                                                                                                                                                                                      |
 | ------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `date`       | `undefined` | The initial date. If not set, it will render the placeholders in their respective input fields (if set).                                                                                                                                                                                                                                                         |
 | `minDate`    | `undefined` | The minimum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-vavue)                                                                                                                                                                                                                     |
 | `maxDate`    | `undefined` | The maximum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-value)                                                                                                                                                                                                                     |
 | `hour12`     | `false`     | If set to `true`, the time input will use a 12-hour format (with AM/PM). If set to `false`, it will use a 24-hour format.                                                                                                                                                                                                                                        |
@@ -307,9 +317,50 @@ import { $NOW } from 'timescape/react'
 import { NOW } from 'timescape/svelte'
 ```
 
+### `placeholder` on input elements
+
+The `placeholder` attribute on the input elements is supported and will be used to display the placeholder text. Usually it's to indicate the expected format of the input, e.g. `yyyy/mm/dd`
+
 ### `step` on input elements
 
 The `step` attribute on the input elements is supported and will be used to increment/decrement the values when the user uses the arrow keys. The default value is `1`, but you can set it to any value you want. Also see [`snapToStep`](#options) if you want to snap to the nearest step.
+
+## Ranges
+
+`timescape` supports ranges for the date/time inputs. This means a user can select a start and end. This is useful for things like booking systems, where you want to allow the user to select a range of dates.
+
+This is achieved by using two `timescape` instances, one for the start and one for the end. You can set their options independently, and they return the respective options and update functions in the `from` and `to` objects.
+
+Example usage (this works similar for all supported libraries):
+
+```tsx
+import { useTimescapeRange } from 'timescape/react'
+// Use `createTimescapeRange` for Svelte
+
+const { getRootProps, from, to } = useTimescapeRange({
+  from: { date: new Date('2000-01-01') },
+  to: { date: new Date() },
+})
+
+return (
+  <div {...getRootProps()}>
+    <div>
+      <input {...from.getInputProps('days')} />
+      <span>/</span>
+      <input {...from.getInputProps('months')} />
+      <span>/</span>
+      <input {...from.getInputProps('years')} />
+    </div>
+    <div>
+      <input {...to.getInputProps('days')} />
+      <span>/</span>
+      <input {...to.getInputProps('months')} />
+      <span>/</span>
+      <input {...to.getInputProps('years')} />
+    </div>
+  </div>
+)
+```
 
 ## Anatomy & styling
 

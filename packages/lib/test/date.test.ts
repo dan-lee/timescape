@@ -77,7 +77,7 @@ describe('date helper', () => {
   test('add months', () => {
     const date = new Date('2021-12-31T21:59:59.000Z')
     const newDate = add(date, 'months', 2)
-    expect(newDate.toISOString()).toEqual('2022-03-03T21:59:59.000Z')
+    expect(newDate.toISOString()).toEqual('2022-02-28T21:59:59.000Z')
   })
 
   test('add years', () => {
@@ -102,6 +102,36 @@ describe('date helper', () => {
     const date = new Date('2021-12-31T21:59:59.000Z')
     const newDate = add(date, 'seconds', 2)
     expect(newDate.toISOString()).toEqual('2021-12-31T22:00:01.000Z')
+  })
+
+  test('subtract days at month start', () => {
+    const date = new Date('2021-03-01T00:00:00.000Z')
+    const newDate = add(date, 'days', -1)
+    expect(newDate.toISOString()).toEqual('2021-02-28T00:00:00.000Z')
+  })
+
+  test('subtract months at year start', () => {
+    const date = new Date('2021-01-15T00:00:00.000Z')
+    const newDate = add(date, 'months', -1)
+    expect(newDate.toISOString()).toEqual('2020-12-15T00:00:00.000Z')
+  })
+
+  test('subtract days across leap year', () => {
+    const date = new Date('2020-03-01T00:00:00.000Z')
+    const newDate = add(date, 'days', -1)
+    expect(newDate.toISOString()).toEqual('2020-02-29T00:00:00.000Z')
+  })
+
+  test('subtract years on leap year', () => {
+    const date = new Date('2024-02-29T00:00:00.000Z')
+    const newDate = add(date, 'years', -1)
+    expect(newDate.toISOString()).toEqual('2023-02-28T00:00:00.000Z')
+  })
+
+  test('subtract years on non-leap year', () => {
+    const date = new Date('2023-02-28T00:00:00.000Z')
+    const newDate = add(date, 'years', -1)
+    expect(newDate.toISOString()).toEqual('2022-02-28T00:00:00.000Z')
   })
 
   test('get', () => {

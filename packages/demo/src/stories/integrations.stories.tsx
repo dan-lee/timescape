@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react'
 import { useEffect } from 'react'
+import { createLiveEditStory } from 'storybook-addon-code-editor'
 
 import * as styles from './integrations.css'
 import ReactLogo from './logos/ReactLogo'
@@ -7,8 +8,9 @@ import PreactLogo from './logos/PreactLogo'
 import SolidLogo from './logos/SolidLogo'
 import SvelteLogo from './logos/SvelteLogo'
 import VueLogo from './logos/VueLogo'
+import JsLogo from './logos/JsLogo.tsx'
 
-type Integration = 'react' | 'preact' | 'solid' | 'svelte' | 'vue'
+type Integration = 'react' | 'preact' | 'solid' | 'svelte' | 'vue' | 'vanilla'
 const Badge = ({ integration }: { integration: Integration }) => {
   switch (integration) {
     case 'react':
@@ -51,6 +53,13 @@ const Badge = ({ integration }: { integration: Integration }) => {
           <span className={styles.badgeVersion}>v{__VERSION_VUE__}</span>
         </div>
       )
+    case 'vanilla':
+      return (
+        <div className={styles.badge}>
+          <span>Vanilla</span>
+          <JsLogo style={{ height: 18, width: 'auto' }} />
+        </div>
+      )
   }
 }
 
@@ -63,18 +72,22 @@ const IframeComponent = ({ integration }: { integration: Integration }) => {
     }
   }, [])
 
+  const src = import.meta.env.DEV
+    ? `http://localhost:4949/integrations.html?value=${integration}`
+    : `./integrations.html?value=${integration}`
+
   return (
     <div>
       <iframe
         title={`${integration} integration demo`}
         role="presentation"
-        src={`./integrations.html?value=${integration}`}
+        src={src}
         className={styles.iframe}
       />
       <Badge integration={integration} />
       <div
         className={styles.info}
-        data-text="The integration examples are rendered in an iframe and don't provide option controls. Check out the timescape stories for all the configurable options."
+        data-text="The integration examples are rendered in an iframe with their respective framework and therefore doesn't provide live code edit. Check out the timescape stories where this is possible."
       >
         ?
       </div>
@@ -84,22 +97,72 @@ const IframeComponent = ({ integration }: { integration: Integration }) => {
 
 export default {
   title: 'root/integrations',
-  component: IframeComponent,
+  component: () => null,
   parameters: {
     layout: 'fullscreen',
   },
-  argTypes: {
-    integration: {
-      options: ['react', 'preact', 'solid', 'svelte', 'vue'],
-      table: { disable: true },
+} satisfies Meta
+
+export const React: StoryObj = {
+  ...createLiveEditStory({
+    code: await import('../integrations/demo.react.tsx?raw').then(
+      (m) => m.default,
+    ),
+    modifyEditor: ({ editor }) => {
+      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
     },
-  },
-} satisfies Meta<typeof IframeComponent>
+  }),
+  render: () => <IframeComponent integration="react" />,
+}
 
-type Story = StoryObj<typeof IframeComponent>
+export const Preact: StoryObj = {
+  ...createLiveEditStory({
+    code: await import('../integrations/preact.ts?raw').then((m) => m.default),
+    modifyEditor: ({ editor }) => {
+      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
+    },
+  }),
+  render: () => <IframeComponent integration="preact" />,
+}
 
-export const React: Story = { args: { integration: 'react' } }
-export const Preact: Story = { args: { integration: 'preact' } }
-export const Solid: Story = { args: { integration: 'solid' } }
-export const Svelte: Story = { args: { integration: 'svelte' } }
-export const Vue: Story = { args: { integration: 'vue' } }
+export const Solid: StoryObj = {
+  ...createLiveEditStory({
+    code: await import('../integrations/solid.ts?raw').then((m) => m.default),
+    modifyEditor: ({ editor }) => {
+      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
+    },
+  }),
+  render: () => <IframeComponent integration="solid" />,
+}
+
+export const Svelte: StoryObj = {
+  ...createLiveEditStory({
+    code: await import('../integrations/demo.svelte?raw').then(
+      (m) => m.default,
+    ),
+    modifyEditor: ({ editor }) => {
+      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
+    },
+  }),
+  render: () => <IframeComponent integration="svelte" />,
+}
+
+export const Vue: StoryObj = {
+  ...createLiveEditStory({
+    code: await import('../integrations/demo.vue?raw').then((m) => m.default),
+    modifyEditor: ({ editor }) => {
+      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
+    },
+  }),
+  render: () => <IframeComponent integration="vue" />,
+}
+
+export const Vanilla: StoryObj = {
+  ...createLiveEditStory({
+    code: await import('../integrations/vanilla.ts?raw').then((m) => m.default),
+    modifyEditor: ({ editor }) => {
+      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
+    },
+  }),
+  render: () => <IframeComponent integration="vanilla" />,
+}
