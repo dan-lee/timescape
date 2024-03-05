@@ -65,36 +65,42 @@ export class TimescapeManager implements Options {
   #rootElement?: HTMLElement
   #rootListener?: () => void
   #cursorPosition = 0
-  #resizeObserver = new ResizeObserver((entries) => {
-    entries.forEach((entry) => {
-      const inputElement = [...this.#registry.values()].find(
-        ({ shadowElement }) => shadowElement === entry.target,
-      )?.inputElement
+  #resizeObserver =
+    typeof window !== 'undefined'
+      ? new ResizeObserver((entries) => {
+          entries.forEach((entry) => {
+            const inputElement = [...this.#registry.values()].find(
+              ({ shadowElement }) => shadowElement === entry.target,
+            )?.inputElement
 
-      if (!inputElement || !entry.contentBoxSize[0]?.inlineSize) return
-      inputElement.style.width = `${entry.contentBoxSize[0].inlineSize}px`
-    })
-  })
-  #mutationObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.addedNodes.length > 0) {
-        this.#sortRegistryByElements()
-      }
-      if (mutation.removedNodes?.[0] instanceof HTMLInputElement) {
-        const removedElement = mutation.removedNodes[0]
+            if (!inputElement || !entry.contentBoxSize[0]?.inlineSize) return
+            inputElement.style.width = `${entry.contentBoxSize[0].inlineSize}px`
+          })
+        })
+      : undefined
+  #mutationObserver =
+    typeof window !== 'undefined'
+      ? new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length > 0) {
+              this.#sortRegistryByElements()
+            }
+            if (mutation.removedNodes?.[0] instanceof HTMLInputElement) {
+              const removedElement = mutation.removedNodes[0]
 
-        const entry = [...this.#registry.values()].find(
-          ({ inputElement }) => inputElement === removedElement,
-        )
+              const entry = [...this.#registry.values()].find(
+                ({ inputElement }) => inputElement === removedElement,
+              )
 
-        if (!entry) return
-        entry.inputElement.remove()
-        entry.shadowElement.remove()
-        entry.listeners.forEach((listener) => listener())
-        this.#registry.delete(entry.type)
-      }
-    })
-  })
+              if (!entry) return
+              entry.inputElement.remove()
+              entry.shadowElement.remove()
+              entry.listeners.forEach((listener) => listener())
+              this.#registry.delete(entry.type)
+            }
+          })
+        })
+      : undefined
 
   get date(): Date | undefined {
     return this.#timestamp ? new Date(this.#timestamp) : undefined
@@ -187,7 +193,7 @@ export class TimescapeManager implements Options {
         this.focusField(0)
       }
     })
-    this.#mutationObserver.observe(element, { childList: true, subtree: true })
+    this.#mutationObserver?.observe(element, { childList: true, subtree: true })
   }
 
   public registerElement(
@@ -234,7 +240,7 @@ export class TimescapeManager implements Options {
       white-space: pre;
       `
       this.#copyStyles(element, shadowElement)
-      this.#resizeObserver.observe(shadowElement)
+      this.#resizeObserver?.observe(shadowElement)
       this.#rootElement?.appendChild(shadowElement)
     } else {
       shadowElement = registryEntry.shadowElement
@@ -262,8 +268,8 @@ export class TimescapeManager implements Options {
       shadowElement.remove()
     })
     this.#pubsub.events = {}
-    this.#resizeObserver.disconnect()
-    this.#mutationObserver.disconnect()
+    this.#resizeObserver?.disconnect()
+    this.#mutationObserver?.disconnect()
   }
 
   public focusField(which: DateType | number = 0) {
