@@ -1,5 +1,11 @@
 # timescape
 
+## 0.4.1
+
+### Patch Changes
+
+- aa39a3d: Fix leaky shadow elements
+
 ## 0.4.0
 
 ### Minor Changes
