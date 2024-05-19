@@ -241,7 +241,7 @@ export class TimescapeManager implements Options {
       `
       this.#copyStyles(element, shadowElement)
       this.#resizeObserver?.observe(shadowElement)
-      this.#rootElement?.appendChild(shadowElement)
+      element.parentNode?.insertBefore(shadowElement, element.nextSibling)
     } else {
       shadowElement = registryEntry.shadowElement
     }
