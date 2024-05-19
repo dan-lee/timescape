@@ -1,5 +1,12 @@
 # timescape
 
+## 0.4.2
+
+### Patch Changes
+
+- 22ba9eb: Upgrade packages
+- 9201a9b: Always render shadow element next to element
+
 ## 0.4.1
 
 ### Patch Changes
@@ -21,32 +28,32 @@
   Example usage (this works similar for all supported libraries):
 
   ```tsx
-  import { useTimescapeRange } from "timescape/react";
+  import { useTimescapeRange } from 'timescape/react'
   // Use `createTimescapeRange` for Svelte
 
   const { getRootProps, from, to } = useTimescapeRange({
-    from: { date: new Date("2000-01-01") },
+    from: { date: new Date('2000-01-01') },
     to: { date: new Date() },
-  });
+  })
 
   return (
     <div {...getRootProps()}>
       <div>
-        <input {...from.getInputProps("days")} />
+        <input {...from.getInputProps('days')} />
         <span>/</span>
-        <input {...from.getInputProps("months")} />
+        <input {...from.getInputProps('months')} />
         <span>/</span>
-        <input {...from.getInputProps("years")} />
+        <input {...from.getInputProps('years')} />
       </div>
       <div>
-        <input {...to.getInputProps("days")} />
+        <input {...to.getInputProps('days')} />
         <span>/</span>
-        <input {...to.getInputProps("months")} />
+        <input {...to.getInputProps('months')} />
         <span>/</span>
-        <input {...to.getInputProps("years")} />
+        <input {...to.getInputProps('years')} />
       </div>
     </div>
-  );
+  )
   ```
 
   # Breaking changes
@@ -71,12 +78,12 @@
   ```tsx
   const [options, setOptions] = useState({
     date: new Date(),
-  });
-  const { ...rest } = useTimescape(options);
+  })
+  const { ...rest } = useTimescape(options)
 
   const handleChange = () => {
-    setOptions((prev) => ({ ...prev, date: new Date() }));
-  };
+    setOptions((prev) => ({ ...prev, date: new Date() }))
+  }
   ```
 
   <td>
@@ -84,11 +91,11 @@
   ```tsx
   const { options, update, ...rest } = useTimescape({
     date: new Date(),
-  });
+  })
 
   const handleChange = () => {
-    update((prev) => ({ ...prev, date: new Date() }));
-  };
+    update((prev) => ({ ...prev, date: new Date() }))
+  }
   ```
 
   </table>
@@ -107,15 +114,15 @@
   <td>
 
   ```tsx
-  const options = useSignal({ date: new Date() });
-  const { ...rest } = useTimescape(options);
+  const options = useSignal({ date: new Date() })
+  const { ...rest } = useTimescape(options)
 
   const handleChange = () => {
     options.value = {
       ...options.value,
       date: new Date(),
-    };
-  };
+    }
+  }
   ```
 
   <td>
@@ -123,14 +130,14 @@
   ```tsx
   const { options, ...rest } = useTimescape({
     date: new Date(),
-  });
+  })
 
   const handleChange = () => {
     options.value = {
       ...options.value,
       date: new Date(),
-    };
-  };
+    }
+  }
   ```
 
   </table>
@@ -150,15 +157,15 @@
   ```tsx
   const options = writable({
     date: new Date(),
-  });
-  const { ...rest } = useTimescape(options);
+  })
+  const { ...rest } = useTimescape(options)
 
   const handleChange = () => {
     options.update((options) => ({
       ...options,
       date: new Date(),
-    }));
-  };
+    }))
+  }
   ```
 
   <td>
@@ -166,14 +173,14 @@
   ```tsx
   const { options, ...rest } = useTimescape({
     date: new Date(),
-  });
+  })
 
   const handleChange = () => {
     options.update((options) => ({
       ...options,
       date: new Date(),
-    }));
-  };
+    }))
+  }
   ```
 
   </table>
@@ -192,13 +199,13 @@
   ```tsx
   const [options, setOptions] = createSignal({
     date: new Date(),
-  });
-  const { ...rest } = useTimescape(options);
+  })
+  const { ...rest } = useTimescape(options)
 
   const handleChange = () => {
-    setOptions("date", new Date());
+    setOptions('date', new Date())
     // or object notation: setOptions({ … })
-  };
+  }
   ```
 
   <td>
@@ -206,12 +213,12 @@
   ```tsx
   const { options, update, ...rest } = useTimescape({
     date: new Date(),
-  });
+  })
 
   const handleChange = () => {
-    update("date", new Date());
+    update('date', new Date())
     // or object notation: update({ … })
-  };
+  }
   ```
 
   </table>
@@ -228,9 +235,9 @@
   <td>
 
   ```tsx
-  const date = ref(new Date());
-  const options = reactive({ date });
-  const { ...rest } = useTimescape(options);
+  const date = ref(new Date())
+  const options = reactive({ date })
+  const { ...rest } = useTimescape(options)
 
   // Set later:
   // <button @click="date = new Date()">
@@ -241,7 +248,7 @@
   ```tsx
   const { options, ...rest } = useTimescape({
     date: new Date(),
-  });
+  })
 
   // Set later:
   // <button @click="options.date = new Date()">
