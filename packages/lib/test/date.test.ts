@@ -1,5 +1,5 @@
 import { daysInMonth, isSameSeconds, add, set, get, format } from '../src/date'
-import { describe, test } from 'vitest'
+import { describe, test, expect } from 'vitest'
 
 describe('date helper', () => {
   test('set days', () => {
