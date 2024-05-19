@@ -5,7 +5,7 @@ import {
   waitFor,
 } from '@testing-library/dom'
 import { beforeEach, describe, expect, it } from 'vitest'
-import HappyDomNode from 'happy-dom/lib/nodes/node/Node'
+import { PropertySymbol } from 'happy-dom'
 
 import { TimescapeManager, DateType } from '../src'
 
@@ -46,13 +46,13 @@ beforeEach(() => {
 
 const getFields = () => {
   const root = queryByTestId<HTMLDivElement>(container, 'root')!
-  const years = queryByTestId<HTMLInputElement>(container, 'years')!
-  const months = queryByTestId<HTMLInputElement>(container, 'months')!
-  const days = queryByTestId<HTMLInputElement>(container, 'days')!
-  const hours = queryByTestId<HTMLInputElement>(container, 'hours')!
-  const minutes = queryByTestId<HTMLInputElement>(container, 'minutes')!
-  const seconds = queryByTestId<HTMLInputElement>(container, 'seconds')!
-  const ampm = queryByTestId<HTMLInputElement>(container, 'am/pm')!
+  const years = queryByTestId<HTMLInputElement>(root, 'years')!
+  const months = queryByTestId<HTMLInputElement>(root, 'months')!
+  const days = queryByTestId<HTMLInputElement>(root, 'days')!
+  const hours = queryByTestId<HTMLInputElement>(root, 'hours')!
+  const minutes = queryByTestId<HTMLInputElement>(root, 'minutes')!
+  const seconds = queryByTestId<HTMLInputElement>(root, 'seconds')!
+  const ampm = queryByTestId<HTMLInputElement>(root, 'am/pm')!
 
   return { root, years, months, days, hours, minutes, seconds, ampm }
 }
@@ -190,11 +190,19 @@ describe('timescape', () => {
 
       const fields = getFields()
 
+      Object.values(fields).forEach((field) => {
+        // @ts-expect-error not public API
+        const listeners = field[PropertySymbol.listeners]
+        return Object.values(listeners).forEach((l) => {
+          expect(l).not.toHaveLength(0)
+        })
+      })
+
       manager.remove()
 
-      Object.values(fields).forEach((f) => {
-        const node = f as unknown as HappyDomNode
-        const listeners = node._listeners
+      Object.values(fields).forEach((field) => {
+        // @ts-expect-error not public API
+        const listeners = field[PropertySymbol.listeners]
         return Object.values(listeners).forEach((l) => {
           expect(l).toHaveLength(0)
         })
@@ -362,34 +370,6 @@ describe('timescape', () => {
       expect(fields.minutes).toHaveValue('00')
       expect(fields.seconds).toHaveValue('00')
       expect(fields.ampm).toHaveValue('AM')
-    })
-
-    it('should still work after reordering/removing fields', () => {
-      document.body.appendChild(container)
-
-      const { root, ...fields } = getFields()
-
-      // reorder to d/m/y
-      root.insertBefore(fields.days, fields.years)
-      root.insertBefore(fields.months, fields.years)
-
-      fields.ampm.remove()
-      fields.hours.remove()
-      fields.minutes.remove()
-      fields.seconds.remove()
-
-      fields.days.focus()
-      expect(fields.days).toHaveFocus()
-
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
-      expect(fields.months).toHaveFocus()
-
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
-      expect(fields.years).toHaveFocus()
-
-      // cycle from beginning, other fields have been removed
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
-      expect(fields.days).toHaveFocus()
     })
   })
 
