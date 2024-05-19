@@ -85,18 +85,21 @@ export class TimescapeManager implements Options {
             if (mutation.addedNodes.length > 0) {
               this.#sortRegistryByElements()
             }
-            if (mutation.removedNodes?.[0] instanceof HTMLInputElement) {
-              const removedElement = mutation.removedNodes[0]
 
-              const entry = [...this.#registry.values()].find(
-                ({ inputElement }) => inputElement === removedElement,
-              )
+            if (mutation.removedNodes.length > 0) {
+              Array.from(mutation.removedNodes)
+                .filter((node) => node instanceof HTMLInputElement)
+                .forEach((node) => {
+                  const entry = [...this.#registry.values()].find(
+                    ({ inputElement }) => inputElement === node,
+                  )
 
-              if (!entry) return
-              entry.inputElement.remove()
-              entry.shadowElement.remove()
-              entry.listeners.forEach((listener) => listener())
-              this.#registry.delete(entry.type)
+                  if (!entry) return
+                  entry.inputElement.remove()
+                  entry.shadowElement.remove()
+                  entry.listeners.forEach((listener) => listener())
+                  this.#registry.delete(entry.type)
+                })
             }
           })
         })
@@ -225,11 +228,18 @@ export class TimescapeManager implements Options {
     }
 
     let shadowElement
-    if (!domExists || !registryEntry?.shadowElement) {
+
+    const sibling = element.nextElementSibling
+    if (
+      sibling instanceof HTMLSpanElement &&
+      sibling.dataset.timescapeShadow === type
+    ) {
+      shadowElement = sibling
+    } else if (!domExists || !registryEntry?.shadowElement) {
       shadowElement = document.createElement('span')
       shadowElement.setAttribute('aria-hidden', 'true')
       shadowElement.textContent = element.value || element.placeholder
-      shadowElement.dataset.type = type
+      shadowElement.dataset.timescapeShadow = type
       shadowElement.style.cssText = `
       display: inline-block;
       position: absolute;
@@ -637,7 +647,7 @@ export class TimescapeManager implements Options {
       )
     }
 
-    if (shadowElement && shadowElement.textContent !== value) {
+    if (shadowElement.textContent !== value) {
       shadowElement.textContent = value || element.placeholder
     }
   }
