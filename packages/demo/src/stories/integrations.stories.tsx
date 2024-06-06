@@ -3,12 +3,8 @@ import { useEffect } from 'react'
 import { createLiveEditStory } from 'storybook-addon-code-editor'
 
 import * as styles from './integrations.css'
-import ReactLogo from './logos/ReactLogo'
-import PreactLogo from './logos/PreactLogo'
-import SolidLogo from './logos/SolidLogo'
-import SvelteLogo from './logos/SvelteLogo'
-import VueLogo from './logos/VueLogo'
-import JsLogo from './logos/JsLogo.tsx'
+import SolidLogo from './SolidLogo'
+import { Icon } from '@iconify-icon/react'
 
 type Integration = 'react' | 'preact' | 'solid' | 'svelte' | 'vue' | 'vanilla'
 const Badge = ({ integration }: { integration: Integration }) => {
@@ -16,7 +12,12 @@ const Badge = ({ integration }: { integration: Integration }) => {
     case 'react':
       return (
         <div className={styles.badge}>
-          <ReactLogo style={{ height: 20, color: 'rgb(20, 158, 202)' }} />
+          <Icon
+            icon="carbon:logo-react"
+            height={24}
+            style={{ color: 'rgb(20, 158, 202)' }}
+          />
+
           <span>React</span>
           <span className={styles.badgeVersion}>v{__VERSION_REACT__}</span>
         </div>
@@ -24,7 +25,7 @@ const Badge = ({ integration }: { integration: Integration }) => {
     case 'preact':
       return (
         <div className={styles.badge}>
-          <PreactLogo style={{ height: 20, width: 'auto' }} />
+          <Icon icon="vscode-icons:file-type-preact" height={24} />
           <span>Preact</span>
           <span className={styles.badgeVersion}>v{__VERSION_PREACT__}</span>
         </div>
@@ -32,7 +33,7 @@ const Badge = ({ integration }: { integration: Integration }) => {
     case 'solid':
       return (
         <div className={styles.badge}>
-          <SolidLogo style={{ height: 20, width: 'auto' }} />
+          <SolidLogo style={{ height: 24, width: 'auto' }} />
           <span>Solid.js</span>
           <span className={styles.badgeVersion}>v{__VERSION_SOLID_JS__}</span>
         </div>
@@ -40,7 +41,7 @@ const Badge = ({ integration }: { integration: Integration }) => {
     case 'svelte':
       return (
         <div className={styles.badge}>
-          <SvelteLogo style={{ height: 20, width: 'auto' }} />
+          <Icon icon="vscode-icons:file-type-svelte" height={24} />
           <span>Svelte</span>
           <span className={styles.badgeVersion}>v{__VERSION_SVELTE__}</span>
         </div>
@@ -48,7 +49,7 @@ const Badge = ({ integration }: { integration: Integration }) => {
     case 'vue':
       return (
         <div className={styles.badge}>
-          <VueLogo style={{ height: 16, width: 'auto' }} />
+          <Icon icon="vscode-icons:file-type-vue" height={24} />
           <span>Vue</span>
           <span className={styles.badgeVersion}>v{__VERSION_VUE__}</span>
         </div>
@@ -57,7 +58,7 @@ const Badge = ({ integration }: { integration: Integration }) => {
       return (
         <div className={styles.badge}>
           <span>Vanilla</span>
-          <JsLogo style={{ height: 18, width: 'auto' }} />
+          <Icon icon="vscode-icons:file-type-js-official" height={24} />
         </div>
       )
   }
@@ -103,66 +104,28 @@ export default {
   },
 } satisfies Meta
 
-export const React: StoryObj = {
+const createStory = (integration: Integration, code: string): StoryObj => ({
   ...createLiveEditStory({
-    code: await import('../integrations/demo.react.tsx?raw').then(
-      (m) => m.default,
-    ),
+    code,
     modifyEditor: ({ editor }) => {
       editor.getEditors().at(0)?.updateOptions({ readOnly: true })
     },
   }),
-  render: () => <IframeComponent integration="react" />,
-}
+  render: () => <IframeComponent integration={integration} />,
+})
 
-export const Preact: StoryObj = {
-  ...createLiveEditStory({
-    code: await import('../integrations/preact.ts?raw').then((m) => m.default),
-    modifyEditor: ({ editor }) => {
-      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
-    },
-  }),
-  render: () => <IframeComponent integration="preact" />,
-}
+const [react, preact, solid, svelte, vue, vanilla] = await Promise.all([
+  import('../integrations/demo.react.tsx?raw').then((m) => m.default),
+  import('../integrations/preact.ts?raw').then((m) => m.default),
+  import('../integrations/solid.ts?raw').then((m) => m.default),
+  import('../integrations/demo.svelte?raw').then((m) => m.default),
+  import('../integrations/demo.vue?raw').then((m) => m.default),
+  import('../integrations/vanilla.ts?raw').then((m) => m.default),
+])
 
-export const Solid: StoryObj = {
-  ...createLiveEditStory({
-    code: await import('../integrations/solid.ts?raw').then((m) => m.default),
-    modifyEditor: ({ editor }) => {
-      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
-    },
-  }),
-  render: () => <IframeComponent integration="solid" />,
-}
-
-export const Svelte: StoryObj = {
-  ...createLiveEditStory({
-    code: await import('../integrations/demo.svelte?raw').then(
-      (m) => m.default,
-    ),
-    modifyEditor: ({ editor }) => {
-      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
-    },
-  }),
-  render: () => <IframeComponent integration="svelte" />,
-}
-
-export const Vue: StoryObj = {
-  ...createLiveEditStory({
-    code: await import('../integrations/demo.vue?raw').then((m) => m.default),
-    modifyEditor: ({ editor }) => {
-      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
-    },
-  }),
-  render: () => <IframeComponent integration="vue" />,
-}
-
-export const Vanilla: StoryObj = {
-  ...createLiveEditStory({
-    code: await import('../integrations/vanilla.ts?raw').then((m) => m.default),
-    modifyEditor: ({ editor }) => {
-      editor.getEditors().at(0)?.updateOptions({ readOnly: true })
-    },
-  }),
-  render: () => <IframeComponent integration="vanilla" />,
-}
+export const React = createStory('react', react)
+export const Preact = createStory('preact', preact)
+export const Solid = createStory('solid', solid)
+export const Svelte = createStory('svelte', svelte)
+export const Vue = createStory('vue', vue)
+export const Vanilla = createStory('vanilla', vanilla)
