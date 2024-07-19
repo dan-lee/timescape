@@ -1,5 +1,11 @@
 # timescape
 
+## 0.4.4
+
+### Patch Changes
+
+- 482d067: Allow switching AM/PM on mobile
+
 ## 0.4.3
 
 ### Patch Changes

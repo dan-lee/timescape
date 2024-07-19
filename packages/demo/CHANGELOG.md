@@ -1,5 +1,12 @@
 # demo
 
+## 1.2.4
+
+### Patch Changes
+
+- Updated dependencies [482d067]
+  - timescape@0.4.4
+
 ## 1.2.3
 
 ### Patch Changes
