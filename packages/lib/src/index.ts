@@ -437,12 +437,11 @@ export class TimescapeManager implements Options {
       case 'P':
         if (type === 'am/pm') {
           const isAMKey = e.key.toLowerCase() === 'a'
-          const isPMKey = e.key.toLowerCase() === 'p'
 
           const date = this.#currentDate
           const isAM = date.getHours() < 12
 
-          if (isAM && isPMKey) {
+          if (isAM && !isAMKey) {
             this.#setValidatedDate(add(date, 'hours', 12))
           } else if (!isAM && isAMKey) {
             this.#setValidatedDate(add(date, 'hours', -12))
