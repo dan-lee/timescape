@@ -371,6 +371,28 @@ describe('timescape', () => {
       expect(fields.seconds).toHaveValue('00')
       expect(fields.ampm).toHaveValue('AM')
     })
+
+    it('should change 12-hour mode period value with `p`/`a` keys', () => {
+      document.body.appendChild(container)
+      manager.hour12 = true
+
+      const fields = getFields()
+
+      expect(fields.ampm).toHaveValue('PM')
+
+      fields.ampm.focus()
+      fireEvent.keyDown(document.activeElement!, { key: 'a' })
+      expect(fields.ampm).toHaveValue('AM')
+
+      fireEvent.keyDown(document.activeElement!, { key: 'p' })
+      expect(fields.ampm).toHaveValue('PM')
+
+      fireEvent.keyDown(document.activeElement!, { key: 'A' })
+      expect(fields.ampm).toHaveValue('AM')
+
+      fireEvent.keyDown(document.activeElement!, { key: 'P' })
+      expect(fields.ampm).toHaveValue('PM')
+    })
   })
 
   describe('steps', () => {
