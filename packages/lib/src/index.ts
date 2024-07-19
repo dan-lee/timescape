@@ -451,7 +451,10 @@ export class TimescapeManager implements Options {
       default:
         const { key } = e
 
-        if (!/^\d$/.test(key)) return
+        if (!/^\d$/.test(key)) {
+          e.preventDefault()
+          return
+        }
 
         const number = Number(key)
 
