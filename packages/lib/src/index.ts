@@ -387,9 +387,13 @@ export class TimescapeManager implements Options {
 
     const { inputElement, intermediateValue, type } = registryEntry
 
-    switch (e.key) {
-      case 'ArrowUp':
-      case 'ArrowDown':
+    let allowNativeEvent = false
+
+    const key = e.key
+
+    switch (true) {
+      case key === 'ArrowUp':
+      case key === 'ArrowDown':
         this.#clearIntermediateState(registryEntry)
         const date = this.#currentDate
 
@@ -423,19 +427,17 @@ export class TimescapeManager implements Options {
             : add(date, type, step),
         )
         break
-      case 'ArrowRight':
+      case key === 'ArrowRight':
+      case key === 'Enter':
         this.#focusNextField(type)
         break
-      case 'ArrowLeft':
+      case key === 'ArrowLeft':
         this.#focusNextField(type, -1)
         break
-      case 'Backspace':
-      case 'Tab':
-        break
-      case 'a':
-      case 'A':
-      case 'p':
-      case 'P':
+      case key === 'a':
+      case key === 'A':
+      case key === 'p':
+      case key === 'P':
         if (type === 'am/pm') {
           const isAMKey = e.key.toLowerCase() === 'a'
 
@@ -449,14 +451,7 @@ export class TimescapeManager implements Options {
           }
         }
         break
-      default:
-        const { key } = e
-
-        if (!/^\d$/.test(key)) {
-          e.preventDefault()
-          return
-        }
-
+      case /^\d$/.test(key):
         const number = Number(key)
 
         const setIntermediateValue = (value: string) => {
@@ -577,10 +572,12 @@ export class TimescapeManager implements Options {
             break
         }
         break
+      default:
+        allowNativeEvent = true
+        break
     }
 
-    // Prevent the default behavior for all keys except these
-    if (!['Tab'].includes(e.key)) {
+    if (!allowNativeEvent) {
       e.preventDefault()
       e.stopPropagation()
     }
