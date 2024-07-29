@@ -431,6 +431,9 @@ export class TimescapeManager implements Options {
       case key === 'Enter':
         this.#focusNextField(type)
         break
+      case key === 'Tab':
+        allowNativeEvent = !this.#focusNextField(type, 1, false)
+        break
       case key === 'ArrowLeft':
         this.#focusNextField(type, -1)
         break
@@ -722,6 +725,8 @@ export class TimescapeManager implements Options {
     ) {
       this.#pubsub.emit('focusWrap', offset === -1 ? 'start' : 'end')
     }
+
+    return !!nextIndex
   }
 }
 
