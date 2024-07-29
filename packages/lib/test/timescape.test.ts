@@ -222,15 +222,12 @@ describe('timescape', () => {
 
     it('should focus the second element by the Tab key', () => {
       document.body.appendChild(container)
-      const { years } = getFields()
+      const { years, months } = getFields()
 
       years.focus()
       expect(years).toHaveFocus()
 
       fireEvent.keyDown(document.activeElement!, { key: 'Tab' })
-
-      const { months } = getFields()
-
       expect(months).toHaveFocus()
     })
 
