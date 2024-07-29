@@ -432,7 +432,8 @@ export class TimescapeManager implements Options {
         this.#focusNextField(type)
         break
       case key === 'Tab':
-        allowNativeEvent = !this.#focusNextField(type, 1, false)
+        const tabOffset = e.shiftKey ? -1 : 1
+        allowNativeEvent = !this.#focusNextField(type, tabOffset, false)
         break
       case key === 'ArrowLeft':
         this.#focusNextField(type, -1)
