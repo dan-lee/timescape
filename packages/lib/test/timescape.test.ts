@@ -220,7 +220,7 @@ describe('timescape', () => {
       expect(years).toHaveFocus()
     })
 
-    it('should focus the first element by Tab key', () => {
+    it('should focus the second element by the Tab key', () => {
       document.body.appendChild(container)
       const { years, months } = getFields()
 
