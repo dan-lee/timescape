@@ -220,6 +220,17 @@ describe('timescape', () => {
       expect(years).toHaveFocus()
     })
 
+    it('should focus the first element by Tab key', () => {
+      document.body.appendChild(container)
+      const { years, months } = getFields()
+
+      years.focus()
+      expect(years).toHaveFocus()
+
+      fireEvent.keyDown(document.activeElement!, { key: 'Tab' })
+      expect(months).toHaveFocus()
+    })
+
     it('should cycle through fields by arrow keys', () => {
       document.body.appendChild(container)
       const { years, months, days, hours, minutes, seconds, ampm } = getFields()
