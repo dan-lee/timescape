@@ -430,6 +430,7 @@ export class TimescapeManager implements Options {
         this.#focusNextField(type, -1)
         break
       case 'Backspace':
+      case 'Tab':
         break
       case 'a':
       case 'A':
@@ -578,8 +579,11 @@ export class TimescapeManager implements Options {
         break
     }
 
-    e.preventDefault()
-    e.stopPropagation()
+    // Prevent the default behavior for all keys except these
+    if (!['Tab'].includes(e.key)) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
   }
 
   #handleClick(e: MouseEvent) {
