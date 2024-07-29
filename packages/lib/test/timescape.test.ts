@@ -222,13 +222,39 @@ describe('timescape', () => {
 
     it('should focus the second element by the Tab key', () => {
       document.body.appendChild(container)
-      const { years, months } = getFields()
+      const { years } = getFields()
 
       years.focus()
       expect(years).toHaveFocus()
 
       fireEvent.keyDown(document.activeElement!, { key: 'Tab' })
+
+      const { months } = getFields()
+
       expect(months).toHaveFocus()
+    })
+
+    it('should cycle through fields by Enter key', () => {
+      document.body.appendChild(container)
+      const { years, months, days, hours, minutes, seconds, ampm } = getFields()
+
+      years.focus()
+      expect(years).toHaveFocus()
+
+      const elements = [
+        months,
+        days,
+        hours,
+        minutes,
+        seconds,
+        ampm,
+        // start from beginning
+        years,
+      ]
+      for (const element of elements) {
+        fireEvent.keyDown(document.activeElement!, { key: 'Enter' })
+        expect(element).toHaveFocus()
+      }
     })
 
     it('should cycle through fields by arrow keys', () => {
