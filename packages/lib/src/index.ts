@@ -709,7 +709,11 @@ export class TimescapeManager implements Options {
     this.#pubsub.emit('changeDate', date)
   }
 
-  #focusNextField(type: DateType, offset = 1, wrap = true) {
+  /**
+   *
+   * @returns {Boolean} Whether the next field was focused or not
+   */
+  #focusNextField(type: DateType, offset = 1, wrap = true): boolean {
     const types = [...this.#registry.keys()]
     const index = types.indexOf(type)
 
