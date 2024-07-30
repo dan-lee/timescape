@@ -144,14 +144,13 @@ function App() {
 import { useTimescape, type UseTimescapeOptions } from 'timescape/vue'
 import { watchEffect } from 'vue'
 
-watchEffect(() => {
-  console.log('Date changed to', date.value)
+const { registerElement, registerRoot, options } = useTimescape({
+  date: new Date(),
 })
 
-const { registerElement, registerRoot, options } = useTimescape({
-  date,
-  minDate: new Date(),
-} as UseTimescapeOptions)
+watchEffect(() => {
+  console.log('Date changed to', options.value.date)
+})
 </script>
 ```
 
