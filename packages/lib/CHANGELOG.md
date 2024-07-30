@@ -1,5 +1,11 @@
 # timescape
 
+## 0.5.0
+
+### Minor Changes
+
+- [#23](https://github.com/dan-lee/timescape/pull/23) [`f616faa`](https://github.com/dan-lee/timescape/commit/f616faa325f5d98dc530c030d4d26578adcb01ec) Thanks [@SeanCassiere](https://github.com/SeanCassiere)! - Allow native key events to be passed through in the `keydown`
+
 ## 0.4.4
 
 ### Patch Changes

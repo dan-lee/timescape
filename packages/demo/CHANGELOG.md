@@ -1,5 +1,12 @@
 # demo
 
+## 1.2.5
+
+### Patch Changes
+
+- Updated dependencies [[`f616faa`](https://github.com/dan-lee/timescape/commit/f616faa325f5d98dc530c030d4d26578adcb01ec)]:
+  - timescape@0.5.0
+
 ## 1.2.4
 
 ### Patch Changes
