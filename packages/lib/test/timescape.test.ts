@@ -220,17 +220,6 @@ describe('timescape', () => {
       expect(years).toHaveFocus()
     })
 
-    it('should focus the second element by the Tab key', () => {
-      document.body.appendChild(container)
-      const { years, months } = getFields()
-
-      years.focus()
-      expect(years).toHaveFocus()
-
-      fireEvent.keyDown(document.activeElement!, { key: 'Tab' })
-      expect(months).toHaveFocus()
-    })
-
     it('should cycle through fields by Enter key', () => {
       document.body.appendChild(container)
       const { years, months, days, hours, minutes, seconds, ampm } = getFields()
@@ -254,6 +243,20 @@ describe('timescape', () => {
       }
     })
 
+    it('should cycle through fields by the Tab key', () => {
+      document.body.appendChild(container)
+      const { years, months, days, hours, minutes, seconds, ampm } = getFields()
+
+      years.focus()
+      expect(years).toHaveFocus()
+
+      const elements = [months, days, hours, minutes, seconds, ampm]
+      for (const element of elements) {
+        fireEvent.keyDown(document.activeElement!, { key: 'Tab' })
+        expect(element).toHaveFocus()
+      }
+    })
+
     it('should cycle through fields by arrow keys', () => {
       document.body.appendChild(container)
       const { years, months, days, hours, minutes, seconds, ampm } = getFields()
@@ -273,6 +276,23 @@ describe('timescape', () => {
       ]
       for (const element of elements) {
         fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
+        expect(element).toHaveFocus()
+      }
+    })
+
+    it('should cycle through fields by Tab key in reverse', () => {
+      document.body.appendChild(container)
+      const { years, months, days, hours, minutes, seconds, ampm } = getFields()
+
+      ampm.focus()
+      expect(ampm).toHaveFocus()
+
+      const orderedElements = [seconds, minutes, hours, days, months, years]
+      for (const element of orderedElements) {
+        fireEvent.keyDown(document.activeElement!, {
+          key: 'Tab',
+          shiftKey: true,
+        })
         expect(element).toHaveFocus()
       }
     })
