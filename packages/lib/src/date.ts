@@ -109,6 +109,20 @@ export const get = (date: Date, type: DateType) => {
   }
 }
 
+export const toggleAmPm = (date: Date, force?: 'am' | 'pm'): Date => {
+  const hours = date.getHours()
+
+  if (force === undefined) {
+    return add(date, 'hours', hours >= 12 ? -12 : 12)
+  } else if (force === 'am' && hours >= 12) {
+    return add(date, 'hours', -12)
+  } else if (force === 'pm' && hours < 12) {
+    return add(date, 'hours', 12)
+  }
+
+  return date
+}
+
 export const format = (
   date: Date,
   type: DateType,

@@ -1,4 +1,12 @@
-import { daysInMonth, isSameSeconds, add, set, get, format } from '../src/date'
+import {
+  daysInMonth,
+  isSameSeconds,
+  add,
+  set,
+  get,
+  format,
+  toggleAmPm,
+} from '../src/date'
 import { describe, test, expect } from 'vitest'
 
 describe('date helper', () => {
@@ -186,5 +194,49 @@ describe('date helper', () => {
       '11',
       'PM',
     ])
+  })
+})
+
+describe('toggleAmPm', () => {
+  test('should toggle from AM to PM', () => {
+    const date = new Date('2024-08-19T00:30:00')
+    date.setHours(8)
+
+    expect(toggleAmPm(date).getHours()).toBe(20)
+  })
+
+  test('should toggle from PM to AM', () => {
+    const date = new Date('2024-08-19T00:45:00')
+    date.setHours(15)
+
+    expect(toggleAmPm(date).getHours()).toBe(3)
+  })
+
+  test('should force to AM if currently PM', () => {
+    const date = new Date('2024-08-19T00:00:00')
+    date.setHours(18)
+
+    expect(toggleAmPm(date, 'am').getHours()).toBe(6)
+  })
+
+  test('should not change if already AM and forced to AM', () => {
+    const date = new Date('2024-08-19T00:15:00')
+    date.setHours(9)
+
+    expect(toggleAmPm(date, 'am').getHours()).toBe(9)
+  })
+
+  test('should force to PM if currently AM', () => {
+    const date = new Date('2024-08-19T00:00:00')
+    date.setHours(4)
+
+    expect(toggleAmPm(date, 'pm').getHours()).toBe(16)
+  })
+
+  test('should not change if already PM and forced to PM', () => {
+    const date = new Date('2024-08-19T00:30:00')
+    date.setHours(14)
+
+    expect(toggleAmPm(date, 'pm').getHours()).toBe(14)
   })
 })
