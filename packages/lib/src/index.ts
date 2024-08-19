@@ -406,9 +406,7 @@ export class TimescapeManager implements Options {
         const date = this.#currentDate
 
         if (type === 'am/pm') {
-          // Toggle between AM and PM without changing the day
-          const isAM = date.getHours() < 12
-          this.#setValidatedDate(add(date, 'hours', isAM ? 12 : -12))
+          this.#setValidatedDate(toggleAmPm(date))
           break
         }
 
@@ -446,23 +444,13 @@ export class TimescapeManager implements Options {
       case key === 'ArrowLeft':
         this.#focusNextField(type, -1)
         break
-      case key === 'a':
-      case key === 'A':
-      case key === 'p':
-      case key === 'P':
-        if (type === 'am/pm') {
-          const isAMKey = e.key.toLowerCase() === 'a'
+      case ['a', 'p'].includes(key.toLowerCase()):
+        if (type !== 'am/pm') break
 
-          const date = this.#currentDate
-          const isAM = date.getHours() < 12
-
-          if (isAM && !isAMKey) {
-            this.#setValidatedDate(add(date, 'hours', 12))
-          } else if (!isAM && isAMKey) {
-            this.#setValidatedDate(add(date, 'hours', -12))
-          }
-        }
+        const force = key.toLowerCase() === 'a' ? 'am' : 'pm'
+        this.#setValidatedDate(toggleAmPm(this.#currentDate, force))
         break
+
       case /^\d$/.test(key):
         const number = Number(key)
 
