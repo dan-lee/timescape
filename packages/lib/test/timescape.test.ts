@@ -960,4 +960,18 @@ describe('timescape', () => {
     fireEvent.focus(root)
     expect(months).toHaveFocus()
   })
+
+  it('should recognize a/p keys', () => {
+    document.body.appendChild(container)
+    manager.date = new Date('2021-01-01T15:00:00Z')
+
+    const fields = getFields()
+
+    fields.ampm.focus()
+    fireEvent.keyDown(document.activeElement!, { key: 'a' })
+    expect(fields.ampm).toHaveValue('AM')
+
+    fireEvent.keyDown(document.activeElement!, { key: 'p' })
+    expect(fields.ampm).toHaveValue('PM')
+  })
 })
