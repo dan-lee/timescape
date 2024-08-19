@@ -1,6 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "mainEntryPointFilePath": "<projectFolder>/dist/src/integrations/react.d.ts",
+  "newlineKind": "os",
   "bundledPackages": [],
   "compiler": {},
   "apiReport": { "enabled": false },
