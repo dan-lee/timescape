@@ -1,5 +1,11 @@
 # timescape
 
+## 0.5.1
+
+### Patch Changes
+
+- [#27](https://github.com/dan-lee/timescape/pull/27) [`24d68fe`](https://github.com/dan-lee/timescape/commit/24d68fe1411de8f1276de8e79a649188618521bf) Thanks [@dan-lee](https://github.com/dan-lee)! - Maintain correct AM/PM value when changing hours in hour12 mode
+
 ## 0.5.0
 
 ### Minor Changes
