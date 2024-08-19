@@ -776,6 +776,41 @@ describe('timescape', () => {
       expect(fields.minutes).toHaveFocus()
     })
 
+    it('should remain PM', () => {
+      document.body.appendChild(container)
+      manager.hour12 = true
+
+      const fields = getFields()
+
+      fields.hours.focus()
+      fireEvent.keyDown(document.activeElement!, { key: '5' })
+      expect(fields.ampm).toHaveValue('PM')
+
+      fields.hours.focus()
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      expect(fields.hours).toHaveValue('12')
+      expect(fields.ampm).toHaveValue('PM')
+    })
+
+    it('should remain AM', () => {
+      document.body.appendChild(container)
+      manager.date = new Date('2021-01-01T03:00:00Z')
+      manager.hour12 = true
+
+      const fields = getFields()
+
+      fields.hours.focus()
+      fireEvent.keyDown(document.activeElement!, { key: '5' })
+      expect(fields.ampm).toHaveValue('AM')
+
+      fields.hours.focus()
+      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      expect(fields.hours).toHaveValue('12')
+      expect(fields.ampm).toHaveValue('AM')
+    })
+
     it('should work with days', () => {
       document.body.appendChild(container)
 
