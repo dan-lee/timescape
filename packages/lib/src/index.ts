@@ -4,7 +4,15 @@ import {
   createPubSub,
   type Callback,
 } from './util'
-import { get, set, add, daysInMonth, isSameSeconds, format } from './date'
+import {
+  get,
+  set,
+  add,
+  daysInMonth,
+  isSameSeconds,
+  format,
+  toggleAmPm,
+} from './date'
 
 export { marry } from './range'
 
@@ -533,29 +541,37 @@ export class TimescapeManager implements Options {
             }
             break
           case 'hours':
+            const isPM = this.#currentDate.getHours() >= 12
+
             if (this.#cursorPosition === 0) {
               setIntermediateValue(key)
 
               const maxFirstDigit = this.hour12 ? 1 : 2
               // When the user types a number greater than 1/2 , we can assume they're done typing the hours
               if (number > maxFirstDigit) {
-                setValue('hours', number)
+                // If the current time is PM, we need to add 12 to the hours to keep it PM
+                setValue('hours', this.hour12 && isPM ? number + 12 : number)
                 this.#focusNextField(type)
-              } else {
-                this.#cursorPosition = 1
+                break
               }
+
+              this.#cursorPosition = 1
             } else {
-              const finalValue = Number(intermediateValue + key)
-              const maxAvailableHours = this.hour12 ? 12 : 24
-              // If value is above 12/24 take the last entered digit instead
-              setValue(
-                'hours',
-                finalValue > maxAvailableHours ? number : finalValue,
-              )
+              const inputValue = Number(intermediateValue + key)
+              const maxHours = this.hour12 ? 12 : 24
+
+              let finalValue = inputValue > maxHours ? number : inputValue
+
+              // Keep AM/PM like before
+              if (this.hour12) {
+                const date = set(this.#currentDate, 'hours', finalValue)
+                finalValue = toggleAmPm(date, isPM ? 'pm' : 'am').getHours()
+              }
+
+              setValue('hours', finalValue)
               this.#focusNextField(type)
             }
             break
-
           case 'minutes':
           case 'seconds':
             if (this.#cursorPosition === 0) {
