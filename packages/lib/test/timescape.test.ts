@@ -1,9 +1,5 @@
-import {
-  fireEvent,
-  getByTestId,
-  queryByTestId,
-  waitFor,
-} from '@testing-library/dom'
+import { getByTestId, queryByTestId, waitFor } from '@testing-library/dom'
+import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { PropertySymbol } from 'happy-dom'
 
@@ -28,7 +24,10 @@ const register = (manager: TimescapeManager, fields: DateType[]) => {
 const baseDate = new Date('2021-12-31T23:59:59Z')
 let manager: TimescapeManager
 let container: HTMLDivElement
+let user: UserEvent
+
 beforeEach(() => {
+  user = userEvent.setup()
   document.body.innerHTML = ''
   manager = new TimescapeManager(baseDate)
 
@@ -135,11 +134,11 @@ describe('timescape', () => {
       expect(fields.ampm).toHaveValue('')
     })
 
-    it('should focus on click', () => {
+    it('should focus on click', async () => {
       document.body.appendChild(container)
 
       const { years } = getFields()
-      fireEvent.click(years)
+      await user.click(years)
 
       expect(years).toHaveFocus()
     })
@@ -220,7 +219,7 @@ describe('timescape', () => {
       expect(years).toHaveFocus()
     })
 
-    it('should cycle through fields by Enter key', () => {
+    it('should cycle through fields by Enter key', async () => {
       document.body.appendChild(container)
       const { years, months, days, hours, minutes, seconds, ampm } = getFields()
 
@@ -238,12 +237,12 @@ describe('timescape', () => {
         years,
       ]
       for (const element of elements) {
-        fireEvent.keyDown(document.activeElement!, { key: 'Enter' })
+        await user.keyboard('{Enter}')
         expect(element).toHaveFocus()
       }
     })
 
-    it('should cycle through fields by the Tab key', () => {
+    it('should cycle through fields by the Tab key', async () => {
       document.body.appendChild(container)
       const { years, months, days, hours, minutes, seconds, ampm } = getFields()
 
@@ -252,12 +251,12 @@ describe('timescape', () => {
 
       const elements = [months, days, hours, minutes, seconds, ampm]
       for (const element of elements) {
-        fireEvent.keyDown(document.activeElement!, { key: 'Tab' })
+        await user.tab()
         expect(element).toHaveFocus()
       }
     })
 
-    it('should cycle through fields by arrow keys', () => {
+    it('should cycle through fields by arrow keys', async () => {
       document.body.appendChild(container)
       const { years, months, days, hours, minutes, seconds, ampm } = getFields()
 
@@ -275,12 +274,12 @@ describe('timescape', () => {
         years,
       ]
       for (const element of elements) {
-        fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
+        await user.keyboard('{ArrowRight}')
         expect(element).toHaveFocus()
       }
     })
 
-    it('should cycle through fields by Tab key in reverse', () => {
+    it('should cycle through fields by Tab key in reverse', async () => {
       document.body.appendChild(container)
       const { years, months, days, hours, minutes, seconds, ampm } = getFields()
 
@@ -289,15 +288,12 @@ describe('timescape', () => {
 
       const orderedElements = [seconds, minutes, hours, days, months, years]
       for (const element of orderedElements) {
-        fireEvent.keyDown(document.activeElement!, {
-          key: 'Tab',
-          shiftKey: true,
-        })
+        await user.tab({ shift: true })
         expect(element).toHaveFocus()
       }
     })
 
-    it('should cycle through fields by arrow keys in reverse', () => {
+    it('should cycle through fields by arrow keys in reverse', async () => {
       document.body.appendChild(container)
       const { years, months, days, hours, minutes, seconds, ampm } = getFields()
 
@@ -315,25 +311,25 @@ describe('timescape', () => {
         ampm,
       ]
       for (const element of orderedElements) {
-        fireEvent.keyDown(document.activeElement!, { key: 'ArrowLeft' })
+        await user.keyboard('{ArrowLeft}')
         expect(element).toHaveFocus()
       }
     })
 
-    it('should change values with up/down arrow keys', () => {
+    it('should change values with up/down arrow keys', async () => {
       document.body.appendChild(container)
       const fields = getFields()
 
       // years
       fields.years.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
 
       expect(fields.years).toHaveValue('2022')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 31 Dec 2022 23:59:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('{ArrowDown}')
       expect(fields.years.value).toMatchInlineSnapshot('"2021"')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
@@ -341,13 +337,13 @@ describe('timescape', () => {
 
       // months
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.months).toHaveValue('01')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Mon, 31 Jan 2022 23:59:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('{ArrowDown}')
       expect(fields.months).toHaveValue('12')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
@@ -355,13 +351,13 @@ describe('timescape', () => {
 
       // days
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.days).toHaveValue('01')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 01 Jan 2022 23:59:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('{ArrowDown}')
       expect(fields.days).toHaveValue('31')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
@@ -369,13 +365,13 @@ describe('timescape', () => {
 
       // hours
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.hours).toHaveValue('00')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 01 Jan 2022 00:59:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('{ArrowDown}')
       expect(fields.hours).toHaveValue('23')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
@@ -383,13 +379,13 @@ describe('timescape', () => {
 
       // minutes
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.minutes).toHaveValue('00')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 01 Jan 2022 00:00:59 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('{ArrowDown}')
       expect(fields.minutes).toHaveValue('59')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
@@ -397,20 +393,20 @@ describe('timescape', () => {
 
       // seconds
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('00')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Sat, 01 Jan 2022 00:00:00 GMT"',
       )
 
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('{ArrowDown}')
       expect(fields.seconds).toHaveValue('59')
       expect(manager.date?.toUTCString()).toMatchInlineSnapshot(
         '"Fri, 31 Dec 2021 23:59:59 GMT"',
       )
     })
 
-    it('should change values with up/down arrow keys in 12-hour mode', () => {
+    it('should change values with up/down arrow keys in 12-hour mode', async () => {
       document.body.appendChild(container)
       manager.hour12 = true
 
@@ -419,14 +415,14 @@ describe('timescape', () => {
       expect(fields.ampm).toHaveValue('PM')
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.hours).toHaveValue('12')
       expect(fields.minutes).toHaveValue('00')
       expect(fields.seconds).toHaveValue('00')
       expect(fields.ampm).toHaveValue('AM')
     })
 
-    it('should change 12-hour mode period value with `p`/`a` keys', () => {
+    it('should change 12-hour mode period value with `p`/`a` keys', async () => {
       document.body.appendChild(container)
       manager.hour12 = true
 
@@ -435,22 +431,22 @@ describe('timescape', () => {
       expect(fields.ampm).toHaveValue('PM')
 
       fields.ampm.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'a' })
+      await user.keyboard('a')
       expect(fields.ampm).toHaveValue('AM')
 
-      fireEvent.keyDown(document.activeElement!, { key: 'p' })
+      await user.keyboard('p')
       expect(fields.ampm).toHaveValue('PM')
 
-      fireEvent.keyDown(document.activeElement!, { key: 'A' })
+      await user.keyboard('A')
       expect(fields.ampm).toHaveValue('AM')
 
-      fireEvent.keyDown(document.activeElement!, { key: 'P' })
+      await user.keyboard('P')
       expect(fields.ampm).toHaveValue('PM')
     })
   })
 
   describe('steps', () => {
-    it('should take step into account', () => {
+    it('should take step into account', async () => {
       container = document.createElement('div')
       manager = new TimescapeManager()
       container.innerHTML = `
@@ -467,11 +463,11 @@ describe('timescape', () => {
       manager.registerElement(minutes, 'minutes')
 
       minutes.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(minutes).toHaveValue('28')
     })
 
-    it('should work with snapToStep', () => {
+    it('should work with snapToStep', async () => {
       container = document.createElement('div')
       manager = new TimescapeManager()
       container.innerHTML = `
@@ -495,27 +491,27 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('{ArrowDown}')
       expect(fields.hours).toHaveValue('00')
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('{ArrowDown}')
       expect(fields.hours).toHaveValue('21')
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.minutes).toHaveValue('15')
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.minutes).toHaveValue('30')
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('00')
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('30')
     })
   })
 
   describe('min and max date', () => {
-    it('should not allow dates before minDate', () => {
+    it('should not allow dates before minDate', async () => {
       document.body.appendChild(container)
       manager.date = new Date('2021-06-06T00:00:00.000Z')
       manager.minDate = new Date('2021-06-06T00:00:00.000Z')
@@ -523,7 +519,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('{ArrowDown}')
       expect(fields.seconds).toHaveValue('00')
       expect(fields.minutes).toHaveValue('00')
       expect(fields.hours).toHaveValue('00')
@@ -533,8 +529,7 @@ describe('timescape', () => {
 
       // type in a value
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '0' })
-      fireEvent.keyDown(document.activeElement!, { key: '5' })
+      await user.keyboard('05')
       expect(fields.days).toHaveFocus()
 
       expect(fields.seconds).toHaveValue('00')
@@ -545,7 +540,7 @@ describe('timescape', () => {
       expect(fields.years).toHaveValue('2021')
     })
 
-    it('should not allow dates after maxDate', () => {
+    it('should not allow dates after maxDate', async () => {
       document.body.appendChild(container)
       manager.date = new Date('2021-06-06T00:00:00.000Z')
       manager.maxDate = new Date('2021-06-06T00:00:00.000Z')
@@ -553,7 +548,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('00')
       expect(fields.minutes).toHaveValue('00')
       expect(fields.hours).toHaveValue('00')
@@ -563,8 +558,7 @@ describe('timescape', () => {
 
       // type in a value
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
-      fireEvent.keyDown(document.activeElement!, { key: '0' })
+      await user.keyboard('10')
       expect(fields.days).toHaveFocus()
 
       expect(fields.seconds).toHaveValue('00')
@@ -577,14 +571,14 @@ describe('timescape', () => {
   })
 
   describe('wrap around option', () => {
-    it('should wrap around seconds', () => {
+    it('should wrap around seconds', async () => {
       document.body.appendChild(container)
       manager.wrapAround = true
 
       const fields = getFields()
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('00')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('23')
@@ -593,14 +587,14 @@ describe('timescape', () => {
       expect(fields.years).toHaveValue('2021')
     })
 
-    it('should wrap around minutes', () => {
+    it('should wrap around minutes', async () => {
       document.body.appendChild(container)
       manager.wrapAround = true
 
       const fields = getFields()
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('00')
       expect(fields.hours).toHaveValue('23')
@@ -609,14 +603,14 @@ describe('timescape', () => {
       expect(fields.years).toHaveValue('2021')
     })
 
-    it('should wrap around hours', () => {
+    it('should wrap around hours', async () => {
       document.body.appendChild(container)
       manager.wrapAround = true
 
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('00')
@@ -625,14 +619,14 @@ describe('timescape', () => {
       expect(fields.years).toHaveValue('2021')
     })
 
-    it('should wrap around days', () => {
+    it('should wrap around days', async () => {
       document.body.appendChild(container)
       manager.wrapAround = true
 
       const fields = getFields()
 
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('23')
@@ -641,14 +635,14 @@ describe('timescape', () => {
       expect(fields.years).toHaveValue('2021')
     })
 
-    it('should wrap around months', () => {
+    it('should wrap around months', async () => {
       document.body.appendChild(container)
       manager.wrapAround = true
 
       const fields = getFields()
 
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('23')
@@ -657,7 +651,7 @@ describe('timescape', () => {
       expect(fields.years).toHaveValue('2021')
     })
 
-    it('should wrap correctly with 12-hour mode', () => {
+    it('should wrap correctly with 12-hour mode', async () => {
       document.body.appendChild(container)
       manager.wrapAround = true
       manager.hour12 = true
@@ -665,7 +659,7 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.seconds).toHaveValue('59')
       expect(fields.minutes).toHaveValue('59')
       expect(fields.hours).toHaveValue('12')
@@ -675,125 +669,123 @@ describe('timescape', () => {
       expect(fields.ampm).toHaveValue('AM')
     })
 
-    it('should do nothing for years and ampm', () => {
+    it('should do nothing for years and ampm', async () => {
       document.body.appendChild(container)
       manager.wrapAround = true
 
       const fields = getFields()
 
       fields.years.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.years).toHaveValue('2022')
 
       fields.ampm.focus()
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('{ArrowUp}')
       expect(fields.ampm).toHaveValue('AM')
     })
   })
 
   describe('manual typing', () => {
-    it('should work with seconds', () => {
+    it('should work with seconds', async () => {
       document.body.appendChild(container)
 
       const fields = getFields()
 
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      await user.keyboard('1')
       expect(fields.seconds).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement!, { key: '9' })
+      await user.keyboard('9')
       expect(fields.seconds).toHaveValue('19')
 
       // when value entered bigger than '5', it will focus next field
       fields.seconds.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '7' })
+      await user.keyboard('7')
       expect(fields.seconds).toHaveValue('07')
       expect(fields.ampm).toHaveFocus()
     })
 
-    it('should work with minutes', () => {
+    it('should work with minutes', async () => {
       document.body.appendChild(container)
 
       const fields = getFields()
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      await user.keyboard('1')
       expect(fields.minutes).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement!, { key: '9' })
+      await user.keyboard('9')
       expect(fields.minutes).toHaveValue('19')
 
       // when value entered bigger than '5', it will focus next field
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '7' })
+      await user.keyboard('7')
       expect(fields.minutes).toHaveValue('07')
       expect(fields.seconds).toHaveFocus()
     })
 
-    it('should work with hours', () => {
+    it('should work with hours', async () => {
       document.body.appendChild(container)
 
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      await user.keyboard('1')
       expect(fields.hours).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement!, { key: '9' })
+      await user.keyboard('9')
       expect(fields.hours).toHaveValue('19')
 
       // when value entered bigger than '2', it will focus next field
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '3' })
+      await user.keyboard('3')
       expect(fields.hours).toHaveValue('03')
       expect(fields.minutes).toHaveFocus()
     })
 
-    it('should work with manual typing in 12-hour mode', () => {
+    it('should work with manual typing in 12-hour mode', async () => {
       document.body.appendChild(container)
       manager.hour12 = true
 
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      await user.keyboard('1')
       expect(fields.hours).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement!, { key: '9' })
+      await user.keyboard('9')
       expect(fields.hours).toHaveValue('09')
 
       // when value 12 entered, it should change AM/PM
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
-      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      await user.keyboard('12')
       expect(fields.hours).toHaveValue('12')
       expect(fields.ampm).toHaveValue('PM')
 
       // when value entered bigger than '1', it will focus next field
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      await user.keyboard('2')
       expect(fields.hours).toHaveValue('02')
       expect(fields.minutes).toHaveFocus()
     })
 
-    it('should remain PM', () => {
+    it('should remain PM', async () => {
       document.body.appendChild(container)
       manager.hour12 = true
 
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '5' })
+      await user.keyboard('5')
       expect(fields.ampm).toHaveValue('PM')
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
-      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      await user.keyboard('12')
       expect(fields.hours).toHaveValue('12')
       expect(fields.ampm).toHaveValue('PM')
     })
 
-    it('should remain AM', () => {
+    it('should remain AM', async () => {
       document.body.appendChild(container)
       manager.date = new Date('2021-01-01T03:00:00Z')
       manager.hour12 = true
@@ -801,131 +793,128 @@ describe('timescape', () => {
       const fields = getFields()
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '5' })
+      await user.keyboard('5')
       expect(fields.ampm).toHaveValue('AM')
 
       fields.hours.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
-      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      await user.keyboard('12')
       expect(fields.hours).toHaveValue('12')
       expect(fields.ampm).toHaveValue('AM')
     })
 
-    it('should work with days', () => {
+    it('should work with days', async () => {
       document.body.appendChild(container)
 
       const fields = getFields()
 
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      await user.keyboard('1')
       expect(fields.days).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement!, { key: '9' })
+      await user.keyboard('9')
       expect(fields.days).toHaveValue('19')
 
       // when value entered bigger than '3', it will focus next field
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '4' })
+      await user.keyboard('4')
       expect(fields.days).toHaveValue('04')
       expect(fields.hours).toHaveFocus()
     })
 
-    it('should work with days and take max days in month into account', () => {
+    it('should work with days and take max days in month into account', async () => {
       document.body.appendChild(container)
 
       const fields = getFields()
 
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '3' })
+      await user.keyboard('3')
       expect(fields.days).toHaveValue('03')
 
-      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      await user.keyboard('2')
       expect(fields.days).toHaveValue('31')
 
       manager.date = new Date(2021, 1, 1)
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      await user.keyboard('2')
       expect(fields.days).toHaveValue('02')
 
-      fireEvent.keyDown(document.activeElement!, { key: '9' })
+      await user.keyboard('9')
       expect(fields.days).toHaveValue('28')
     })
 
-    it('should work with months', () => {
+    it('should work with months', async () => {
       document.body.appendChild(container)
 
       const fields = getFields()
 
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
+      await user.keyboard('1')
       expect(fields.months).toHaveValue('01')
 
-      fireEvent.keyDown(document.activeElement!, { key: '9' })
+      await user.keyboard('9')
       expect(fields.months).toHaveValue('12')
 
       // when value entered bigger than '1', it will focus next field
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      await user.keyboard('2')
       expect(fields.months).toHaveValue('02')
       expect(fields.days).toHaveFocus()
     })
 
-    it('should work with years', () => {
+    it('should work with years', async () => {
       document.body.appendChild(container)
 
       const fields = getFields()
 
       fields.years.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      await user.keyboard('2')
       expect(fields.years).toHaveValue('0002')
 
-      fireEvent.keyDown(document.activeElement!, { key: '0' })
+      await user.keyboard('0')
       expect(fields.years).toHaveValue('0020')
 
-      fireEvent.keyDown(document.activeElement!, { key: '2' })
+      await user.keyboard('2')
       expect(fields.years).toHaveValue('0202')
 
-      fireEvent.keyDown(document.activeElement!, { key: '0' })
+      await user.keyboard('0')
       expect(fields.years).toHaveValue('2020')
 
       expect(fields.months).toHaveFocus()
     })
 
-    it('should work with single digits', () => {
+    it('should work with single digits', async () => {
       document.body.appendChild(container)
 
       manager.digits = 'numeric'
       const fields = getFields()
 
       fields.days.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '9' })
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
+      await user.keyboard('9{ArrowRight}')
       expect(fields.days).toHaveValue('9')
     })
 
-    it('should allow up/down keys when there is an intermediate value', () => {
+    it('should allow up/down keys when there is an intermediate value', async () => {
       document.body.appendChild(container)
 
       const fields = getFields()
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '3' })
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
+      await user.keyboard('3{ArrowUp}')
       expect(fields.minutes).toHaveValue('04')
 
       fields.months.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '1' })
-      fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+      await user.keyboard('1{ArrowDown}')
+
       expect(fields.months).toHaveValue('12')
     })
 
-    it('should set value to intermediate value when focus is lost', () => {
+    it('should set value to intermediate value when focus is lost', async () => {
       document.body.appendChild(container)
 
       const fields = getFields()
 
       fields.minutes.focus()
-      fireEvent.keyDown(document.activeElement!, { key: '3' })
+      await user.keyboard('3')
       fields.hours.focus()
       expect(fields.minutes).toHaveValue('03')
     })
@@ -950,28 +939,41 @@ describe('timescape', () => {
     const { root, years, months } = getFields()
 
     // root needs focus event to be triggered
-    fireEvent.focus(root)
+    root.focus()
 
     expect(years).toHaveFocus()
 
-    fireEvent.click(months)
+    await user.click(months)
     expect(months).toHaveFocus()
 
-    fireEvent.focus(root)
+    root.focus()
     expect(months).toHaveFocus()
   })
 
-  it('should recognize a/p keys', () => {
+  it('should allow to tab out', async () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <div data-testid="root">
+        <input data-testid="years" />
+      </div>
+    `
+    const yearsField = getByTestId<HTMLInputElement>(container, 'years')
+
+    const manager = new TimescapeManager()
+
+    manager.registerRoot(getByTestId(container, 'root'))
+    manager.registerElement(yearsField, 'years', true)
+
     document.body.appendChild(container)
-    manager.date = new Date('2021-01-01T15:00:00Z')
 
-    const fields = getFields()
+    yearsField.focus()
 
-    fields.ampm.focus()
-    fireEvent.keyDown(document.activeElement!, { key: 'a' })
-    expect(fields.ampm).toHaveValue('AM')
+    await user.tab()
+    expect(document.body).toHaveFocus()
 
-    fireEvent.keyDown(document.activeElement!, { key: 'p' })
-    expect(fields.ampm).toHaveValue('PM')
+    yearsField.focus()
+
+    await user.tab({ shift: true })
+    expect(document.body).toHaveFocus()
   })
 })
