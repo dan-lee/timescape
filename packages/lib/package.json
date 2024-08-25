@@ -42,6 +42,7 @@
     "@preact/signals": "1.2.3",
     "@testing-library/dom": "10.4.0",
     "@testing-library/jest-dom": "6.4.8",
+    "@testing-library/user-event": "14.5.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitest/coverage-v8": "2.0.5",
