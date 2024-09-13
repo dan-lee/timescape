@@ -18,10 +18,12 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./*": {
-      "import": "./dist/*.js"
+      "import": "./dist/*.js",
+      "require": "./dist/*.cjs"
     },
     "./chunk-*": null
   },
