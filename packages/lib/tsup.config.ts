@@ -12,7 +12,7 @@ export default defineConfig({
   target: 'es2020',
   clean: true,
   dts: true,
-  format: ['esm'],
+  format: ["cjs", "esm"],
   external: [
     'react',
     'react-dom',
