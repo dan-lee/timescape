@@ -1,5 +1,11 @@
 # timescape
 
+## 0.5.2
+
+### Patch Changes
+
+- [#31](https://github.com/dan-lee/timescape/pull/31) [`7a32dad`](https://github.com/dan-lee/timescape/commit/7a32dad8e37dc481d180b5e87169ec0abf3a9304) Thanks [@zanuarmirza](https://github.com/zanuarmirza)! - adding cjs output format
+
 ## 0.5.1
 
 ### Patch Changes
