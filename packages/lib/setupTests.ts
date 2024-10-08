@@ -1,3 +1,3 @@
-import '@testing-library/jest-dom/vitest'
+import "@testing-library/jest-dom/vitest";
 
-process.env.TZ = 'UTC'
+process.env.TZ = "UTC";

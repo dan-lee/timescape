@@ -20,7 +20,7 @@
     "preact": "10.24.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "solid-js": "1.9.1",
+    "solid-js": "1.9.2",
     "svelte": "4.2.19",
     "timescape": "workspace:*",
     "vue": "3.5.11"
@@ -37,7 +37,7 @@
     "@storybook/react": "8.3.5",
     "@storybook/react-vite": "8.3.5",
     "@sveltejs/vite-plugin-svelte": "3.1.2",
-    "@types/node": "22.7.4",
+    "@types/node": "22.7.5",
     "@types/react": "18.3.11",
     "@types/react-dom": "18.3.0",
     "@vanilla-extract/css": "1.16.0",

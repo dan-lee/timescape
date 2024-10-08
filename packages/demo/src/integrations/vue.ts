@@ -1,9 +1,9 @@
-import { createApp } from 'vue'
-import Demo from './demo.vue'
+import { createApp } from "vue";
+import Demo from "./demo.vue";
 
 export const renderTo = (element: HTMLElement) => {
-  const app = createApp(Demo as never)
-  app.mount(element)
+  const app = createApp(Demo);
+  app.mount(element);
 
-  return () => app.unmount()
-}
+  return () => app.unmount();
+};

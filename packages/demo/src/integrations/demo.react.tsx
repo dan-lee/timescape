@@ -1,10 +1,10 @@
-import { useTimescape, useTimescapeRange } from 'timescape/react'
-import { useEffect } from 'react'
+import { useEffect } from "react";
+import { useTimescape, useTimescapeRange } from "timescape/react";
 
 export const ReactDemo = () => {
   const { getRootProps, getInputProps, options } = useTimescape({
     date: new Date(),
-  })
+  });
 
   const {
     getRootProps: getRangeRootProps,
@@ -14,20 +14,20 @@ export const ReactDemo = () => {
     from: {
       date: new Date(),
       onChangeDate: () => {
-        console.log('from date changed')
+        console.log("from date changed");
       },
     },
     to: {
-      date: new Date('2024-12-31'),
+      date: new Date("2024-12-31"),
       onChangeDate: () => {
-        console.log('to date changed')
+        console.log("to date changed");
       },
     },
-  })
+  });
 
   useEffect(() => {
-    console.log('Date changed', options.date)
-  }, [options.date])
+    console.log("Date changed", options.date);
+  }, [options.date]);
 
   return (
     <div>
@@ -35,38 +35,38 @@ export const ReactDemo = () => {
       <div className="timescape-root" {...getRootProps()}>
         <input
           className="timescape-input"
-          {...getInputProps('days')}
+          {...getInputProps("days")}
           placeholder="dd"
         />
         <span className="separator">/</span>
         <input
           className="timescape-input"
-          {...getInputProps('months')}
+          {...getInputProps("months")}
           placeholder="mm"
         />
         <span className="separator">/</span>
         <input
           className="timescape-input"
-          {...getInputProps('years')}
+          {...getInputProps("years")}
           placeholder="yyyy"
         />
         <span className="separator">&nbsp;</span>
         <input
           className="timescape-input"
-          {...getInputProps('hours')}
+          {...getInputProps("hours")}
           placeholder="hh"
         />
         <span className="separator">:</span>
         <input
           className="timescape-input"
-          {...getInputProps('minutes')}
+          {...getInputProps("minutes")}
           placeholder="mm"
           step={10}
         />
         <span className="separator">:</span>
         <input
           className="timescape-input"
-          {...getInputProps('seconds')}
+          {...getInputProps("seconds")}
           placeholder="mm"
         />
       </div>
@@ -74,22 +74,22 @@ export const ReactDemo = () => {
       Range:
       <div>
         <div className="timescape-root" {...getRangeRootProps()}>
-          <input className="timescape-input" {...from.getInputProps('years')} />
+          <input className="timescape-input" {...from.getInputProps("years")} />
           <span className="separator">/</span>
           <input
             className="timescape-input"
-            {...from.getInputProps('months')}
+            {...from.getInputProps("months")}
           />
           <span className="separator">/</span>
-          <input className="timescape-input" {...from.getInputProps('days')} />
+          <input className="timescape-input" {...from.getInputProps("days")} />
           <span className="separator">&ndash;</span>
-          <input className="timescape-input" {...to.getInputProps('years')} />
+          <input className="timescape-input" {...to.getInputProps("years")} />
           <span className="separator">/</span>
-          <input className="timescape-input" {...to.getInputProps('months')} />
+          <input className="timescape-input" {...to.getInputProps("months")} />
           <span className="separator">/</span>
-          <input className="timescape-input" {...to.getInputProps('days')} />
+          <input className="timescape-input" {...to.getInputProps("days")} />
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

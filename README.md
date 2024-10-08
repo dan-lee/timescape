@@ -8,7 +8,7 @@ Key features such as accessibility and keyboard navigation are at the core of `t
 
 <img src="./assets/timescape.apng" style="max-height:120px" />
 
-See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#examples) of how to use it + [StackBlitz ⚡️](https://stackblitz.com/@dan-lee/collections/timescape) for more demonstrations.
+See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#examples) of how to use it + [StackBlitz ⚡](https://stackblitz.com/@dan-lee/collections/timescape) for more demonstrations.
 
 <a href="https://stellate.co" target="_blank">
   <picture>
@@ -21,7 +21,7 @@ See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#ex
 
 - **🧢 Headless Architecture**: You control the UI – `timescape` handles the logic.
 - **🧩 Framework Compatibility**: Adapters for [React](https://react.dev/), [Preact](https://preactjs.com/), [Vue](https://vuejs.org/), [Svelte](https://svelte.dev/), and [Solid](https://www.solidjs.com/).
-- **⚙️ Flexible API️**: Hooks (or equivalents) return getters for seamless component integration. Order of inputs (i.e. format) is completely up to you by just rendering in the order you prefer.
+- **⚙ Flexible API**: Hooks (or equivalents) return getters for seamless component integration. Order of inputs (i.e. format) is completely up to you by just rendering in the order you prefer.
 - **👥 Accessibility**: Full A11y compliance, keyboard navigation and manual input.
 - **⏰ Date and time flexibility**: Supports min/max dates and 24/12 hour clock formats.
 - **🪶 Lightweight**: No external dependencies.
@@ -46,7 +46,7 @@ npm install --save timescape
 <details open>
   <summary><strong>React</strong></summary>
 
-[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-react?file=src%2FApp.tsx)
+[Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-react?file=src%2FApp.tsx)
 
 ```tsx
 import { useTimescape } from 'timescape/react'
@@ -85,7 +85,7 @@ function App() {
 <details>
 <summary><strong>Preact</strong></summary>
 
-[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-preact?file=src%2Fapp.tsx)
+[Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-preact?file=src%2Fapp.tsx)
 
 This package uses Preact signals, if you want to use it without just use the React implementation in compat mode.
 
@@ -124,7 +124,7 @@ function App() {
 <details>
 <summary><strong>Vue</strong></summary>
 
-[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-vue?file=src%2FApp.vue)
+[Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-vue?file=src%2FApp.vue)
 
 ```vue
 <template>
@@ -159,7 +159,7 @@ watchEffect(() => {
 <details>
 <summary><strong>Svelte</strong></summary>
 
-[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-svelte?file=src%2FApp.svelte)
+[Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-svelte?file=src%2FApp.svelte)
 
 ```svelte
 <script lang="ts">
@@ -194,7 +194,7 @@ watchEffect(() => {
 <details>
 <summary><strong>Solid</strong></summary>
 
-[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/timescape-solid?file=src%2FApp.tsx)
+[Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-solid?file=src%2FApp.tsx)
 
 ```tsx
 import { useTimescape } from 'timescape/solid'
