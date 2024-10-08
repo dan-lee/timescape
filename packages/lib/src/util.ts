@@ -14,13 +14,15 @@ export const addElementListener = <
   return () => node.removeEventListener(type, typedListener, options)
 }
 
-type EventMap = HTMLElementEventMap & WindowEventMap
+type EventMap = HTMLElementEventMap & WindowEventMap & DocumentEventMap
 
 type EventNames<T extends EventTarget> = T extends Window
   ? keyof WindowEventMap
   : T extends HTMLElement
     ? keyof HTMLElementEventMap
-    : never
+    : T extends Document
+      ? keyof DocumentEventMap
+      : never
 
 export const isTouchDevice = () =>
   'ontouchstart' in window ||

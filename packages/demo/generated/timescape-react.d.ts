@@ -27,6 +27,7 @@ declare type Options_2 = {
     digits?: 'numeric' | '2-digit';
     wrapAround?: boolean;
     snapToStep?: boolean;
+    wheelControl?: boolean;
 };
 
 declare type RangeOptions_2 = {
@@ -59,6 +60,7 @@ declare class TimescapeManager implements Options_2 {
     digits?: Options_2['digits'];
     wrapAround?: Options_2['wrapAround'];
     snapToStep?: Options_2['snapToStep'];
+    wheelControl?: Options_2['wheelControl'];
     get date(): Date | undefined;
     set date(nextDate: Date | number | string | undefined);
     constructor(initialDate?: Date, options?: Options_2);

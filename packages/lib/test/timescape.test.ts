@@ -1,4 +1,9 @@
-import { getByTestId, queryByTestId, waitFor } from '@testing-library/dom'
+import {
+  fireEvent,
+  getByTestId,
+  queryByTestId,
+  waitFor,
+} from '@testing-library/dom'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { PropertySymbol } from 'happy-dom'
@@ -443,6 +448,27 @@ describe('timescape', () => {
       await user.keyboard('P')
       expect(fields.ampm).toHaveValue('PM')
     })
+  })
+
+  it('should handle wheel events correctly', async () => {
+    document.body.appendChild(container)
+
+    manager.wheelControl = true
+
+    const fields = getFields()
+
+    const initialValue = Number(fields.years.value)
+    fields.years.focus()
+
+    for (let i = 0; i < 10; i++) {
+      fireEvent.wheel(fields.years, { deltaY: -1 })
+    }
+    expect(fields.years).toHaveValue(String(initialValue - 10))
+
+    for (let i = 0; i < 10; i++) {
+      fireEvent.wheel(fields.years, { deltaY: 1 })
+    }
+    expect(fields.years).toHaveValue(String(initialValue))
   })
 
   describe('steps', () => {
