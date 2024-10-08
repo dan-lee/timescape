@@ -30,6 +30,7 @@ export const useTimescape = (options: Options = {}) => {
     manager.digits = optionsStore.digits
     manager.wrapAround = optionsStore.wrapAround
     manager.snapToStep = optionsStore.snapToStep
+    manager.wheelControl = optionsStore.wheelControl
   })
 
   onCleanup(() => manager.remove())
