@@ -32,6 +32,7 @@ const ALL_OPTIONS = [
   'digits',
   'wrapAround',
   'snapToStep',
+  'wheelControl',
 ] as const
 type PossibleOptions = keyof Omit<Options, 'onChangeDate'>
 
@@ -137,6 +138,7 @@ const InputField = ({
     case 'wrapAround':
     case 'snapToStep':
     case 'hour12':
+    case 'wheelControl':
       return (
         <input
           id={`input-${optionName}`}
