@@ -1,5 +1,16 @@
 # demo
 
+## 1.3.0
+
+### Minor Changes
+
+- [#34](https://github.com/dan-lee/timescape/pull/34) [`7dee0c4`](https://github.com/dan-lee/timescape/commit/7dee0c4b031230a00654d8fc9c96d18318b0d3c9) Thanks [@dan-lee](https://github.com/dan-lee)! - Add a `wheelControl` option that allows to control the input fields with the mouse wheel or touchpad.
+
+### Patch Changes
+
+- Updated dependencies [[`7dee0c4`](https://github.com/dan-lee/timescape/commit/7dee0c4b031230a00654d8fc9c96d18318b0d3c9)]:
+  - timescape@0.6.0
+
 ## 1.2.7
 
 ### Patch Changes
