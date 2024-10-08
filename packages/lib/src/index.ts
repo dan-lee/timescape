@@ -46,6 +46,7 @@ export type Options = {
   digits?: 'numeric' | '2-digit'
   wrapAround?: boolean
   snapToStep?: boolean
+  wheelControl?: boolean
 }
 
 export type RangeOptions = {
@@ -65,6 +66,7 @@ export class TimescapeManager implements Options {
   digits?: Options['digits'] = '2-digit'
   wrapAround?: Options['wrapAround'] = false
   snapToStep?: Options['snapToStep'] = false
+  wheelControl?: Options['wheelControl'] = false
 
   #instanceId = Math.random().toString(36).slice(2)
   #timestamp: number | undefined
@@ -89,27 +91,37 @@ export class TimescapeManager implements Options {
   #mutationObserver =
     typeof window !== 'undefined'
       ? new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            if (mutation.addedNodes.length > 0) {
-              this.#sortRegistryByElements()
-            }
+          const total = mutations.reduce(
+            ({ added, removed }, mutation) => ({
+              added: added + mutation.addedNodes.length,
+              removed: removed + mutation.removedNodes.length,
+            }),
+            { added: 0, removed: 0 },
+          )
 
-            if (mutation.removedNodes.length > 0) {
-              Array.from(mutation.removedNodes)
-                .filter((node) => node instanceof HTMLInputElement)
-                .forEach((node) => {
-                  const entry = [...this.#registry.values()].find(
-                    ({ inputElement }) => inputElement === node,
-                  )
+          if (total.added > 0) {
+            this.#sortRegistryByElements()
+          }
 
-                  if (!entry) return
-                  entry.inputElement.remove()
-                  entry.shadowElement.remove()
-                  entry.listeners.forEach((listener) => listener())
-                  this.#registry.delete(entry.type)
-                })
-            }
-          })
+          if (total.removed > 0) {
+            Array.from(mutations)
+              .filter((mutation) => mutation.removedNodes.length > 0)
+              .forEach((mutation) => {
+                Array.from(mutation.removedNodes)
+                  .filter((node) => node instanceof HTMLInputElement)
+                  .forEach((node) => {
+                    const entry = [...this.#registry.values()].find(
+                      ({ inputElement }) => inputElement === node,
+                    )
+
+                    if (!entry) return
+                    entry.inputElement.remove()
+                    entry.shadowElement.remove()
+                    entry.listeners.forEach((listener) => listener())
+                    this.#registry.delete(entry.type)
+                  })
+              })
+          }
         })
       : undefined
 
@@ -131,6 +143,8 @@ export class TimescapeManager implements Options {
       this.hour12 = options.hour12
       this.digits = options.digits
       this.wrapAround = options.wrapAround
+      this.snapToStep = options.snapToStep
+      this.wheelControl = options.wheelControl
     }
 
     return new Proxy(this, {
@@ -155,6 +169,10 @@ export class TimescapeManager implements Options {
           case 'digits':
             target[property] = nextValue
             target.#syncAllElements()
+            break
+          case 'wheelControl':
+            target[property] = nextValue
+            this.resync()
             break
           default:
             target[property] = nextValue
@@ -248,15 +266,16 @@ export class TimescapeManager implements Options {
       shadowElement.setAttribute('aria-hidden', 'true')
       shadowElement.textContent = element.value || element.placeholder
       shadowElement.dataset.timescapeShadow = type
-      shadowElement.style.cssText = `
-      display: inline-block;
-      position: absolute;
-      left: -9999px;
-      top: -9999px;
-      visibility: hidden;
-      pointer-events: none;
-      white-space: pre;
-      `
+      shadowElement.style.cssText = [
+        'display: inline-block',
+        'position: absolute',
+        'left: -9999px',
+        'top: -9999px',
+        'visibility: hidden',
+        'pointer-events: none',
+        'white-space: pre',
+      ].join(';')
+
       this.#copyStyles(element, shadowElement)
       this.#resizeObserver?.observe(shadowElement)
       element.parentNode?.insertBefore(shadowElement, element.nextSibling)
@@ -270,7 +289,7 @@ export class TimescapeManager implements Options {
       autofocus,
       shadowElement,
       intermediateValue: '',
-      listeners: this.#createListeners(element),
+      listeners: this.#createListeners(element, type),
     })
 
     this.on('changeDate', () => this.#syncElement(element))
@@ -621,14 +640,12 @@ export class TimescapeManager implements Options {
   // we need to sort the registry by the order of the input elements in the DOM.
   #sortRegistryByElements() {
     this.#registry = new Map(
-      [...this.#registry.entries()].sort(([, a], [, b]) => {
-        const position = a.inputElement.compareDocumentPosition(b.inputElement)
-
-        return position & Node.DOCUMENT_POSITION_FOLLOWING ||
-          position & Node.DOCUMENT_POSITION_CONTAINED_BY
+      [...this.#registry.entries()].sort(([, a], [, b]) =>
+        a.inputElement.compareDocumentPosition(b.inputElement) &
+        (Node.DOCUMENT_POSITION_FOLLOWING | Node.DOCUMENT_POSITION_CONTAINED_BY)
           ? -1
-          : 1
-      }),
+          : 1,
+      ),
     )
   }
 
@@ -681,13 +698,29 @@ export class TimescapeManager implements Options {
     }
   }
 
-  #createListeners(element: HTMLInputElement) {
-    return [
+  #createListeners(element: HTMLInputElement, type: DateType) {
+    const listeners = [
       addElementListener(element, 'keydown', (e) => this.#handleKeyDown(e)),
       addElementListener(element, 'click', (e) => this.#handleClick(e)),
       addElementListener(element, 'focus', (e) => this.#handleFocus(e)),
       addElementListener(element, 'focusout', (e) => this.#handleBlur(e)),
     ]
+
+    if (this.wheelControl) {
+      listeners.push(
+        addElementListener(element, 'wheel', (e) => {
+          e.preventDefault()
+          const step = Math.sign(e.deltaY)
+          this.#setValidatedDate(
+            this.wrapAround
+              ? this.#wrapDateAround(step, type)
+              : add(this.#currentDate, type, step),
+          )
+        }),
+      )
+    }
+
+    return listeners
   }
 
   #setValidatedDate(date: Date | undefined) {
