@@ -33,6 +33,7 @@ export const createTimescape = (options: Options = {}) => {
     manager.digits = value.digits
     manager.wrapAround = value.wrapAround
     manager.snapToStep = value.snapToStep
+    manager.wheelControl = value.wheelControl
   })
 
   derived(optionsStore, ($options) => $options.date).subscribe((value) => {

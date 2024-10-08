@@ -67,6 +67,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
     manager.wrapAround = optionsState.wrapAround
     manager.digits = optionsState.digits
     manager.snapToStep = optionsState.snapToStep
+    manager.wheelControl = optionsState.wheelControl
   }, [
     manager,
     timestamp,
@@ -76,6 +77,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
     optionsState.wrapAround,
     optionsState.digits,
     optionsState.snapToStep,
+    optionsState.wheelControl,
   ])
 
   return {
