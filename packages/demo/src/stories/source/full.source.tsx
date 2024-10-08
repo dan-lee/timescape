@@ -11,6 +11,7 @@ const App = () => {
     digits: '2-digit',
     wrapAround: false,
     snapToStep: false,
+    wheelControl: false,
   })
 
   return (
