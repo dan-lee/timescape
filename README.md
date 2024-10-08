@@ -49,34 +49,34 @@ npm install --save timescape
 [Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-react?file=src%2FApp.tsx)
 
 ```tsx
-import { useTimescape } from 'timescape/react'
+import { useTimescape } from "timescape/react";
 
 function App() {
   const { getRootProps, getInputProps, options, update } = useTimescape({
     date: new Date(),
     onChangeDate: (nextDate) => {
-      console.log('Date changed to', nextDate)
+      console.log("Date changed to", nextDate);
     },
-  })
+  });
 
   // To change any option:
   // update((prev) => ({ ...prev, date: new Date() }))
 
   return (
     <div className="timescape" {...getRootProps()}>
-      <input {...getInputProps('days')} />
+      <input {...getInputProps("days")} />
       <span>/</span>
-      <input {...getInputProps('months')} />
+      <input {...getInputProps("months")} />
       <span>/</span>
-      <input {...getInputProps('years')} />
+      <input {...getInputProps("years")} />
       <span> </span>
-      <input {...getInputProps('hours')} />
+      <input {...getInputProps("hours")} />
       <span>:</span>
-      <input {...getInputProps('minutes')} />
+      <input {...getInputProps("minutes")} />
       <span>:</span>
-      <input {...getInputProps('seconds')} />
+      <input {...getInputProps("seconds")} />
     </div>
-  )
+  );
 }
 ```
 
@@ -90,32 +90,30 @@ function App() {
 This package uses Preact signals, if you want to use it without just use the React implementation in compat mode.
 
 ```tsx
-import { useTimescape } from 'timescape/preact'
-
-import { effect, useComputed, useSignal } from '@preact/signals'
-import { useTimescape } from 'timescape/preact'
+import { effect } from "@preact/signals";
+import { useTimescape } from "timescape/preact";
 
 function App() {
   const { getRootProps, getInputProps, options } = useTimescape({
     date: new Date(),
-  })
+  });
 
   effect(() => {
-    console.log('Date changed to', options.value.date)
-  })
+    console.log("Date changed to", options.value.date);
+  });
 
   // To change any option:
   // options.value = { ...options.value, date: new Date() }
 
   return (
     <div className="timescape" {...getRootProps()}>
-      <input {...getInputProps('years')} />
+      <input {...getInputProps("years")} />
       <span>/</span>
-      <input {...getInputProps('months')} />
+      <input {...getInputProps("months")} />
       <span>/</span>
-      <input {...getInputProps('days')} />
+      <input {...getInputProps("days")} />
     </div>
-  )
+  );
 }
 ```
 
@@ -141,16 +139,16 @@ function App() {
 </template>
 
 <script lang="ts" setup>
-import { useTimescape, type UseTimescapeOptions } from 'timescape/vue'
-import { watchEffect } from 'vue'
+import { type UseTimescapeOptions, useTimescape } from "timescape/vue";
+import { watchEffect } from "vue";
 
 const { registerElement, registerRoot, options } = useTimescape({
   date: new Date(),
-})
+});
 
 watchEffect(() => {
-  console.log('Date changed to', options.value.date)
-})
+  console.log("Date changed to", options.value.date);
+});
 </script>
 ```
 
@@ -163,21 +161,21 @@ watchEffect(() => {
 
 ```svelte
 <script lang="ts">
-  import { createTimescape } from 'timescape/svelte'
-  import { derived } from 'svelte/store'
+import { derived } from "svelte/store";
+import { createTimescape } from "timescape/svelte";
 
-  const { inputProps, rootProps, options } = createTimescape({
-    date: new Date(),
-  })
+const { inputProps, rootProps, options } = createTimescape({
+  date: new Date(),
+});
 
-  const date = derived(options, ($o) => $o.date)
+const date = derived(options, ($o) => $o.date);
 
-  date.subscribe((nextDate) => {
-    console.log('Date changed to', nextDate)
-  })
+date.subscribe((nextDate) => {
+  console.log("Date changed to", nextDate);
+});
 
-  // To change any option:
-  // options.update((prev) => ({ ...prev, date: new Date() }))
+// To change any option:
+// options.update((prev) => ({ ...prev, date: new Date() }))
 </script>
 
 <div class="timescape" use:rootProps>
@@ -187,6 +185,7 @@ watchEffect(() => {
   <span>/</span>
   <input use:inputProps={'years'} />
 </div>
+
 ```
 
 </details>
@@ -197,17 +196,17 @@ watchEffect(() => {
 [Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-solid?file=src%2FApp.tsx)
 
 ```tsx
-import { useTimescape } from 'timescape/solid'
-import { createEffect } from 'solid-js'
+import { createEffect } from "solid-js";
+import { useTimescape } from "timescape/solid";
 
 function App() {
   const { getInputProps, getRootProps, options, update } = useTimescape({
     date: new Date(),
-  })
+  });
 
   createEffect(() => {
-    console.log('Date changed to', options.date)
-  })
+    console.log("Date changed to", options.date);
+  });
 
   // To change any option:
   // update('date', new Date())
@@ -215,13 +214,13 @@ function App() {
 
   return (
     <div class="timescape" {...getRootProps()}>
-      <input {...getInputProps('years')} />
+      <input {...getInputProps("years")} />
       <span>/</span>
-      <input {...getInputProps('months')} />
+      <input {...getInputProps("months")} />
       <span>/</span>
-      <input {...getInputProps('days')} />
+      <input {...getInputProps("days")} />
     </div>
-  )
+  );
 }
 ```
 
@@ -231,10 +230,10 @@ function App() {
 <summary><strong>Vanilla JS</strong></summary>
 
 ```tsx
-import { TimescapeManager } from 'timescape'
+import { TimescapeManager } from "timescape";
 
-const container = document.createElement('div')
-document.body.appendChild(container)
+const container = document.createElement("div");
+document.body.appendChild(container);
 
 container.innerHTML = ` 
   <div class="timescape" id="timescape-root">
@@ -244,30 +243,30 @@ container.innerHTML = `
     <span>/</span>
     <input data-type="years" placeholder="yyyy" />
   </div>
-`
+`;
 
-const timeManager = new TimescapeManager()
+const timeManager = new TimescapeManager();
 
-timeManager.date = new Date()
+timeManager.date = new Date();
 
 timeManager.subscribe((nextDate) => {
-  console.log('Date changed to', nextDate)
-})
+  console.log("Date changed to", nextDate);
+});
 
-timeManager.registerRoot(document.getElementById('timescape-root')!)
+timeManager.registerRoot(document.getElementById("timescape-root")!);
 
 timeManager.registerElement(
   container.querySelector('[data-type="days"]')!,
-  'days',
-)
+  "days",
+);
 timeManager.registerElement(
   container.querySelector('[data-type="months"]')!,
-  'months',
-)
+  "months",
+);
 timeManager.registerElement(
   container.querySelector('[data-type="years"]')!,
-  'years',
-)
+  "years",
+);
 ```
 
 </details>
@@ -278,15 +277,15 @@ The options passed to `timescape` are the _initial values_. `timescape` returns 
 
 ```tsx
 type Options = {
-  date?: Date
-  minDate?: Date | $NOW // see more about $NOW below
-  maxDate?: Date | $NOW
-  hour12?: boolean
-  wrapAround?: boolean
-  digits?: 'numeric' | '2-digit'
-  snapToStep?: boolean
-  wheelControl?: boolean
-}
+  date?: Date;
+  minDate?: Date | $NOW; // see more about $NOW below
+  maxDate?: Date | $NOW;
+  hour12?: boolean;
+  wrapAround?: boolean;
+  digits?: "numeric" | "2-digit";
+  snapToStep?: boolean;
+  wheelControl?: boolean;
+};
 ```
 
 | Option         | Default     | Description                                                                                                                                                                                                                                                                                                                                                      |
@@ -309,13 +308,13 @@ type Options = {
 It can be imported from the package like so:
 
 ```ts
-import { $NOW } from 'timescape'
+import { $NOW } from "timescape";
 
 // or from a specific module
-import { $NOW } from 'timescape/react'
+import { $NOW } from "timescape/react";
 
 // Svelte import names prohibit a $ prefix, so it's renamed to NOW there
-import { NOW } from 'timescape/svelte'
+import { NOW } from "timescape/svelte";
 ```
 
 ### `placeholder` on input elements
@@ -335,32 +334,32 @@ This is achieved by using two `timescape` instances, one for the start and one f
 Example usage (this works similar for all supported libraries):
 
 ```tsx
-import { useTimescapeRange } from 'timescape/react'
+import { useTimescapeRange } from "timescape/react";
 // Use `createTimescapeRange` for Svelte
 
 const { getRootProps, from, to } = useTimescapeRange({
-  from: { date: new Date('2000-01-01') },
+  from: { date: new Date("2000-01-01") },
   to: { date: new Date() },
-})
+});
 
 return (
   <div {...getRootProps()}>
     <div>
-      <input {...from.getInputProps('days')} />
+      <input {...from.getInputProps("days")} />
       <span>/</span>
-      <input {...from.getInputProps('months')} />
+      <input {...from.getInputProps("months")} />
       <span>/</span>
-      <input {...from.getInputProps('years')} />
+      <input {...from.getInputProps("years")} />
     </div>
     <div>
-      <input {...to.getInputProps('days')} />
+      <input {...to.getInputProps("days")} />
       <span>/</span>
-      <input {...to.getInputProps('months')} />
+      <input {...to.getInputProps("months")} />
       <span>/</span>
-      <input {...to.getInputProps('years')} />
+      <input {...to.getInputProps("years")} />
     </div>
   </div>
-)
+);
 ```
 
 ## Anatomy & styling
