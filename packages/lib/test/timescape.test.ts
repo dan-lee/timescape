@@ -8,7 +8,7 @@ import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { PropertySymbol } from 'happy-dom'
 
-import { TimescapeManager, DateType } from '../src'
+import { DateType, marry, TimescapeManager } from '../src'
 
 const register = (manager: TimescapeManager, fields: DateType[]) => {
   const container = document.createElement('div')
@@ -319,6 +319,48 @@ describe('timescape', () => {
         await user.keyboard('{ArrowLeft}')
         expect(element).toHaveFocus()
       }
+    })
+
+    it('should cycle correctly when adding/removing fields', async () => {
+      container = document.createElement('div')
+      manager = new TimescapeManager()
+      container.innerHTML = `
+        <div data-testid="root">
+          <input data-testid="months" />
+        </div>
+      `
+      document.body.appendChild(container)
+
+      const { root, months } = getFields()
+
+      manager.registerRoot(root)
+      manager.registerElement(months, 'months')
+
+      getFields().months.focus()
+      expect(months).toHaveFocus()
+
+      const yearInput = document.createElement('input')
+      yearInput.setAttribute('data-testid', 'years')
+
+      root.prepend(yearInput)
+      manager.registerElement(yearInput, 'years')
+
+      await user.keyboard('{ArrowLeft}')
+      expect(getFields().years).toHaveFocus()
+
+      const daysInput = document.createElement('input')
+      daysInput.setAttribute('data-testid', 'days')
+      root.appendChild(daysInput)
+
+      manager.registerElement(daysInput, 'days')
+
+      await user.keyboard('{ArrowLeft}')
+
+      daysInput.remove()
+
+      getFields().years.focus()
+      await user.keyboard('{ArrowLeft}')
+      expect(getFields().months).toHaveFocus()
     })
 
     it('should change values with up/down arrow keys', async () => {
@@ -1001,5 +1043,54 @@ describe('timescape', () => {
 
     await user.tab({ shift: true })
     expect(document.body).toHaveFocus()
+  })
+
+  describe('ranges', () => {
+    beforeEach(() => {
+      container.innerHTML = `
+        <div data-testid="root">
+          <input data-testid="from-years" />
+          <input data-testid="to-years" />
+        </div>
+      `
+
+      const fromManager = new TimescapeManager(new Date('2024'))
+      const toManager = new TimescapeManager(new Date('2025'))
+
+      const root = getByTestId(container, 'root')
+
+      marry(fromManager, toManager)
+
+      fromManager.registerRoot(root)
+      toManager.registerRoot(root)
+
+      fromManager.registerElement(getByTestId(container, 'from-years'), 'years')
+      toManager.registerElement(getByTestId(container, 'to-years'), 'years')
+
+      document.body.appendChild(container)
+    })
+
+    it('should wrap range input focus', async () => {
+      getByTestId(container, 'from-years').focus()
+      await user.keyboard('{ArrowLeft}')
+      expect(getByTestId(container, 'to-years')).toHaveFocus()
+
+      await user.keyboard('{ArrowRight}')
+      expect(getByTestId(container, 'from-years')).toHaveFocus()
+    })
+
+    it('should not allow to set from date after to date', async () => {
+      getByTestId(container, 'from-years').focus()
+      await user.keyboard('{ArrowUp}')
+      await user.keyboard('{ArrowUp}')
+      expect(getByTestId(container, 'to-years')).toHaveValue('2025')
+    })
+
+    it('should not allow to set to date before from date', async () => {
+      getByTestId(container, 'to-years').focus()
+      await user.keyboard('{ArrowDown}')
+      await user.keyboard('{ArrowDown}')
+      expect(getByTestId(container, 'from-years')).toHaveValue('2024')
+    })
   })
 })
