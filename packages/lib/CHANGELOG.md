@@ -1,5 +1,11 @@
 # timescape
 
+## 0.6.1
+
+### Patch Changes
+
+- [#38](https://github.com/dan-lee/timescape/pull/38) [`74fac65`](https://github.com/dan-lee/timescape/commit/74fac65b95f871e6c37edc6edb0ff16495183903) Thanks [@dan-lee](https://github.com/dan-lee)! - Skip number inputs when meta/ctrl is pressed.
+
 ## 0.6.0
 
 ### Minor Changes
