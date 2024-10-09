@@ -485,8 +485,8 @@ export class TimescapeManager implements Options {
         const number = Number(key);
 
         if (e.metaKey || e.ctrlKey) {
-          allowNativeEvent = true
-          break
+          allowNativeEvent = true;
+          break;
         }
 
         const setIntermediateValue = (value: string) => {
