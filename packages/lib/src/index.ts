@@ -473,6 +473,11 @@ export class TimescapeManager implements Options {
       case /^\d$/.test(key):
         const number = Number(key)
 
+        if (e.metaKey || e.ctrlKey) {
+          allowNativeEvent = true
+          break
+        }
+
         const setIntermediateValue = (value: string) => {
           registryEntry.intermediateValue = value
           this.#syncElement(inputElement)
