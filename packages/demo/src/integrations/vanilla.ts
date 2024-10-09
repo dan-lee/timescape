@@ -1,4 +1,4 @@
-import { TimescapeManager, type DateType, marry } from 'timescape'
+import { type DateType, TimescapeManager, marry } from "timescape";
 
 const prepare = (container: HTMLElement) => {
   container.innerHTML = `
@@ -33,66 +33,75 @@ const prepare = (container: HTMLElement) => {
       <span class="separator">/</span>
       <input class="timescape-input" data-type="days" data-range="to" />
     </div>
-  `.trim()
-}
+  `.trim();
+};
 
 export const renderTo = (container: HTMLElement) => {
-  prepare(container)
+  prepare(container);
 
-  const manager = new TimescapeManager(new Date())
+  const manager = new TimescapeManager(new Date());
 
-  manager.on('changeDate', (date) => {
-    console.log('changed date', date)
-  })
+  manager.on("changeDate", (date) => {
+    console.log("changed date", date);
+  });
 
-  const simple = container.querySelector<HTMLElement>('.timescape-root.simple')!
+  const simple = container.querySelector<HTMLElement>(".timescape-root.simple");
 
-  manager.registerRoot(simple)
+  if (!simple) {
+    throw new Error("Root not found");
+  }
 
-  const elements = simple.querySelectorAll<HTMLInputElement>('.timescape-input')
+  manager.registerRoot(simple);
+
+  const elements =
+    simple.querySelectorAll<HTMLInputElement>(".timescape-input");
 
   for (const element of elements) {
-    manager.registerElement(element, element.dataset.type as DateType)
+    manager.registerElement(element, element.dataset.type as DateType);
   }
 
   // Range
 
-  const fromManager = new TimescapeManager(new Date())
-  const toManager = new TimescapeManager(new Date('2025'))
+  const fromManager = new TimescapeManager(new Date());
+  const toManager = new TimescapeManager(new Date("2025"));
 
-  fromManager.on('changeDate', (date) => {
-    console.log('changed range from', date)
-  })
+  fromManager.on("changeDate", (date) => {
+    console.log("changed range from", date);
+  });
 
-  toManager.on('changeDate', (date) => {
-    console.log('changed range to', date)
-  })
+  toManager.on("changeDate", (date) => {
+    console.log("changed range to", date);
+  });
 
-  marry(fromManager, toManager)
+  marry(fromManager, toManager);
 
-  const range = container.querySelector<HTMLElement>('.timescape-root.range')!
+  const range = container.querySelector<HTMLElement>(".timescape-root.range");
 
-  fromManager.registerRoot(range)
-  toManager.registerRoot(range)
+  if (!range) {
+    throw new Error("Range root not found");
+  }
+
+  fromManager.registerRoot(range);
+  toManager.registerRoot(range);
 
   const fromElements = range.querySelectorAll<HTMLInputElement>(
     '.timescape-input[data-range="from"]',
-  )
+  );
 
   for (const element of fromElements) {
-    fromManager.registerElement(element, element.dataset.type as DateType)
+    fromManager.registerElement(element, element.dataset.type as DateType);
   }
 
   const toElements = range.querySelectorAll<HTMLInputElement>(
     '.timescape-input[data-range="to"]',
-  )
+  );
 
   for (const element of toElements) {
-    toManager.registerElement(element, element.dataset.type as DateType)
+    toManager.registerElement(element, element.dataset.type as DateType);
   }
 
   return () => {
-    manager.remove()
-    container.innerHTML = ''
-  }
-}
+    manager.remove();
+    container.innerHTML = "";
+  };
+};

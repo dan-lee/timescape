@@ -7,14 +7,14 @@ export const addElementListener = <
   listener: (ev: EventMap[U]) => void,
   options?: boolean | AddEventListenerOptions,
 ) => {
-  const typedListener = (ev: Event) => listener(ev as EventMap[U])
+  const typedListener = (ev: Event) => listener(ev as EventMap[U]);
 
-  node.addEventListener(type, typedListener, options)
+  node.addEventListener(type, typedListener, options);
 
-  return () => node.removeEventListener(type, typedListener, options)
-}
+  return () => node.removeEventListener(type, typedListener, options);
+};
 
-type EventMap = HTMLElementEventMap & WindowEventMap & DocumentEventMap
+type EventMap = HTMLElementEventMap & WindowEventMap & DocumentEventMap;
 
 type EventNames<T extends EventTarget> = T extends Window
   ? keyof WindowEventMap
@@ -22,30 +22,33 @@ type EventNames<T extends EventTarget> = T extends Window
     ? keyof HTMLElementEventMap
     : T extends Document
       ? keyof DocumentEventMap
-      : never
+      : never;
 
 export const isTouchDevice = () =>
-  'ontouchstart' in window ||
+  "ontouchstart" in window ||
   navigator.maxTouchPoints > 0 ||
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (navigator as any).msMaxTouchPoints > 0
+  // biome-ignore lint/suspicious/noExplicitAny: this is a non-standard property
+  (navigator as any).msMaxTouchPoints > 0;
 
 // Mostly taken from https://github.com/ai/nanoevents
-export const STOP_EVENT_PROPAGATION = Symbol('STOP_EVENT_PROPAGATION')
-export type Callback<T> = (arg: T) => void | typeof STOP_EVENT_PROPAGATION
+export const STOP_EVENT_PROPAGATION = Symbol("STOP_EVENT_PROPAGATION");
+// biome-ignore lint/suspicious/noConfusingVoidType: this is a special value
+export type Callback<T> = (arg: T) => void | typeof STOP_EVENT_PROPAGATION;
 export const createPubSub = <T>() => ({
   emit<K extends keyof T>(event: K, data: T[K]) {
     // Added STOP_PROPAGATION to allow stepping out of the loop
-    // eslint-disable-next-line no-extra-semi
-    ;(this.events[event] || []).some(
+    (this.events[event] || []).some(
       (cb) => cb(data) === STOP_EVENT_PROPAGATION,
-    )
+    );
   },
   events: {} as { [K in keyof T]?: Callback<T[K]>[] },
   on<K extends keyof T>(event: K, cb: Callback<T[K]>) {
-    this.events[event]?.push(cb) || (this.events[event] = [cb])
+    this.events[event] = this.events[event]
+      ? [...this.events[event], cb]
+      : [cb];
+
     return () => {
-      this.events[event] = this.events[event]?.filter((i) => cb !== i)
-    }
+      this.events[event] = this.events[event]?.filter((i) => cb !== i);
+    };
   },
-})
+});

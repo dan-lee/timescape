@@ -1,71 +1,71 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { createLiveStory } from './utils'
+import type { Meta, StoryObj } from "@storybook/react";
+import { createLiveStory } from "./utils";
 
 export default {
-  title: 'root/timescape',
+  title: "root/timescape",
   component: () => null,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
     options: {
       showPanel: true,
     },
   },
-} satisfies Meta
+} satisfies Meta;
 
 export const Full: StoryObj = {
-  name: 'Full date time example',
+  name: "Full date time example",
   ...createLiveStory(
-    await import('./source/full.source.tsx?raw').then((m) => m.default),
+    await import("./source/full.source.tsx?raw").then((m) => m.default),
   ),
-}
+};
 
 export const FullWithOptions: StoryObj = {
-  name: 'Full with options',
+  name: "Full with options",
   ...createLiveStory(
-    await import('./source/full-options.source.tsx?raw').then((m) => m.default),
+    await import("./source/full-options.source.tsx?raw").then((m) => m.default),
   ),
-}
+};
 
 export const TimeWithOptions: StoryObj = {
-  name: 'Time only with options',
+  name: "Time only with options",
   ...createLiveStory(
-    await import('./source/time-only.source.tsx?raw').then((m) => m.default),
+    await import("./source/time-only.source.tsx?raw").then((m) => m.default),
   ),
-}
+};
 
 export const Steps: StoryObj = {
-  name: 'Steps',
+  name: "Steps",
   ...createLiveStory(
-    await import('./source/steps.source.tsx?raw').then((m) => m.default),
+    await import("./source/steps.source.tsx?raw").then((m) => m.default),
   ),
-}
+};
 
 export const Calendar: StoryObj = {
-  name: 'Calendar',
+  name: "Calendar",
   ...createLiveStory(
-    await import('./source/calendar.source.tsx?raw').then((m) => m.default),
+    await import("./source/calendar.source.tsx?raw").then((m) => m.default),
   ),
-}
+};
 
 export const Range: StoryObj = {
-  name: 'Range',
+  name: "Range",
   ...createLiveStory(
-    await import('./source/range.source.tsx?raw').then((m) => m.default),
+    await import("./source/range.source.tsx?raw").then((m) => m.default),
   ),
-}
+};
 
 export const RangeCalendar: StoryObj = {
-  name: 'Range Calendar',
+  name: "Range Calendar",
   ...createLiveStory(
-    await import('./source/calendar-range.source.tsx?raw').then(
+    await import("./source/calendar-range.source.tsx?raw").then(
       (m) => m.default,
     ),
   ),
-}
+};
 
 export const Placeholder: StoryObj = {
-  name: 'Placeholder',
+  name: "Placeholder",
   ...createLiveStory(
-    await import('./source/placeholder.source.tsx?raw').then((m) => m.default),
+    await import("./source/placeholder.source.tsx?raw").then((m) => m.default),
   ),
-}
+};
