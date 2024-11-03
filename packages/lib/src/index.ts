@@ -31,6 +31,7 @@ type RegistryEntry = {
   shadowElement: HTMLSpanElement
   intermediateValue: string
   autofocus?: boolean
+  isUnset: boolean
   listeners: Array<() => void>
 }
 type Registry = Map<DateType, RegistryEntry>
@@ -47,6 +48,7 @@ export type Options = {
   wrapAround?: boolean
   snapToStep?: boolean
   wheelControl?: boolean
+  allowPartial?: boolean
 }
 
 export type RangeOptions = {
@@ -67,6 +69,7 @@ export class TimescapeManager implements Options {
   wrapAround?: Options['wrapAround'] = false
   snapToStep?: Options['snapToStep'] = false
   wheelControl?: Options['wheelControl'] = false
+  allowPartial?: Options['allowPartial'] = false
 
   #instanceId = Math.random().toString(36).slice(2)
   #timestamp: number | undefined
@@ -91,42 +94,39 @@ export class TimescapeManager implements Options {
   #mutationObserver =
     typeof window !== 'undefined'
       ? new MutationObserver((mutations) => {
-          const total = mutations.reduce(
-            ({ added, removed }, mutation) => ({
-              added: added + mutation.addedNodes.length,
-              removed: removed + mutation.removedNodes.length,
-            }),
-            { added: 0, removed: 0 },
-          )
+          let added = 0
+          let removed = 0
 
-          if (total.added > 0) {
+          mutations.forEach((mutation) => {
+            added += mutation.addedNodes.length
+            removed += mutation.removedNodes.length
+          })
+
+          if (added > 0) {
             this.#sortRegistryByElements()
           }
 
-          if (total.removed > 0) {
-            Array.from(mutations)
-              .filter((mutation) => mutation.removedNodes.length > 0)
-              .forEach((mutation) => {
-                Array.from(mutation.removedNodes)
-                  .filter((node) => node instanceof HTMLInputElement)
-                  .forEach((node) => {
-                    const entry = [...this.#registry.values()].find(
-                      ({ inputElement }) => inputElement === node,
-                    )
+          if (removed > 0) {
+            mutations.forEach((mutation) => {
+              mutation.removedNodes.forEach((node) => {
+                const entry = this.#findByInputElement(node)
 
-                    if (!entry) return
-                    entry.inputElement.remove()
-                    entry.shadowElement.remove()
-                    entry.listeners.forEach((listener) => listener())
-                    this.#registry.delete(entry.type)
-                  })
+                if (!entry) return
+
+                entry.inputElement.remove()
+                entry.shadowElement.remove()
+                entry.listeners.forEach((listener) => listener())
+                this.#registry.delete(entry.type)
               })
+            })
           }
         })
       : undefined
 
   get date(): Date | undefined {
-    return this.#timestamp ? new Date(this.#timestamp) : undefined
+    return this.#timestamp && this.isCompleted()
+      ? new Date(this.#timestamp)
+      : undefined
   }
 
   set date(nextDate: Date | number | string | undefined) {
@@ -145,6 +145,7 @@ export class TimescapeManager implements Options {
       this.wrapAround = options.wrapAround
       this.snapToStep = options.snapToStep
       this.wheelControl = options.wheelControl
+      this.allowPartial = options.allowPartial
     }
 
     return new Proxy(this, {
@@ -171,6 +172,8 @@ export class TimescapeManager implements Options {
             target.#syncAllElements()
             break
           case 'wheelControl':
+          case 'allowPartial':
+            if (nextValue === target[property]) return true
             target[property] = nextValue
             this.resync()
             break
@@ -289,13 +292,24 @@ export class TimescapeManager implements Options {
       autofocus,
       shadowElement,
       intermediateValue: '',
+      isUnset: this.allowPartial === true,
       listeners: this.#createListeners(element, type),
-    })
+    } satisfies RegistryEntry)
 
     this.on('changeDate', () => this.#syncElement(element))
     this.#syncElement(element)
 
     return element
+  }
+
+  /**
+   * Returns whether all fields are filled out. Can only be false in partial mode.
+   * @returns {boolean}
+   */
+  public isCompleted(): boolean {
+    return this.allowPartial
+      ? [...this.#registry.values()].every((e) => !e.isUnset)
+      : true
   }
 
   public remove() {
@@ -309,12 +323,9 @@ export class TimescapeManager implements Options {
     this.#mutationObserver?.disconnect()
   }
 
-  public focusField(which: DateType | number = 0) {
+  public focusField(which: number = 0) {
     const entries = [...this.#registry.values()]
-    const type =
-      typeof which === 'number'
-        ? entries.at(which)?.type
-        : entries.find(({ type }) => type === which)?.type
+    const type = entries.at(which)?.type
 
     type && this.#registry.get(type)?.inputElement.focus()
   }
@@ -322,6 +333,11 @@ export class TimescapeManager implements Options {
   public on<E extends keyof Events>(event: E, callback: Callback<Events[E]>) {
     return this.#pubsub.on(event, callback)
   }
+
+  #findByInputElement = (input: HTMLElement | EventTarget | null) =>
+    [...this.#registry.values()].find(
+      ({ inputElement }) => inputElement === input,
+    )
 
   #copyStyles = (from: HTMLElement, to: HTMLElement) => {
     // prettier-ignore
@@ -346,6 +362,8 @@ export class TimescapeManager implements Options {
     const registryEntry = this.#registry.get(type)
     const intermediateValue = registryEntry?.intermediateValue
 
+    if (registryEntry?.isUnset) return ''
+
     return intermediateValue
       ? type === 'years'
         ? intermediateValue.padStart(4, '0')
@@ -358,7 +376,7 @@ export class TimescapeManager implements Options {
             '0',
           )
       : this.#timestamp !== undefined
-        ? format(this.#currentDate, type, this.hour12, this.digits)
+        ? format(new Date(this.#timestamp), type, this.hour12, this.digits)
         : ''
   }
 
@@ -408,9 +426,7 @@ export class TimescapeManager implements Options {
   #handleKeyDown(e: KeyboardEvent) {
     if (e.defaultPrevented) return
 
-    const registryEntry = [...this.#registry.values()].find(
-      ({ inputElement }) => inputElement === e.target,
-    )
+    const registryEntry = this.#findByInputElement(e.target)
 
     if (!registryEntry) return
 
@@ -425,13 +441,18 @@ export class TimescapeManager implements Options {
       case key === 'ArrowDown':
         this.#clearIntermediateState(registryEntry)
         const date = this.#currentDate
+        const elementStep =
+          this.allowPartial && registryEntry.isUnset
+            ? 0
+            : Number(inputElement.step) || 1
+
+        registryEntry.isUnset = false
 
         if (type === 'am/pm') {
-          this.#setValidatedDate(toggleAmPm(date))
+          this.#setValidatedDate(toggleAmPm(this.#currentDate))
+          this.#syncElement(inputElement)
           break
         }
-
-        const elementStep = Number(inputElement.step) || 1
 
         let step
         if (this.snapToStep) {
@@ -449,27 +470,33 @@ export class TimescapeManager implements Options {
         }
 
         this.#setValidatedDate(
-          this.wrapAround
+          this.wrapAround || !this.isCompleted()
             ? this.#wrapDateAround(step, type)
             : add(date, type, step),
         )
+        this.#syncAllElements()
         break
       case key === 'ArrowRight':
       case key === 'Enter':
-        this.#focusNextField(type)
+        this.#focusNextField(type, 1, true)
         break
       case key === 'Tab':
         const tabOffset = e.shiftKey ? -1 : 1
-        allowNativeEvent = !this.#focusNextField(type, tabOffset, false)
+        allowNativeEvent = !this.#focusNextField(type, tabOffset)
         break
       case key === 'ArrowLeft':
-        this.#focusNextField(type, -1)
+        this.#focusNextField(type, -1, true)
         break
       case ['a', 'p'].includes(key.toLowerCase()):
         if (type !== 'am/pm') break
 
         const force = key.toLowerCase() === 'a' ? 'am' : 'pm'
         this.#setValidatedDate(toggleAmPm(this.#currentDate, force))
+        break
+
+      case key === 'Delete':
+        registryEntry.isUnset = true
+        this.#syncElement(inputElement)
         break
 
       case /^\d$/.test(key):
@@ -482,12 +509,15 @@ export class TimescapeManager implements Options {
 
         const setIntermediateValue = (value: string) => {
           registryEntry.intermediateValue = value
+          registryEntry.isUnset = false
           this.#syncElement(inputElement)
         }
         const setValue = (unit: DateType, value: number) => {
           const newDate = set(this.#currentDate, unit, value)
 
           registryEntry.intermediateValue = ''
+          registryEntry.isUnset = false
+
           this.#setValidatedDate(newDate)
           this.#syncElement(inputElement)
           this.#cursorPosition = 0
@@ -601,7 +631,7 @@ export class TimescapeManager implements Options {
             } else {
               const finalValue = Math.min(Number(intermediateValue + key), 59)
               setValue(type, finalValue)
-              this.#focusNextField(type, 1, false)
+              this.#focusNextField(type, 1)
             }
             break
         }
@@ -631,12 +661,9 @@ export class TimescapeManager implements Options {
   #handleBlur(e: FocusEvent) {
     requestAnimationFrame(() => {
       if (e.target !== document.activeElement) {
-        const registryEntry = [...this.#registry.values()].find(
-          ({ inputElement }) => inputElement === e.target,
-        )
-        if (registryEntry) {
-          this.#clearIntermediateState(registryEntry)
-        }
+        const registryEntry = this.#findByInputElement(e.target)
+        if (registryEntry) this.#clearIntermediateState(registryEntry)
+
         const target = e.target as HTMLInputElement
         target.removeAttribute('aria-selected')
       }
@@ -661,9 +688,7 @@ export class TimescapeManager implements Options {
   }
 
   #syncElement(element: HTMLInputElement) {
-    const entry = [...this.#registry.values()].find(
-      ({ inputElement }) => inputElement === element,
-    )
+    const entry = this.#findByInputElement(element)
 
     if (!entry) return
 
@@ -730,6 +755,13 @@ export class TimescapeManager implements Options {
     return listeners
   }
 
+  /**
+   * Sets the validated date and emits a changeDate event if the date is valid.
+   * It also caps the date to the minDate and maxDate if they are set.
+   * Only emits the changeDate event if the date is complete (in partial mode).
+   *
+   * @param date Date | undefined
+   */
   #setValidatedDate(date: Date | undefined) {
     if (!date) {
       this.#timestamp = undefined
@@ -746,11 +778,17 @@ export class TimescapeManager implements Options {
       date = maxDate
     }
 
-    if (this.#timestamp && isSameSeconds(date.getTime(), this.#timestamp)) {
+    if (
+      this.#timestamp &&
+      isSameSeconds(date.getTime(), this.#timestamp) &&
+      !this.isCompleted()
+    ) {
       return
     }
 
     this.#timestamp = date.getTime()
+
+    if (!this.isCompleted()) return
     this.#pubsub.emit('changeDate', date)
   }
 
@@ -758,7 +796,7 @@ export class TimescapeManager implements Options {
    *
    * @returns {Boolean} Whether the next field was focused or not
    */
-  #focusNextField(type: DateType, offset = 1, wrap = true): boolean {
+  #focusNextField(type: DateType, offset = 1, wrap?: boolean): boolean {
     const types = [...this.#registry.keys()]
     const index = types.indexOf(type)
 
