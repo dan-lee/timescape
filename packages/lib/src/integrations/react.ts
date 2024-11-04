@@ -68,6 +68,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
     manager.digits = optionsState.digits
     manager.snapToStep = optionsState.snapToStep
     manager.wheelControl = optionsState.wheelControl
+    manager.disallowPartial = optionsState.disallowPartial
   }, [
     manager,
     timestamp,
@@ -78,6 +79,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
     optionsState.digits,
     optionsState.snapToStep,
     optionsState.wheelControl,
+    optionsState.disallowPartial,
   ])
 
   return {

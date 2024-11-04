@@ -48,7 +48,7 @@ export type Options = {
   wrapAround?: boolean
   snapToStep?: boolean
   wheelControl?: boolean
-  allowPartial?: boolean
+  disallowPartial?: boolean
 }
 
 export type RangeOptions = {
@@ -69,10 +69,12 @@ export class TimescapeManager implements Options {
   wrapAround?: Options['wrapAround'] = false
   snapToStep?: Options['snapToStep'] = false
   wheelControl?: Options['wheelControl'] = false
-  allowPartial?: Options['allowPartial'] = false
+  disallowPartial?: Options['disallowPartial'] = false
 
   #instanceId = Math.random().toString(36).slice(2)
   #timestamp: number | undefined
+  // The previous timestamp is used to render partial dates when a field has been cleared.
+  #prevTimestamp: number | undefined
   #registry: Registry = new Map()
   #pubsub: ReturnType<typeof createPubSub<Events>>
   #rootElement?: HTMLElement
@@ -130,7 +132,7 @@ export class TimescapeManager implements Options {
   }
 
   set date(nextDate: Date | number | string | undefined) {
-    this.updateDate(nextDate)
+    this.#setDate(nextDate ? new Date(nextDate) : undefined)
   }
 
   constructor(initialDate?: Date, options?: Options) {
@@ -145,7 +147,7 @@ export class TimescapeManager implements Options {
       this.wrapAround = options.wrapAround
       this.snapToStep = options.snapToStep
       this.wheelControl = options.wheelControl
-      this.allowPartial = options.allowPartial
+      this.disallowPartial = options.disallowPartial
     }
 
     return new Proxy(this, {
@@ -164,7 +166,9 @@ export class TimescapeManager implements Options {
           case 'maxDate':
             // minDate and maxDate are also calling updateDate to validate the date
             target[property] = nextValue
-            target.updateDate(target.#timestamp)
+            if (target.#timestamp) {
+              target.#setDate(new Date(target.#timestamp))
+            }
             break
           case 'hour12':
           case 'digits':
@@ -172,7 +176,7 @@ export class TimescapeManager implements Options {
             target.#syncAllElements()
             break
           case 'wheelControl':
-          case 'allowPartial':
+          case 'disallowPartial':
             if (nextValue === target[property]) return true
             target[property] = nextValue
             this.resync()
@@ -184,10 +188,6 @@ export class TimescapeManager implements Options {
         return true
       },
     })
-  }
-
-  public updateDate(timestamp: Date | number | string | undefined) {
-    this.#setValidatedDate(timestamp ? new Date(timestamp) : undefined)
   }
 
   public resync() {
@@ -248,6 +248,26 @@ export class TimescapeManager implements Options {
     element.setAttribute('role', 'spinbutton')
     element.dataset.timescapeInput = ''
 
+    switch (type) {
+      case 'days':
+        element.placeholder ||= 'dd'
+        break
+      case 'months':
+        element.placeholder ||= 'mm'
+        break
+      case 'years':
+        element.placeholder ||= 'yyyy'
+        break
+      case 'hours':
+      case 'minutes':
+      case 'seconds':
+        element.placeholder ||= '--'
+        break
+      case 'am/pm':
+        element.placeholder ||= 'am'
+        break
+    }
+
     if (autofocus) {
       requestAnimationFrame(() => element.focus())
     }
@@ -292,7 +312,7 @@ export class TimescapeManager implements Options {
       autofocus,
       shadowElement,
       intermediateValue: '',
-      isUnset: this.allowPartial === true,
+      isUnset: !this.#timestamp && !this.disallowPartial,
       listeners: this.#createListeners(element, type),
     } satisfies RegistryEntry)
 
@@ -307,7 +327,7 @@ export class TimescapeManager implements Options {
    * @returns {boolean}
    */
   public isCompleted(): boolean {
-    return this.allowPartial
+    return !this.disallowPartial
       ? [...this.#registry.values()].every((e) => !e.isUnset)
       : true
   }
@@ -364,6 +384,8 @@ export class TimescapeManager implements Options {
 
     if (registryEntry?.isUnset) return ''
 
+    const ts = this.#timestamp ?? this.#prevTimestamp
+
     return intermediateValue
       ? type === 'years'
         ? intermediateValue.padStart(4, '0')
@@ -375,8 +397,8 @@ export class TimescapeManager implements Options {
                 : 1,
             '0',
           )
-      : this.#timestamp !== undefined
-        ? format(new Date(this.#timestamp), type, this.hour12, this.digits)
+      : ts
+        ? format(new Date(ts), type, this.hour12, this.digits)
         : ''
   }
 
@@ -409,7 +431,7 @@ export class TimescapeManager implements Options {
   #clearIntermediateState(registryEntry: RegistryEntry) {
     const { intermediateValue, type } = registryEntry
     if (intermediateValue) {
-      this.#setValidatedDate(
+      this.#setDate(
         set(
           this.#currentDate,
           type,
@@ -442,14 +464,14 @@ export class TimescapeManager implements Options {
         this.#clearIntermediateState(registryEntry)
         const date = this.#currentDate
         const elementStep =
-          this.allowPartial && registryEntry.isUnset
+          !this.disallowPartial && registryEntry.isUnset
             ? 0
             : Number(inputElement.step) || 1
 
         registryEntry.isUnset = false
 
         if (type === 'am/pm') {
-          this.#setValidatedDate(toggleAmPm(this.#currentDate))
+          this.#setDate(elementStep === 0 ? date : toggleAmPm(date))
           this.#syncElement(inputElement)
           break
         }
@@ -469,7 +491,7 @@ export class TimescapeManager implements Options {
           step = elementStep * factor
         }
 
-        this.#setValidatedDate(
+        this.#setDate(
           this.wrapAround || !this.isCompleted()
             ? this.#wrapDateAround(step, type)
             : add(date, type, step),
@@ -491,14 +513,33 @@ export class TimescapeManager implements Options {
         if (type !== 'am/pm') break
 
         const force = key.toLowerCase() === 'a' ? 'am' : 'pm'
-        this.#setValidatedDate(toggleAmPm(this.#currentDate, force))
+        this.#setDate(toggleAmPm(this.#currentDate, force))
         break
 
       case key === 'Delete':
+        if (this.disallowPartial) return
+
         registryEntry.isUnset = true
+        if (this.#timestamp) this.#prevTimestamp = this.#timestamp
+        this.#setDate(undefined)
         this.#syncElement(inputElement)
         break
 
+      case key === 'Backspace':
+        if (this.disallowPartial) return
+
+        registryEntry.intermediateValue =
+          intermediateValue === ''
+            ? inputElement.value.slice(0, -1)
+            : intermediateValue.slice(0, -1)
+
+        if (!registryEntry.intermediateValue) {
+          registryEntry.isUnset = true
+          if (this.#timestamp) this.#prevTimestamp = this.#timestamp
+          this.#setDate(undefined)
+        }
+        this.#syncElement(inputElement)
+        break
       case /^\d$/.test(key):
         const number = Number(key)
 
@@ -518,7 +559,7 @@ export class TimescapeManager implements Options {
           registryEntry.intermediateValue = ''
           registryEntry.isUnset = false
 
-          this.#setValidatedDate(newDate)
+          this.#setDate(newDate)
           this.#syncElement(inputElement)
           this.#cursorPosition = 0
         }
@@ -743,7 +784,7 @@ export class TimescapeManager implements Options {
         addElementListener(element, 'wheel', (e) => {
           e.preventDefault()
           const step = Math.sign(e.deltaY)
-          this.#setValidatedDate(
+          this.#setDate(
             this.wrapAround
               ? this.#wrapDateAround(step, type)
               : add(this.#currentDate, type, step),
@@ -756,13 +797,11 @@ export class TimescapeManager implements Options {
   }
 
   /**
-   * Sets the validated date and emits a changeDate event if the date is valid.
+   * Sets a validated date and emits a changeDate event.
    * It also caps the date to the minDate and maxDate if they are set.
    * Only emits the changeDate event if the date is complete (in partial mode).
-   *
-   * @param date Date | undefined
    */
-  #setValidatedDate(date: Date | undefined) {
+  #setDate(date: Date | undefined) {
     if (!date) {
       this.#timestamp = undefined
       this.#pubsub.emit('changeDate', undefined)
@@ -787,6 +826,7 @@ export class TimescapeManager implements Options {
     }
 
     this.#timestamp = date.getTime()
+    this.#prevTimestamp = undefined
 
     if (!this.isCompleted()) return
     this.#pubsub.emit('changeDate', date)
