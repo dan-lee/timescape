@@ -9,14 +9,12 @@ const App = () => {
   const { from, to, getRootProps } = useTimescapeRange({
     from: {
       date: fromDate,
-      minDate: new Date('2021-01-01'),
       onChangeDate: (nextDate) => {
         setFromDate(nextDate)
       },
     },
     to: {
       date: new Date('2021-12-31'),
-      maxDate: new Date('2023-12-31'),
     },
   })
 

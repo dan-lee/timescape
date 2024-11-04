@@ -19,7 +19,7 @@ const App = () => {
       },
     },
     to: {
-      date: new Date('2025'),
+      date: new Date(String(new Date().getFullYear() + 1)),
       onChangeDate: (nextDate) => {
         if (selectedDates.length !== 2 || !nextDate) return
 

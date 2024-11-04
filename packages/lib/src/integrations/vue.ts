@@ -35,6 +35,7 @@ export const useTimescape = (options: Options = {}) => {
     manager.hour12 = optionsRef.value.hour12
     manager.snapToStep = optionsRef.value.snapToStep
     manager.wheelControl = optionsRef.value.wheelControl
+    manager.disallowPartial = optionsRef.value.disallowPartial
   })
 
   onUnmounted(() => manager.remove())

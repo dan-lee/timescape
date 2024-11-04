@@ -14,6 +14,7 @@ export const root = style({
   borderRadius: '10px',
   transition: '100ms',
   backgroundColor: '#fff',
+  cursor: 'text',
 
   ':focus-within': {
     outline: `1px solid ${baseColor}`,
@@ -32,7 +33,6 @@ export const input = style({
   fontSize: 18,
   border: 'none',
   outline: 'none',
-  cursor: 'default',
   userSelect: 'none',
   maxWidth: '50px',
   caretColor: 'transparent',
