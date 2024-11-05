@@ -8,6 +8,7 @@ export const root = style({
   alignItems: 'center',
   gap: '2px',
   width: 'fit-content',
+  minWidth: '250px',
   border: '1px solid #bbb',
   padding: '5px',
   userSelect: 'none',

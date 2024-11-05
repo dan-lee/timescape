@@ -5,7 +5,7 @@ const App = () => {
   const { getRootProps, getInputProps, options } = useTimescape({
     // Edit these options in real-time 👇
     date: new Date(),
-    disallowPartial: true,
+    disallowPartial: false,
     minDate: undefined,
     maxDate: undefined,
     hour12: false,
