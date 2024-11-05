@@ -33,7 +33,9 @@ const App = () => {
         <span className={separator}>&nbsp;</span>
         <input placeholder="am" className={input} {...getInputProps('am/pm')} />
       </div>
-      <pre>Output: {options.date?.toISOString() ?? '-'}</pre>
+      <pre style={{ position: 'absolute' }}>
+        Output: {options.date?.toISOString() ?? '-'}
+      </pre>
     </div>
   )
 }
