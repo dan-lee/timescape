@@ -509,14 +509,15 @@ export class TimescapeManager implements Options {
       case key === 'ArrowLeft':
         this.#focusNextField(type, -1, true)
         break
-      case ['a', 'p'].includes(key.toLowerCase()):
-        if (type !== 'am/pm') break
-
+      case type === 'am/pm' && ['a', 'p'].includes(key.toLowerCase()):
         const force = key.toLowerCase() === 'a' ? 'am' : 'pm'
+        registryEntry.isUnset = false
         this.#setDate(toggleAmPm(this.#currentDate, force))
+        this.#syncElement(inputElement)
         break
 
       case key === 'Delete':
+      case key === 'Backspace' && type === 'am/pm':
         if (this.disallowPartial) return
 
         registryEntry.isUnset = true
@@ -527,6 +528,7 @@ export class TimescapeManager implements Options {
 
       case key === 'Backspace':
         if (this.disallowPartial) return
+        if (type === 'am/pm') return
 
         registryEntry.intermediateValue =
           intermediateValue === ''
