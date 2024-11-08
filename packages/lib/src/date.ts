@@ -133,7 +133,10 @@ export const format = (
 
   switch (type) {
     case 'years':
-      return String(date.getFullYear()).padStart(4, '0')
+      const year = date.getFullYear()
+
+      return year < 0 ? year.toString() : String(year).padStart(4, '0')
+
     case 'months':
       return String(date.getMonth() + 1).padStart(digitCount, '0')
     case 'days':

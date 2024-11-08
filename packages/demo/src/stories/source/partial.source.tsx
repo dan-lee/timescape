@@ -30,6 +30,12 @@ const App = () => {
           className={input}
           {...getInputProps('minutes')}
         />
+        <span className={separator}>:</span>
+        <input
+          placeholder="--"
+          className={input}
+          {...getInputProps('seconds')}
+        />
         <span className={separator}>&nbsp;</span>
         <input placeholder="am" className={input} {...getInputProps('am/pm')} />
       </div>
