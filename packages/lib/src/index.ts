@@ -530,10 +530,10 @@ export class TimescapeManager implements Options {
         if (this.disallowPartial) return
         if (type === 'am/pm') return
 
-        registryEntry.intermediateValue =
-          intermediateValue === ''
-            ? inputElement.value.slice(0, -1)
-            : intermediateValue.slice(0, -1)
+        const newValue = intermediateValue || inputElement.value
+        registryEntry.intermediateValue = newValue
+          .slice(0, -1)
+          .replace(/^0+/, '')
 
         if (!registryEntry.intermediateValue) {
           registryEntry.isUnset = true
