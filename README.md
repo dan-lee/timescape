@@ -326,6 +326,20 @@ The `placeholder` attribute on the input elements is supported and will be used 
 
 The [`step` attribute for input elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/step) is supported and will be used to increment/decrement the values when the user uses the arrow keys. The default value is `1`, but you can set it to any value you want. Also see [`snapToStep`](#options) if you want to snap to the nearest step.
 
+### Preventing default `keydown` behavior
+
+By default, timescape intercepts keydown events to enhance input behavior. If you want to handle keydown events yourself and prevent the default processing, you can do so by attaching your event handler during the capturing phase and calling `preventDefault`:
+
+```tsx
+<input
+  onKeyDownCapture={(e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+    }
+  }}
+/>
+```
+
 ## Ranges
 
 `timescape` supports ranges for the date/time inputs. This means a user can select a start and end. This is useful for things like booking systems, where you want to allow the user to select a range of dates.
