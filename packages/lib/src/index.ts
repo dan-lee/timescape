@@ -406,6 +406,8 @@ export class TimescapeManager implements Options {
   }
 
   #handleKeyDown(e: KeyboardEvent) {
+    if (e.defaultPrevented) return
+
     const registryEntry = [...this.#registry.values()].find(
       ({ inputElement }) => inputElement === e.target,
     )
