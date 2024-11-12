@@ -1,5 +1,21 @@
 # timescape
 
+## 0.6.2
+
+### Patch Changes
+
+- [#44](https://github.com/dan-lee/timescape/pull/44) [`8e07ead`](https://github.com/dan-lee/timescape/commit/8e07ead9fe30f16cfdb7be0da6369d786dee06af) Thanks [@dan-lee](https://github.com/dan-lee)! - Added the ability to prevent the default keydown event handling. If you want to handle keydown events yourself, you can now prevent the default behavior by using `onKeyDownCapture` (or the equivalent in your framework) and calling `preventDefault()` in your handler.
+
+  ```tsx
+  <input
+    onKeyDownCapture={(e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+      }
+    }}
+  />
+  ```
+
 ## 0.6.1
 
 ### Patch Changes
