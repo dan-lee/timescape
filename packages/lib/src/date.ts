@@ -139,11 +139,11 @@ export const format = (
   const digitCount = digits === "2-digit" ? 2 : 1;
 
   switch (type) {
-    case "years":
-      const year = date.getFullYear()
+    case "years": {
+      const year = date.getFullYear();
 
-      return year < 0 ? year.toString() : String(year).padStart(4, "0")
-;
+      return year < 0 ? year.toString() : String(year).padStart(4, "0");
+    }
     case "months":
       return String(date.getMonth() + 1).padStart(digitCount, "0");
     case "days":

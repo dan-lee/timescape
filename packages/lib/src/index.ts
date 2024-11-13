@@ -485,7 +485,7 @@ export class TimescapeManager implements Options {
           break;
         }
 
-        let step;
+        let step: number;
         if (this.snapToStep) {
           const value = get(date, type);
 
