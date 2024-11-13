@@ -12,8 +12,6 @@ const App = () => {
   const { getRootProps, getInputProps, options, update } = useTimescape({
     // Edit these options in real-time 👇
     date: new Date(),
-    minDate: new Date("2021-01-01 00:00:01"),
-    maxDate: new Date("2025-12-31 23:59:59"),
     onChangeDate: (date) => {
       if (!date) return;
 
@@ -24,10 +22,6 @@ const App = () => {
   });
 
   const dpCalendar = useDatePicker({
-    dates: {
-      minDate: options.minDate === "$NOW" ? new Date() : options.minDate,
-      maxDate: options.maxDate === "$NOW" ? new Date() : options.maxDate,
-    },
     selectedDates: selectedDate ? [selectedDate] : [],
     onDatesChange: ([date]) => {
       update((prev) => ({ ...prev, date }));

@@ -34,6 +34,7 @@ const ALL_OPTIONS = [
   "wrapAround",
   "snapToStep",
   "wheelControl",
+  'disallowPartial',
 ] as const;
 type PossibleOptions = keyof Omit<Options, "onChangeDate">;
 
@@ -144,6 +145,7 @@ const InputField = ({
     case "snapToStep":
     case "hour12":
     case "wheelControl":
+    case 'disallowPartial':
       return (
         <input
           id={`input-${optionName}`}

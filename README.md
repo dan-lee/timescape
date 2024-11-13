@@ -285,19 +285,21 @@ type Options = {
   digits?: "numeric" | "2-digit";
   snapToStep?: boolean;
   wheelControl?: boolean;
+  disallowPartial?: boolean
 };
 ```
 
-| Option         | Default     | Description                                                                                                                                                                                                                                                                                                                                                      |
-| -------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `date`         | `undefined` | The initial date. If not set, it will render the placeholders in their respective input fields (if set).                                                                                                                                                                                                                                                         |
-| `minDate`      | `undefined` | The minimum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-vavue)                                                                                                                                                                                                                     |
-| `maxDate`      | `undefined` | The maximum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-value)                                                                                                                                                                                                                     |
-| `hour12`       | `false`     | If set to `true`, the time input will use a 12-hour format (with AM/PM). If set to `false`, it will use a 24-hour format.                                                                                                                                                                                                                                        |
-| `digits`       | `'2-digit'` | Controls the display of the day and month in the date input. `'numeric'` displays as 1-12 for month and 1-31 for day, while `'2-digit'` displays as 01-12 for month and 01-31 for day. This follows [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#day) convention. |
-| `wrapAround`   | `false`     | If set to `true`, the time input will wrap around from the end of one period (AM/PM or day) to the beginning of the next.                                                                                                                                                                                                                                        |
-| `snapToStep`   | `false`     | If set to `true`, the input value will snap to the nearest step when the user uses arrow keys to increment/decrement values. Can be further adjust by using the [`step` attribute](#step-on-input-elements)                                                                                                                                                      |
-| `wheelControl` | `false`     | If set to `true`, the user can use the mouse wheel or touchpad to increment/decrement values.                                                                                                                                                                                                                                                                    |
+| Option            | Default     | Description                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `date`            | `undefined` | The initial date. If not set, it will render the placeholders in their respective input fields (if set).                                                                                                                                                                                                                                                         |
+| `minDate`         | `undefined` | The minimum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-vavue)                                                                                                                                                                                                                     |
+| `maxDate`         | `undefined` | The maximum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-value)                                                                                                                                                                                                                     |
+| `hour12`          | `false`     | If set to `true`, the time input will use a 12-hour format (with AM/PM). If set to `false`, it will use a 24-hour format.                                                                                                                                                                                                                                        |
+| `digits`          | `'2-digit'` | Controls the display of the day and month in the date input. `'numeric'` displays as 1-12 for month and 1-31 for day, while `'2-digit'` displays as 01-12 for month and 01-31 for day. This follows [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#day) convention. |
+| `wrapAround`      | `false`     | If set to `true`, the time input will wrap around from the end of one period (AM/PM or day) to the beginning of the next.                                                                                                                                                                                                                                        |
+| `snapToStep`      | `false`     | If set to `true`, the input value will snap to the nearest step when the user uses arrow keys to increment/decrement values. Can be further adjust by using the [`step` attribute](#step-on-input-elements)                                                                                                                                                      |
+| `wheelControl`    | `false`     | If set to `true`, the user can use the mouse wheel or touchpad to increment/decrement values.                                                                                                                                                                                                                                                                    |
+| `disallowPartial` | `false`     | If `true`, the input requires fully completed dates and times. By default partial dates are allowed, similar to native HTML input behavior.                                                                                                                                                                                                                      |
 
 ### `$NOW` value
 
@@ -324,6 +326,20 @@ The `placeholder` attribute on the input elements is supported and will be used 
 ### `step` on input elements
 
 The [`step` attribute for input elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/step) is supported and will be used to increment/decrement the values when the user uses the arrow keys. The default value is `1`, but you can set it to any value you want. Also see [`snapToStep`](#options) if you want to snap to the nearest step.
+
+### Preventing default `keydown` behavior
+
+By default, timescape intercepts keydown events to enhance input behavior. If you want to handle keydown events yourself and prevent the default processing, you can do so by attaching your event handler during the capturing phase and calling `preventDefault`:
+
+```tsx
+<input
+  onKeyDownCapture={(e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+    }
+  }}
+/>
+```
 
 ## Ranges
 

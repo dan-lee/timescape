@@ -34,6 +34,7 @@ export const createTimescape = (options: Options = {}) => {
     manager.wrapAround = value.wrapAround;
     manager.snapToStep = value.snapToStep;
     manager.wheelControl = value.wheelControl;
+    manager.disallowPartial = value.disallowPartial
   });
 
   derived(optionsStore, ($options) => $options.date).subscribe((value) => {

@@ -36,6 +36,7 @@ export const useTimescape = (options: Options = {}) => {
     manager.hour12 = optionsSignal.value.hour12;
     manager.snapToStep = optionsSignal.value.snapToStep;
     manager.wheelControl = optionsSignal.value.wheelControl;
+    manager.disallowPartial = optionsSignal.value.disallowPartial
   });
 
   useEffect(() => () => manager.remove(), [manager]);

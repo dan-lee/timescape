@@ -28,6 +28,7 @@ declare type Options_2 = {
     wrapAround?: boolean;
     snapToStep?: boolean;
     wheelControl?: boolean;
+    disallowPartial?: boolean;
 };
 
 declare type RangeOptions_2 = {
@@ -61,15 +62,20 @@ declare class TimescapeManager implements Options_2 {
     wrapAround?: Options_2['wrapAround'];
     snapToStep?: Options_2['snapToStep'];
     wheelControl?: Options_2['wheelControl'];
+    disallowPartial?: Options_2['disallowPartial'];
     get date(): Date | undefined;
     set date(nextDate: Date | number | string | undefined);
     constructor(initialDate?: Date, options?: Options_2);
-    updateDate(timestamp: Date | number | string | undefined): void;
     resync(): void;
     registerRoot(element: HTMLElement): void;
     registerElement(element: HTMLInputElement, type: DateType, autofocus?: boolean, domExists?: boolean): HTMLInputElement | undefined;
+    /**
+     * Returns whether all fields are filled out. Can only be false in partial mode.
+     * @returns {boolean}
+     */
+    isCompleted(): boolean;
     remove(): void;
-    focusField(which?: DateType | number): void;
+    focusField(which?: number): void;
     on<E extends keyof Events>(event: E, callback: Callback<Events[E]>): () => void;
 }
 

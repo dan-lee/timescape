@@ -5,14 +5,17 @@ import { input, root, separator, wrapper } from "../timescape.css";
 const App = () => {
   const { getRootProps, getInputProps, options, update } = useTimescape({
     date: new Date(),
-    minDate: new Date("2020-01-01 23:59:59"),
-    maxDate: new Date("2030-01-01 23:59:59"),
+    minDate: undefined,
+    maxDate: undefined,
     hour12: false,
     digits: "2-digit",
     wrapAround: false,
     snapToStep: false,
     wheelControl: true,
-  });
+    disallowPartial: false,
+  })
+
+  console.log(options.date);
 
   return (
     <div className={wrapper}>

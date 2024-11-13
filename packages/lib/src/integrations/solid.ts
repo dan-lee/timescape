@@ -31,6 +31,7 @@ export const useTimescape = (options: Options = {}) => {
     manager.wrapAround = optionsStore.wrapAround;
     manager.snapToStep = optionsStore.snapToStep;
     manager.wheelControl = optionsStore.wheelControl;
+    manager.disallowPartial = optionsStore.disallowPartial
   });
 
   onCleanup(() => manager.remove());

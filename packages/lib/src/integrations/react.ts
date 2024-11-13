@@ -60,7 +60,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
   const timestamp = optionsState.date?.getTime();
 
   useEffect(() => {
-    manager.date = timestamp;
+    manager.date = timestamp
     manager.minDate = optionsState.minDate;
     manager.maxDate = optionsState.maxDate;
     manager.hour12 = optionsState.hour12;
@@ -68,6 +68,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
     manager.digits = optionsState.digits;
     manager.snapToStep = optionsState.snapToStep;
     manager.wheelControl = optionsState.wheelControl;
+    manager.disallowPartial = optionsState.disallowPartial;
   }, [
     manager,
     timestamp,
@@ -78,6 +79,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
     optionsState.digits,
     optionsState.snapToStep,
     optionsState.wheelControl,
+    optionsState.disallowPartial,
   ]);
 
   return {

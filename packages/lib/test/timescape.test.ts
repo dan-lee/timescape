@@ -1,6 +1,7 @@
 import {
   fireEvent,
   getByTestId,
+  prettyDOM,
   queryByTestId,
   waitFor,
 } from "@testing-library/dom";
@@ -71,7 +72,7 @@ const getFields = () => {
 
 describe("timescape", () => {
   describe("rendering", () => {
-    it("should render correctly", () => {
+    it("should render correctly", async () => {
       document.body.appendChild(container);
 
       const fields = getFields();
@@ -1000,6 +1001,97 @@ describe("timescape", () => {
       expect(fields.minutes).toHaveValue("03");
     });
   });
+
+  describe('partial input', () => {
+    it('should allow partial input', async () => {
+      manager = new TimescapeManager()
+
+      container = register(manager, ['years', 'months', 'days', 'am/pm'])
+      document.body.appendChild(container)
+
+      expect(manager.date).toBeUndefined()
+      const fields = getFields()
+
+      fields.years.focus()
+      await user.keyboard('{ArrowUp}')
+
+      const now = new Date()
+
+      expect(fields.years).toHaveValue(String(now.getFullYear()))
+      expect(fields.months).toHaveValue('')
+      expect(manager.date).toBeUndefined()
+
+      fields.months.focus()
+      await user.keyboard('{ArrowUp}')
+
+      expect(fields.months).toHaveValue(
+        String(now.getMonth() + 1).padStart(2, '0'),
+      )
+
+      fields.days.focus()
+      await user.keyboard('{ArrowUp}')
+
+      expect(fields.days).toHaveValue(String(now.getDate()).padStart(2, '0'))
+
+      fields.ampm.focus()
+      await user.keyboard('{ArrowUp}')
+
+      expect(fields.ampm).toHaveValue(now.getHours() < 12 ? 'AM' : 'PM')
+
+      expect(manager.date).not.toBeUndefined()
+    })
+
+    it('should allow to clear individual segments', async () => {
+      document.body.appendChild(container)
+
+      const fields = getFields()
+
+      fields.years.focus()
+      await user.keyboard('{Delete}')
+
+      expect(fields.years).toHaveValue('')
+      expect(manager.date).toBeUndefined()
+    })
+
+    it('should handle backspace by deleting character by character', async () => {
+      document.body.appendChild(container)
+
+      const fields = getFields()
+
+      fields.years.focus()
+
+      await user.keyboard('{Backspace}')
+      expect(fields.years).toHaveValue('0202')
+
+      await user.keyboard('{Backspace}')
+      expect(fields.years).toHaveValue('0020')
+
+      await user.keyboard('{Backspace}')
+      expect(fields.years).toHaveValue('0002')
+
+      await user.keyboard('{Backspace}')
+      expect(fields.years).toHaveValue('')
+
+      expect(manager.date).toBeUndefined()
+    })
+
+    it('should work with partial input disabled', async () => {
+      const now = new Date()
+      manager = new TimescapeManager(now, {
+        disallowPartial: true,
+      })
+
+      container = register(manager, ['years', 'months', 'days'])
+      document.body.appendChild(container)
+
+      const fields = getFields()
+
+      fields.years.focus()
+      await user.keyboard('{Delete}')
+
+      expect(manager.date).toStrictEqual(now)
+    })
+  })
 
   it("should support setting options on constructor", () => {
     const container = document.createElement("div");
