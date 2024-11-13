@@ -1,5 +1,19 @@
 # timescape
 
+## 0.7.0
+
+### Minor Changes
+
+- [#42](https://github.com/dan-lee/timescape/pull/42) [`854718e`](https://github.com/dan-lee/timescape/commit/854718e4c98a2e6a1bff34bfa4b6c8b9e6f04680) Thanks [@dan-lee](https://github.com/dan-lee)! - ⚠️ Breaking change:
+
+  This introduces the `disallowPartial` option while simultaneously allowing partial input by default:
+
+  Each segment of the date input can now be set independently, allowing certain parts to remain empty. The `options.date` property will only return a `Date` instance when all segments are set. Otherwise, it will return `undefined`.
+
+  This improvement brings the component closer to standard web behavior, allowing partial date inputs instead of requiring fully completed dates as before.
+
+  **Note**: This is a breaking change, if you want to keep the old behavior, you can to set `disallowPartial` to `true`.
+
 ## 0.6.2
 
 ### Patch Changes
@@ -9,8 +23,8 @@
   ```tsx
   <input
     onKeyDownCapture={(e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
+      if (e.key === "Enter") {
+        e.preventDefault();
       }
     }}
   />
@@ -86,32 +100,32 @@
   Example usage (this works similar for all supported libraries):
 
   ```tsx
-  import { useTimescapeRange } from 'timescape/react'
+  import { useTimescapeRange } from "timescape/react";
   // Use `createTimescapeRange` for Svelte
 
   const { getRootProps, from, to } = useTimescapeRange({
-    from: { date: new Date('2000-01-01') },
+    from: { date: new Date("2000-01-01") },
     to: { date: new Date() },
-  })
+  });
 
   return (
     <div {...getRootProps()}>
       <div>
-        <input {...from.getInputProps('days')} />
+        <input {...from.getInputProps("days")} />
         <span>/</span>
-        <input {...from.getInputProps('months')} />
+        <input {...from.getInputProps("months")} />
         <span>/</span>
-        <input {...from.getInputProps('years')} />
+        <input {...from.getInputProps("years")} />
       </div>
       <div>
-        <input {...to.getInputProps('days')} />
+        <input {...to.getInputProps("days")} />
         <span>/</span>
-        <input {...to.getInputProps('months')} />
+        <input {...to.getInputProps("months")} />
         <span>/</span>
-        <input {...to.getInputProps('years')} />
+        <input {...to.getInputProps("years")} />
       </div>
     </div>
-  )
+  );
   ```
 
   # Breaking changes
@@ -136,12 +150,12 @@
   ```tsx
   const [options, setOptions] = useState({
     date: new Date(),
-  })
-  const { ...rest } = useTimescape(options)
+  });
+  const { ...rest } = useTimescape(options);
 
   const handleChange = () => {
-    setOptions((prev) => ({ ...prev, date: new Date() }))
-  }
+    setOptions((prev) => ({ ...prev, date: new Date() }));
+  };
   ```
 
   <td>
@@ -149,11 +163,11 @@
   ```tsx
   const { options, update, ...rest } = useTimescape({
     date: new Date(),
-  })
+  });
 
   const handleChange = () => {
-    update((prev) => ({ ...prev, date: new Date() }))
-  }
+    update((prev) => ({ ...prev, date: new Date() }));
+  };
   ```
 
   </table>
@@ -172,15 +186,15 @@
   <td>
 
   ```tsx
-  const options = useSignal({ date: new Date() })
-  const { ...rest } = useTimescape(options)
+  const options = useSignal({ date: new Date() });
+  const { ...rest } = useTimescape(options);
 
   const handleChange = () => {
     options.value = {
       ...options.value,
       date: new Date(),
-    }
-  }
+    };
+  };
   ```
 
   <td>
@@ -188,14 +202,14 @@
   ```tsx
   const { options, ...rest } = useTimescape({
     date: new Date(),
-  })
+  });
 
   const handleChange = () => {
     options.value = {
       ...options.value,
       date: new Date(),
-    }
-  }
+    };
+  };
   ```
 
   </table>
@@ -215,15 +229,15 @@
   ```tsx
   const options = writable({
     date: new Date(),
-  })
-  const { ...rest } = useTimescape(options)
+  });
+  const { ...rest } = useTimescape(options);
 
   const handleChange = () => {
     options.update((options) => ({
       ...options,
       date: new Date(),
-    }))
-  }
+    }));
+  };
   ```
 
   <td>
@@ -231,14 +245,14 @@
   ```tsx
   const { options, ...rest } = useTimescape({
     date: new Date(),
-  })
+  });
 
   const handleChange = () => {
     options.update((options) => ({
       ...options,
       date: new Date(),
-    }))
-  }
+    }));
+  };
   ```
 
   </table>
@@ -257,13 +271,13 @@
   ```tsx
   const [options, setOptions] = createSignal({
     date: new Date(),
-  })
-  const { ...rest } = useTimescape(options)
+  });
+  const { ...rest } = useTimescape(options);
 
   const handleChange = () => {
-    setOptions('date', new Date())
+    setOptions("date", new Date());
     // or object notation: setOptions({ … })
-  }
+  };
   ```
 
   <td>
@@ -271,12 +285,12 @@
   ```tsx
   const { options, update, ...rest } = useTimescape({
     date: new Date(),
-  })
+  });
 
   const handleChange = () => {
-    update('date', new Date())
+    update("date", new Date());
     // or object notation: update({ … })
-  }
+  };
   ```
 
   </table>
@@ -293,9 +307,9 @@
   <td>
 
   ```tsx
-  const date = ref(new Date())
-  const options = reactive({ date })
-  const { ...rest } = useTimescape(options)
+  const date = ref(new Date());
+  const options = reactive({ date });
+  const { ...rest } = useTimescape(options);
 
   // Set later:
   // <button @click="date = new Date()">
@@ -306,7 +320,7 @@
   ```tsx
   const { options, ...rest } = useTimescape({
     date: new Date(),
-  })
+  });
 
   // Set later:
   // <button @click="options.date = new Date()">
