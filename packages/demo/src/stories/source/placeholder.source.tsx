@@ -1,24 +1,24 @@
-import { useTimescape } from 'timescape/react'
-import { root, input, separator } from '../timescape.css'
+import { useTimescape } from "timescape/react";
+import { input, root, separator } from "../timescape.css";
 
 const App = () => {
-  const { getRootProps, getInputProps } = useTimescape()
+  const { getRootProps, getInputProps } = useTimescape();
 
   return (
     <div {...getRootProps()} className={root}>
-      <input placeholder="yyyy" className={input} {...getInputProps('years')} />
+      <input placeholder="yyyy" className={input} {...getInputProps("years")} />
       <span className={separator}>/</span>
-      <input placeholder="mm" className={input} {...getInputProps('months')} />
+      <input placeholder="mm" className={input} {...getInputProps("months")} />
       <span className={separator}>/</span>
-      <input placeholder="dd" className={input} {...getInputProps('days')} />
+      <input placeholder="dd" className={input} {...getInputProps("days")} />
       <span className={separator}>⋆</span>
-      <input placeholder="--" className={input} {...getInputProps('hours')} />
+      <input placeholder="--" className={input} {...getInputProps("hours")} />
       <span className={separator}>:</span>
-      <input placeholder="--" className={input} {...getInputProps('minutes')} />
+      <input placeholder="--" className={input} {...getInputProps("minutes")} />
       <span className={separator}>:</span>
-      <input placeholder="--" className={input} {...getInputProps('seconds')} />
+      <input placeholder="--" className={input} {...getInputProps("seconds")} />
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

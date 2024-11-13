@@ -1,23 +1,23 @@
 <script lang="ts">
-  import { createTimescape, createTimescapeRange } from 'timescape/svelte'
-  import { derived } from 'svelte/store'
-  import '../IntegrationDemo.css'
+import { derived } from "svelte/store";
+import { createTimescape, createTimescapeRange } from "timescape/svelte";
+import "../IntegrationDemo.css";
 
-  const { inputProps, rootProps, options } = createTimescape({
-    date: new Date(),
-    maxDate: new Date('2024-12-12'),
-  })
+const { inputProps, rootProps, options } = createTimescape({
+  date: new Date(),
+  maxDate: new Date("2024-12-12"),
+});
 
-  const date = derived(options, ($o) => $o.date)
+const date = derived(options, ($o) => $o.date);
 
-  date.subscribe((date) => {
-    console.log('Date changed to', date?.toLocaleString())
-  })
+date.subscribe((date) => {
+  console.log("Date changed to", date?.toLocaleString());
+});
 
-  const { from, to, rangeRootProps } = createTimescapeRange({
-    from: { date: new Date() },
-    to: { date: new Date('2024-12-12') },
-  })
+const { from, to, rangeRootProps } = createTimescapeRange({
+  from: { date: new Date() },
+  to: { date: new Date("2024-12-12") },
+});
 </script>
 
 <div>

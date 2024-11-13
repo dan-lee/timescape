@@ -31,22 +31,22 @@
 </template>
 
 <script lang="ts" setup>
-import { useTimescape, useTimescapeRange } from 'timescape/vue'
-import { watchEffect } from 'vue'
+import { useTimescape, useTimescapeRange } from "timescape/vue";
+import { watchEffect } from "vue";
 
-const Y2K38 = new Date((2 ** 31 - 1) * 1000)
+const Y2K38 = new Date((2 ** 31 - 1) * 1000);
 
 const { registerElement, registerRoot, options } = useTimescape({
   date: new Date(),
   maxDate: Y2K38,
-})
+});
 
 watchEffect(() => {
-  console.log('Date changed to', options.value.date)
-})
+  console.log("Date changed to", options.value.date);
+});
 
 const { from, to, registerRangeRoot } = useTimescapeRange({
   from: { date: new Date() },
-  to: { date: new Date('2024-12-12') },
-})
+  to: { date: new Date("2024-12-12") },
+});
 </script>

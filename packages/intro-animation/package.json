@@ -12,10 +12,10 @@
     "@ksassnowski/motion-canvas-camera": "0.5.0",
     "@motion-canvas/2d": "^3.11.0",
     "@motion-canvas/core": "^3.11.0",
-    "dayjs": "1.11.10"
+    "dayjs": "1.11.13"
   },
   "devDependencies": {
-    "@motion-canvas/ffmpeg": "^1.1.1",
+    "@motion-canvas/ffmpeg": "^3.17.0",
     "@motion-canvas/ui": "^3.11.0",
     "@motion-canvas/vite-plugin": "^3.11.0",
     "typescript": "^5.3.3",

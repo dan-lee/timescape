@@ -1,40 +1,40 @@
+import { createEffect, onCleanup } from "solid-js";
+import { createStore } from "solid-js/store";
 import {
-  TimescapeManager,
   $NOW,
   type DateType,
   type Options,
   type RangeOptions,
-} from '../index'
-import { marry } from '../range'
-import { createEffect, onCleanup } from 'solid-js'
-import { createStore } from 'solid-js/store'
+  TimescapeManager,
+} from "../index";
+import { marry } from "../range";
 
-export { $NOW, type DateType, type Options, type RangeOptions }
+export { $NOW, type DateType, type Options, type RangeOptions };
 
 export const useTimescape = (options: Options = {}) => {
-  const [optionsStore, update] = createStore<Options>(options)
-  const { date, ...rest } = options
-  const manager = new TimescapeManager(date, rest)
+  const [optionsStore, update] = createStore<Options>(options);
+  const { date, ...rest } = options;
+  const manager = new TimescapeManager(date, rest);
 
   createEffect(() => {
-    manager.on('changeDate', (nextDate) => {
-      update('date', nextDate)
-    })
-  })
+    manager.on("changeDate", (nextDate) => {
+      update("date", nextDate);
+    });
+  });
 
   createEffect(() => {
-    manager.date = optionsStore.date
-    manager.minDate = optionsStore.minDate
-    manager.maxDate = optionsStore.maxDate
-    manager.hour12 = optionsStore.hour12
-    manager.digits = optionsStore.digits
-    manager.wrapAround = optionsStore.wrapAround
-    manager.snapToStep = optionsStore.snapToStep
-    manager.wheelControl = optionsStore.wheelControl
+    manager.date = optionsStore.date;
+    manager.minDate = optionsStore.minDate;
+    manager.maxDate = optionsStore.maxDate;
+    manager.hour12 = optionsStore.hour12;
+    manager.digits = optionsStore.digits;
+    manager.wrapAround = optionsStore.wrapAround;
+    manager.snapToStep = optionsStore.snapToStep;
+    manager.wheelControl = optionsStore.wheelControl;
     manager.disallowPartial = optionsStore.disallowPartial
-  })
+  });
 
-  onCleanup(() => manager.remove())
+  onCleanup(() => manager.remove());
 
   return {
     _manager: manager,
@@ -48,21 +48,21 @@ export const useTimescape = (options: Options = {}) => {
     }),
     update,
     options: optionsStore,
-  } as const
-}
+  } as const;
+};
 
 export const useTimescapeRange = (options: RangeOptions = {}) => {
-  const from = useTimescape(options.from)
-  const to = useTimescape(options.to)
+  const from = useTimescape(options.from);
+  const to = useTimescape(options.to);
 
-  marry(from._manager, to._manager)
+  marry(from._manager, to._manager);
 
   return {
     getRootProps: () => ({
       ref: (element: HTMLElement | null) => {
-        if (!element) return
-        from._manager.registerRoot(element)
-        to._manager.registerRoot(element)
+        if (!element) return;
+        from._manager.registerRoot(element);
+        to._manager.registerRoot(element);
       },
     }),
     from: {
@@ -75,5 +75,5 @@ export const useTimescapeRange = (options: RangeOptions = {}) => {
       options: to.options,
       update: to.update,
     },
-  } as const
-}
+  } as const;
+};

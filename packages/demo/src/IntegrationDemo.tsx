@@ -1,48 +1,49 @@
 // Check out the './integrations' folder for the demo code of the different integrations
 
-import { useEffect, useRef, useState } from 'react'
-import './IntegrationDemo.css'
+import { useEffect, useRef, useState } from "react";
+import "./IntegrationDemo.css";
 
 const IntegrationDemo = () => {
-  const renderTargetRef = useRef<HTMLDivElement>(null)
-  const unmountRef = useRef<() => void>()
-  const [integration, setIntegration] = useState('')
+  const renderTargetRef = useRef<HTMLDivElement>(null);
+  const unmountRef = useRef<() => void>();
+  const [integration, setIntegration] = useState("");
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const integration = urlParams.get('value')
-    integration && setIntegration(integration)
-  }, [])
+    const urlParams = new URLSearchParams(window.location.search);
+    const integration = urlParams.get("value");
+    integration && setIntegration(integration);
+  }, []);
 
   useEffect(() => {
-    if (!integration) return
+    if (!integration) return;
 
-    unmountRef.current?.()
+    unmountRef.current?.();
 
     switch (integration) {
-      case 'react':
-      case 'preact':
-      case 'vue':
-      case 'svelte':
-      case 'solid':
-      case 'vanilla':
-        const ext = integration === 'react' ? 'tsx' : 'ts'
+      case "react":
+      case "preact":
+      case "vue":
+      case "svelte":
+      case "solid":
+      case "vanilla": {
+        const ext = integration === "react" ? "tsx" : "ts";
         import(`./integrations/${integration}.${ext}`)
           .then(({ renderTo }) => {
-            if (!renderTargetRef.current) return
-            unmountRef.current = renderTo(renderTargetRef.current)
+            if (!renderTargetRef.current) return;
+            unmountRef.current = renderTo(renderTargetRef.current);
           })
           .catch((err) => {
-            console.error('Failed to load integration', err)
-          })
-        break
+            console.error("Failed to load integration", err);
+          });
+        break;
+      }
       default:
-        alert('Integration not implemented')
-        return
+        alert("Integration not implemented");
+        return;
     }
-  }, [integration])
+  }, [integration]);
 
-  return <div ref={renderTargetRef} />
-}
+  return <div ref={renderTargetRef} />;
+};
 
-export default IntegrationDemo
+export default IntegrationDemo;
