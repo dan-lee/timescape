@@ -39,6 +39,8 @@ type Registry = Map<DateType, RegistryEntry>;
 export const $NOW = "$NOW" as const;
 export type $NOW = typeof $NOW;
 
+export { STOP_EVENT_PROPAGATION } from "./util";
+
 export type Options = {
   date?: Date;
   minDate?: Date | $NOW;
