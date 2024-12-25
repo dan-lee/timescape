@@ -1,5 +1,11 @@
 # timescape
 
+## 0.7.1
+
+### Patch Changes
+
+- [#48](https://github.com/dan-lee/timescape/pull/48) [`de2958f`](https://github.com/dan-lee/timescape/commit/de2958f4dc1457abe3631e5450b52fc908bb8535) Thanks [@lsmurray](https://github.com/lsmurray)! - export `STOP_EVENT_PROPAGATION`
+
 ## 0.7.0
 
 ### Minor Changes
