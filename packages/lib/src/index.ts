@@ -23,6 +23,7 @@ export type DateType =
   | "hours"
   | "minutes"
   | "seconds"
+  | "milliseconds"
   | "am/pm";
 
 type RegistryEntry = {
@@ -38,8 +39,6 @@ type Registry = Map<DateType, RegistryEntry>;
 
 export const $NOW = "$NOW" as const;
 export type $NOW = typeof $NOW;
-
-export { STOP_EVENT_PROPAGATION } from "./util";
 
 export type Options = {
   date?: Date;
@@ -85,46 +84,46 @@ export class TimescapeManager implements Options {
   #resizeObserver =
     typeof window !== "undefined"
       ? new ResizeObserver((entries) => {
-          entries.forEach((entry) => {
-            const inputElement = [...this.#registry.values()].find(
-              ({ shadowElement }) => shadowElement === entry.target,
-            )?.inputElement;
+        entries.forEach((entry) => {
+          const inputElement = [...this.#registry.values()].find(
+            ({ shadowElement }) => shadowElement === entry.target,
+          )?.inputElement;
 
-            if (!inputElement || !entry.contentBoxSize[0]?.inlineSize) return;
-            inputElement.style.width = `${entry.contentBoxSize[0].inlineSize}px`;
-          });
-        })
+          if (!inputElement || !entry.contentBoxSize[0]?.inlineSize) return;
+          inputElement.style.width = `${entry.contentBoxSize[0].inlineSize}px`;
+        });
+      })
       : undefined;
   #mutationObserver =
     typeof window !== "undefined"
       ? new MutationObserver((mutations) => {
-          let added = 0;
-          let removed = 0;
+        let added = 0;
+        let removed = 0;
 
+        mutations.forEach((mutation) => {
+          added += mutation.addedNodes.length;
+          removed += mutation.removedNodes.length;
+        });
+
+        if (added > 0) {
+          this.#sortRegistryByElements();
+        }
+
+        if (removed > 0) {
           mutations.forEach((mutation) => {
-            added += mutation.addedNodes.length;
-            removed += mutation.removedNodes.length;
-          });
+            mutation.removedNodes.forEach((node) => {
+              const entry = this.#findByInputElement(node);
 
-          if (added > 0) {
-            this.#sortRegistryByElements();
-          }
+              if (!entry) return;
 
-          if (removed > 0) {
-            mutations.forEach((mutation) => {
-              mutation.removedNodes.forEach((node) => {
-                const entry = this.#findByInputElement(node);
-
-                if (!entry) return;
-
-                entry.inputElement.remove();
-                entry.shadowElement.remove();
-                entry.listeners.forEach((listener) => listener());
-                this.#registry.delete(entry.type);
-              });
+              entry.inputElement.remove();
+              entry.shadowElement.remove();
+              entry.listeners.forEach((listener) => listener());
+              this.#registry.delete(entry.type);
             });
-          }
-        })
+          });
+        }
+      })
       : undefined;
 
   get date(): Date | undefined {
@@ -265,7 +264,8 @@ export class TimescapeManager implements Options {
       case "hours":
       case "minutes":
       case "seconds":
-        element.placeholder ||= "--";
+      case "milliseconds":
+        element.placeholder ||= "----";
         break;
       case "am/pm":
         element.placeholder ||= "am";
@@ -395,21 +395,22 @@ export class TimescapeManager implements Options {
     if (registryEntry?.isUnset) return "";
 
     const ts = this.#timestamp ?? this.#prevTimestamp;
-
-    return intermediateValue
-      ? type === "years"
-        ? intermediateValue.padStart(4, "0")
-        : intermediateValue.padStart(
-            type === "minutes" || type === "seconds"
-              ? 2
-              : this.digits === "2-digit"
-                ? 2
-                : 1,
-            "0",
-          )
-      : ts
-        ? format(new Date(ts), type, this.hour12, this.digits)
-        : "";
+    return (() => {
+      if (intermediateValue) {
+        if (type === "years") {
+          return intermediateValue.padStart(4, "0");
+        } else if (type === "milliseconds") {
+          return intermediateValue.padStart(4, "0");
+        } else {
+          const padLength = (type === "minutes" || type === "seconds") ? 2 : (this.digits === "2-digit" ? 2 : 1);
+          return intermediateValue.padStart(padLength, "0");
+        }
+      } else if (ts) {
+        return format(new Date(ts), type, this.hour12, this.digits);
+      } else {
+        return "";
+      }
+    })();
   }
 
   #wrapDateAround(step: number, type: DateType) {
@@ -418,6 +419,7 @@ export class TimescapeManager implements Options {
       minutes: 60,
       hours: this.hour12 ? 12 : 24,
       months: 12,
+      milliseconds: 1000,
     } as const;
 
     let date = this.#currentDate;
@@ -692,6 +694,36 @@ export class TimescapeManager implements Options {
               this.#focusNextField(type, 1);
             }
             break;
+          case "milliseconds":
+            if (this.#cursorPosition < 4) {
+              // Append the new digit and shift the digits to the left
+              const newValue = intermediateValue + key;
+              setIntermediateValue(newValue);
+              this.#cursorPosition += 1;
+
+              // When we have 4 digits, update the actual milliseconds
+              if (this.#cursorPosition === 4) {
+                setValue("milliseconds", Number(newValue));
+                this.#focusNextField(type);
+              }
+            }
+            break;
+            // if (this.#cursorPosition < 3) {
+            //   setIntermediateValue(key);
+            //   // Append the new digit and shift the digits to the left
+            //   this.#cursorPosition += 1;
+
+            //   // When we have 3 digits, update the actual milliseconds
+            //   if (this.#cursorPosition === 3) {
+            //     setValue(type, number);
+            //     this.#focusNextField(type);
+            //   }
+            // } else {
+            //   const finalValue = Math.min(Number(intermediateValue + key), 999);
+            //   setValue(type, finalValue);
+            //   this.#focusNextField(type, 1);
+            // }
+            // break;
         }
         break;
       }
@@ -735,7 +767,7 @@ export class TimescapeManager implements Options {
     this.#registry = new Map(
       [...this.#registry.entries()].sort(([, a], [, b]) =>
         a.inputElement.compareDocumentPosition(b.inputElement) &
-        (Node.DOCUMENT_POSITION_FOLLOWING | Node.DOCUMENT_POSITION_CONTAINED_BY)
+          (Node.DOCUMENT_POSITION_FOLLOWING | Node.DOCUMENT_POSITION_CONTAINED_BY)
           ? -1
           : 1,
       ),
@@ -779,7 +811,9 @@ export class TimescapeManager implements Options {
                 ? 23
                 : type === "minutes" || type === "seconds"
                   ? 59
-                  : ""
+                  : type === "milliseconds"
+                    ? 999
+                    : ""
         ).toString(),
       );
     }

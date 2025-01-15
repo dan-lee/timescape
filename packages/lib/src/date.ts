@@ -15,7 +15,6 @@ export const daysInMonth = (date: Date) => {
 // Hopefully this can be replaced by the Temporal API in the future
 export const add = (date: Date, type: DateType, amount: number) => {
   const newDate = new Date(date);
-
   switch (type) {
     case "days":
       newDate.setDate(newDate.getDate() + amount);
@@ -51,6 +50,9 @@ export const add = (date: Date, type: DateType, amount: number) => {
       break;
     case "seconds":
       newDate.setSeconds(newDate.getSeconds() + amount);
+      break;
+    case "milliseconds":
+      newDate.setMilliseconds(newDate.getMilliseconds() + amount);
       break;
   }
 
@@ -90,6 +92,9 @@ export const set = (date: Date, type: DateType, value: number) => {
     case "am/pm":
       newDate.setHours(value);
       break;
+    case "milliseconds":
+      newDate.setMilliseconds(value);
+      break;
   }
 
   return newDate;
@@ -111,6 +116,8 @@ export const get = (date: Date, type: DateType) => {
       return date.getSeconds();
     case "am/pm":
       return date.getHours();
+    case "milliseconds":
+      return date.getMilliseconds();
   }
 };
 
@@ -158,5 +165,7 @@ export const format = (
       return String(date.getSeconds()).padStart(2, "0");
     case "am/pm":
       return date.getHours() < 12 ? "AM" : "PM";
+    case "milliseconds":
+      return String(date.getMilliseconds()).padStart(3, "0");
   }
 };
