@@ -1,4 +1,7 @@
+
 # timescape
+
+> This Fork provides support for milliseconds
 
 A powerful, headless library that elegantly fills the void left by HTML's native [`<input type="time">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/time) and [`<input type="date">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date).
 
