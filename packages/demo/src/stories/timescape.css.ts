@@ -8,14 +8,13 @@ export const root = style({
   alignItems: "center",
   gap: "2px",
   width: "fit-content",
-  minWidth: '250px',
   border: "1px solid #bbb",
   padding: "5px",
   userSelect: "none",
   borderRadius: "10px",
   transition: "100ms",
   backgroundColor: "#fff",
-  cursor: 'text',
+  cursor: "text",
 
   ":focus-within": {
     outline: `1px solid ${baseColor}`,
