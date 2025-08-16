@@ -1,5 +1,20 @@
 # timescape
 
+## 0.8.0
+
+### Minor Changes
+
+- [#54](https://github.com/dan-lee/timescape/pull/54) [`0dada18`](https://github.com/dan-lee/timescape/commit/0dada186241b6551879e3722e08fe7204230d14f) Thanks [@dan-lee](https://github.com/dan-lee)! - Add support for milliseconds
+
+  Thanks to @Krzysztof-Kazor for the initial implementation
+
+- [#56](https://github.com/dan-lee/timescape/pull/56) [`cc518ba`](https://github.com/dan-lee/timescape/commit/cc518ba966c4e6717be60f641ca28f6cca9f97ce) Thanks [@dan-lee](https://github.com/dan-lee)! - Added `ampm` to all integration hooks with methods for custom AM/PM controls:
+
+  - ampm.value - Getter property that returns current AM/PM value
+  - ampm.set(value) - Sets AM or PM
+  - ampm.toggle() - Toggles between AM and PM
+  - ampm.getSelectProps() - Returns props for HTML select elements
+
 ## 0.7.1
 
 ### Patch Changes
