@@ -74,6 +74,9 @@ export class TimescapeManager implements Options {
   wheelControl?: Options["wheelControl"] = false;
   disallowPartial?: Options["disallowPartial"] = false;
 
+  // Virtual property handled by Proxy
+  ampm?: "am" | "pm";
+
   #instanceId = Math.random().toString(36).slice(2);
   #timestamp: number | undefined;
   // The previous timestamp is used to render partial dates when a field has been cleared.
@@ -155,6 +158,11 @@ export class TimescapeManager implements Options {
 
     return new Proxy(this, {
       get: (target: this, property: keyof this & string) => {
+        if (property === "ampm") {
+          if (!target.#timestamp) return undefined;
+          return new Date(target.#timestamp).getHours() < 12 ? "am" : "pm";
+        }
+
         const original = target[property];
         if (typeof original === "function") {
           return (...args: unknown[]) => original.apply(target, args);
@@ -183,6 +191,12 @@ export class TimescapeManager implements Options {
             target[property] = nextValue;
             this.resync();
             break;
+          case "ampm": {
+            const date = target.#currentDate;
+            target.#setDate(toggleAmPm(date, nextValue));
+            target.#syncAllElements();
+            return true;
+          }
           default:
             target[property] = nextValue;
         }

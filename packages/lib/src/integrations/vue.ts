@@ -13,6 +13,7 @@ import {
   TimescapeManager,
 } from "../index";
 import { marry } from "../range";
+import { createAmPmHandler } from "../util";
 
 export { $NOW, type DateType, type Options, type RangeOptions };
 
@@ -35,7 +36,7 @@ export const useTimescape = (options: Options = {}) => {
     manager.hour12 = optionsRef.value.hour12;
     manager.snapToStep = optionsRef.value.snapToStep;
     manager.wheelControl = optionsRef.value.wheelControl;
-    manager.disallowPartial = optionsRef.value.disallowPartial
+    manager.disallowPartial = optionsRef.value.disallowPartial;
   });
 
   onUnmounted(() => manager.remove());
@@ -49,6 +50,7 @@ export const useTimescape = (options: Options = {}) => {
     registerRoot: () => (element: Element | ComponentPublicInstance | null) => {
       element instanceof HTMLElement && manager.registerRoot(element);
     },
+    ampm: createAmPmHandler(manager),
     options: optionsRef,
   } as const;
 };

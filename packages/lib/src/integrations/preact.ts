@@ -8,6 +8,7 @@ import {
   TimescapeManager,
 } from "../index";
 import { marry } from "../range";
+import { createAmPmHandler } from "../util";
 
 export { $NOW, type DateType, type Options, type RangeOptions };
 
@@ -36,7 +37,7 @@ export const useTimescape = (options: Options = {}) => {
     manager.hour12 = optionsSignal.value.hour12;
     manager.snapToStep = optionsSignal.value.snapToStep;
     manager.wheelControl = optionsSignal.value.wheelControl;
-    manager.disallowPartial = optionsSignal.value.disallowPartial
+    manager.disallowPartial = optionsSignal.value.disallowPartial;
   });
 
   useEffect(() => () => manager.remove(), [manager]);
@@ -57,6 +58,7 @@ export const useTimescape = (options: Options = {}) => {
       ref: (element: HTMLElement | null) =>
         element && manager.registerRoot(element),
     }),
+    ampm: createAmPmHandler(manager),
     options: optionsSignal,
   } as const;
 };

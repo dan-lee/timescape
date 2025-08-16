@@ -341,6 +341,74 @@ By default, timescape intercepts keydown events to enhance input behavior. If yo
 />
 ```
 
+## Custom AM/PM Controls
+
+While `timescape` provides `getInputProps("am/pm")` for a standard input field, you may want to use custom controls like select dropdowns, buttons, or checkboxes for AM/PM selection. All hooks/functions return an `ampm` object with the following methods:
+
+```tsx
+ampm.value            // Current value: "am" | "pm" | undefined
+ampm.set(value)       // Set to "am" or "pm"
+ampm.toggle()         // Toggle between AM and PM
+ampm.getSelectProps() // Returns props for binding to a `<select>` element
+```
+
+### Example with React
+
+```tsx
+import { useTimescape } from "timescape/react";
+
+function CustomAmPmExample() {
+  const { getInputProps, getRootProps, ampm } = useTimescape({
+    date: new Date(),
+    hour12: true,
+  });
+
+  return (
+    <div {...getRootProps()}>
+      <input {...getInputProps("hours")} />
+      <span>:</span>
+      <input {...getInputProps("minutes")} />
+
+      {/* Example 1: Select with getSelectProps() */}
+      <select {...ampm.getSelectProps()}>
+        <option value="am">AM</option>
+        <option value="pm">PM</option>
+      </select>
+
+      {/* Example 2: Toggle button */}
+      <button onClick={ampm.toggle}>
+        {ampm.value === "am" ? "☀️ AM" : "🌙 PM"}
+      </button>
+
+      {/* Example 3: Checkbox */}
+      <input
+        type="checkbox"
+        checked={ampm.value === "pm"}
+        onChange={ampm.toggle}
+      />
+
+      {/* Example 4: Radio buttons */}
+      <label>
+        <input
+          type="radio"
+          checked={ampm.value === "am"}
+          onChange={() => ampm.set("am")}
+        />
+        AM
+      </label>
+      <label>
+        <input
+          type="radio"
+          checked={ampm.value === "pm"}
+          onChange={() => ampm.set("pm")}
+        />
+        PM
+      </label>
+    </div>
+  );
+}
+```
+
 ## Ranges
 
 `timescape` supports ranges for the date/time inputs. This means a user can select a start and end. This is useful for things like booking systems, where you want to allow the user to select a range of dates.

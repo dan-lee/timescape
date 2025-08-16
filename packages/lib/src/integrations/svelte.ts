@@ -8,6 +8,7 @@ import {
   TimescapeManager,
 } from "../index";
 import { marry } from "../range";
+import { createAmPmHandler } from "../util";
 
 export {
   // Svelte import names prohibit a $ prefix, so it's renamed to NOW there
@@ -34,7 +35,7 @@ export const createTimescape = (options: Options = {}) => {
     manager.wrapAround = value.wrapAround;
     manager.snapToStep = value.snapToStep;
     manager.wheelControl = value.wheelControl;
-    manager.disallowPartial = value.disallowPartial
+    manager.disallowPartial = value.disallowPartial;
   });
 
   derived(optionsStore, ($options) => $options.date).subscribe((value) => {
@@ -51,6 +52,7 @@ export const createTimescape = (options: Options = {}) => {
     _manager: manager,
     inputProps,
     rootProps,
+    ampm: createAmPmHandler(manager),
     options: optionsStore,
     update: optionsStore.update,
   } as const;

@@ -1,3 +1,6 @@
+import type { ChangeEvent } from "react";
+import type TimescapeManager from "./index";
+
 export const addElementListener = <
   T extends EventTarget,
   U extends EventNames<T>,
@@ -51,4 +54,26 @@ export const createPubSub = <T>() => ({
       this.events[event] = this.events[event]?.filter((i) => cb !== i);
     };
   },
+});
+
+export const createAmPmHandler = (manager: TimescapeManager) => ({
+  get value() {
+    return manager.ampm;
+  },
+  set: (value: "am" | "pm") => {
+    manager.ampm = value;
+  },
+  toggle: () => {
+    const current = manager.ampm;
+    if (current) {
+      manager.ampm = current === "am" ? "pm" : "am";
+    }
+  },
+  getSelectProps: () => ({
+    value: manager.ampm,
+    onChange: (e: Event | ChangeEvent<HTMLSelectElement>) => {
+      const target = e.target as HTMLSelectElement;
+      manager.ampm = target.value as "am" | "pm";
+    },
+  }),
 });
