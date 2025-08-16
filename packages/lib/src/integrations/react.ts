@@ -15,6 +15,7 @@ import {
   TimescapeManager,
 } from "../index";
 import { marry } from "../range";
+import { createAmPmHandler } from "../util";
 
 export {
   $NOW,
@@ -60,7 +61,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
   const timestamp = optionsState.date?.getTime();
 
   useEffect(() => {
-    manager.date = timestamp
+    manager.date = timestamp;
     manager.minDate = optionsState.minDate;
     manager.maxDate = optionsState.maxDate;
     manager.hour12 = optionsState.hour12;
@@ -101,6 +102,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
       ref: (element: HTMLElement | null) =>
         element && manager.registerRoot(element),
     }),
+    ampm: createAmPmHandler(manager),
     options: optionsState,
     update,
   } as const;

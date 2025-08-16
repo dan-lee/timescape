@@ -1,3 +1,4 @@
+import { ChangeEvent } from 'react';
 import { Dispatch } from 'react';
 import { MutableRefObject } from 'react';
 import { SetStateAction } from 'react';
@@ -8,11 +9,11 @@ export declare type $NOW = typeof $NOW;
 
 declare type Callback<T> = (arg: T) => void | typeof STOP_EVENT_PROPAGATION;
 
-export declare type DateType = 'days' | 'months' | 'years' | 'hours' | 'minutes' | 'seconds' | 'am/pm';
+export declare type DateType = "days" | "months" | "years" | "hours" | "minutes" | "seconds" | "milliseconds" | "am/pm";
 
 declare type Events = {
     changeDate: Date | undefined;
-    focusWrap: 'start' | 'end';
+    focusWrap: "start" | "end";
 };
 
 export declare type Options = Options_2 & {
@@ -24,7 +25,7 @@ declare type Options_2 = {
     minDate?: Date | $NOW;
     maxDate?: Date | $NOW;
     hour12?: boolean;
-    digits?: 'numeric' | '2-digit';
+    digits?: "numeric" | "2-digit";
     wrapAround?: boolean;
     snapToStep?: boolean;
     wheelControl?: boolean;
@@ -55,14 +56,15 @@ declare const STOP_EVENT_PROPAGATION: unique symbol;
 
 declare class TimescapeManager implements Options_2 {
     #private;
-    minDate?: Options_2['minDate'];
-    maxDate?: Options_2['maxDate'];
-    hour12?: Options_2['hour12'];
-    digits?: Options_2['digits'];
-    wrapAround?: Options_2['wrapAround'];
-    snapToStep?: Options_2['snapToStep'];
-    wheelControl?: Options_2['wheelControl'];
-    disallowPartial?: Options_2['disallowPartial'];
+    minDate?: Options_2["minDate"];
+    maxDate?: Options_2["maxDate"];
+    hour12?: Options_2["hour12"];
+    digits?: Options_2["digits"];
+    wrapAround?: Options_2["wrapAround"];
+    snapToStep?: Options_2["snapToStep"];
+    wheelControl?: Options_2["wheelControl"];
+    disallowPartial?: Options_2["disallowPartial"];
+    ampm?: "am" | "pm";
     get date(): Date | undefined;
     set date(nextDate: Date | number | string | undefined);
     constructor(initialDate?: Date, options?: Options_2);
@@ -91,6 +93,15 @@ export declare const useTimescape: (options?: Options) => {
     };
     readonly getRootProps: () => {
         ref: (element: HTMLElement | null) => void | null;
+    };
+    readonly ampm: {
+        readonly value: "am" | "pm" | undefined;
+        set: (value: "am" | "pm") => void;
+        toggle: () => void;
+        getSelectProps: () => {
+            value: "am" | "pm" | undefined;
+            onChange: (e: Event | ChangeEvent<HTMLSelectElement>) => void;
+        };
     };
     readonly options: Options;
     readonly update: Dispatch<SetStateAction<Options>>;

@@ -83,3 +83,10 @@ export const Milliseconds: StoryObj = {
     await import("./source/milliseconds.source.tsx?raw").then((m) => m.default),
   ),
 };
+
+export const CustomAmPm: StoryObj = {
+  name: "Custom AM/PM Controls",
+  ...createLiveStory(
+    await import("./source/custom-ampm.source.tsx?raw").then((m) => m.default),
+  ),
+};

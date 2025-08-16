@@ -1298,4 +1298,139 @@ describe("timescape", () => {
       expect(manager.date?.getMilliseconds()).toBe(456);
     });
   });
+
+  describe("AM/PM public methods", () => {
+    beforeEach(() => {
+      manager.hour12 = true;
+      container = register(manager, [
+        "hours",
+        "minutes",
+        "am/pm",
+      ] satisfies DateType[]);
+    });
+
+    it("should get current AM/PM value", () => {
+      // Test AM time (3 AM)
+      manager.date = new Date("2021-01-01T03:00:00");
+      expect(manager.ampm).toBe("am");
+
+      // Test PM time (3 PM)
+      manager.date = new Date("2021-01-01T15:00:00");
+      expect(manager.ampm).toBe("pm");
+
+      // Test midnight (12 AM)
+      manager.date = new Date("2021-01-01T00:00:00");
+      expect(manager.ampm).toBe("am");
+
+      // Test noon (12 PM)
+      manager.date = new Date("2021-01-01T12:00:00");
+      expect(manager.ampm).toBe("pm");
+
+      // Test undefined date
+      manager.date = undefined;
+      expect(manager.ampm).toBeUndefined();
+    });
+
+    it("should set AM/PM value", () => {
+      // Start with AM time (9 AM)
+      manager.date = new Date("2021-01-01T09:00:00");
+      expect(manager.ampm).toBe("am");
+
+      // Set to PM
+      manager.ampm = "pm";
+      expect(manager.ampm).toBe("pm");
+      expect(manager.date?.getHours()).toBe(21);
+
+      // Set back to AM
+      manager.ampm = "am";
+      expect(manager.ampm).toBe("am");
+      expect(manager.date?.getHours()).toBe(9);
+    });
+
+    it("should set AM when specified", () => {
+      // Start with PM time (3 PM)
+      manager.date = new Date("2021-01-01T15:00:00");
+      expect(manager.ampm).toBe("pm");
+
+      // Set to AM
+      manager.ampm = "am";
+      expect(manager.ampm).toBe("am");
+      expect(manager.date?.getHours()).toBe(3);
+
+      // Set to AM again (should stay AM)
+      manager.ampm = "am";
+      expect(manager.ampm).toBe("am");
+      expect(manager.date?.getHours()).toBe(3);
+    });
+
+    it("should set PM when specified", () => {
+      // Start with AM time (9 AM)
+      manager.date = new Date("2021-01-01T09:00:00");
+      expect(manager.ampm).toBe("am");
+
+      // Set to PM
+      manager.ampm = "pm";
+      expect(manager.ampm).toBe("pm");
+      expect(manager.date?.getHours()).toBe(21);
+
+      // Set to PM again (should stay PM)
+      manager.ampm = "pm";
+      expect(manager.ampm).toBe("pm");
+      expect(manager.date?.getHours()).toBe(21);
+    });
+
+    it("should update input fields when setting AM/PM", () => {
+      document.body.appendChild(container);
+      const hoursField = queryByTestId<HTMLInputElement>(container, "hours");
+      const ampmField = queryByTestId<HTMLInputElement>(container, "am/pm");
+
+      // Start with 3 PM
+      manager.date = new Date("2021-01-01T15:00:00");
+      expect(hoursField).toHaveValue("03");
+      expect(ampmField).toHaveValue("PM");
+
+      // Set to AM
+      manager.ampm = "am";
+      expect(hoursField).toHaveValue("03");
+      expect(ampmField).toHaveValue("AM");
+    });
+
+    it("should handle edge cases for 12 AM and 12 PM", () => {
+      // Test midnight (12 AM)
+      manager.date = new Date("2021-01-01T00:00:00");
+      document.body.appendChild(container);
+      const hoursField = queryByTestId<HTMLInputElement>(container, "hours");
+      
+      expect(manager.ampm).toBe("am");
+      expect(hoursField).toHaveValue("12");
+
+      // Set to PM (noon)
+      manager.ampm = "pm";
+      expect(manager.ampm).toBe("pm");
+      expect(manager.date?.getHours()).toBe(12);
+      expect(hoursField).toHaveValue("12");
+
+      // Set back to AM (midnight)
+      manager.ampm = "am";
+      expect(manager.ampm).toBe("am");
+      expect(manager.date?.getHours()).toBe(0);
+      expect(hoursField).toHaveValue("12");
+    });
+
+    it("should toggle between AM and PM", () => {
+      // Start with AM time (9 AM)
+      manager.date = new Date("2021-01-01T09:00:00");
+      expect(manager.ampm).toBe("am");
+
+      // Toggle to PM using assignment
+      manager.ampm = manager.ampm === "am" ? "pm" : "am";
+      expect(manager.ampm).toBe("pm");
+      expect(manager.date?.getHours()).toBe(21);
+
+      // Toggle back to AM
+      manager.ampm = manager.ampm === "am" ? "pm" : "am";
+      expect(manager.ampm).toBe("am");
+      expect(manager.date?.getHours()).toBe(9);
+    });
+  });
 });
