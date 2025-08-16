@@ -71,8 +71,15 @@ export const Placeholder: StoryObj = {
 };
 
 export const Partial: StoryObj = {
-  name: 'Partial Input',
+  name: "Partial Input",
   ...createLiveStory(
-    await import('./source/partial.source.tsx?raw').then((m) => m.default),
+    await import("./source/partial.source.tsx?raw").then((m) => m.default),
   ),
-}
+};
+
+export const Milliseconds: StoryObj = {
+  name: "Milliseconds",
+  ...createLiveStory(
+    await import("./source/milliseconds.source.tsx?raw").then((m) => m.default),
+  ),
+};

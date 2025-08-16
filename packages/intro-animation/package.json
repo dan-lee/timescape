@@ -15,10 +15,10 @@
     "dayjs": "1.11.13"
   },
   "devDependencies": {
-    "@motion-canvas/ffmpeg": "^3.17.0",
-    "@motion-canvas/ui": "^3.11.0",
-    "@motion-canvas/vite-plugin": "^3.11.0",
-    "typescript": "^5.3.3",
-    "vite": "^5.0.10"
+    "@motion-canvas/ffmpeg": "^3.17.2",
+    "@motion-canvas/ui": "^3.17.2",
+    "@motion-canvas/vite-plugin": "^3.17.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.2"
   }
 }

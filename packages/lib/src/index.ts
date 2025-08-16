@@ -23,6 +23,7 @@ export type DateType =
   | "hours"
   | "minutes"
   | "seconds"
+  | "milliseconds"
   | "am/pm";
 
 type RegistryEntry = {
@@ -267,6 +268,9 @@ export class TimescapeManager implements Options {
       case "seconds":
         element.placeholder ||= "--";
         break;
+      case "milliseconds":
+        element.placeholder ||= "----";
+        break;
       case "am/pm":
         element.placeholder ||= "am";
         break;
@@ -399,14 +403,16 @@ export class TimescapeManager implements Options {
     return intermediateValue
       ? type === "years"
         ? intermediateValue.padStart(4, "0")
-        : intermediateValue.padStart(
-            type === "minutes" || type === "seconds"
-              ? 2
-              : this.digits === "2-digit"
+        : type === "milliseconds"
+          ? intermediateValue.padStart(3, "0")
+          : intermediateValue.padStart(
+              type === "minutes" || type === "seconds"
                 ? 2
-                : 1,
-            "0",
-          )
+                : this.digits === "2-digit"
+                  ? 2
+                  : 1,
+              "0",
+            )
       : ts
         ? format(new Date(ts), type, this.hour12, this.digits)
         : "";
@@ -418,6 +424,7 @@ export class TimescapeManager implements Options {
       minutes: 60,
       hours: this.hour12 ? 12 : 24,
       months: 12,
+      milliseconds: 1000,
     } as const;
 
     let date = this.#currentDate;
@@ -692,6 +699,18 @@ export class TimescapeManager implements Options {
               this.#focusNextField(type, 1);
             }
             break;
+          case "milliseconds":
+            if (this.#cursorPosition < 3) {
+              const newValue = intermediateValue + key;
+              setIntermediateValue(newValue);
+              this.#cursorPosition += 1;
+
+              if (this.#cursorPosition === 3) {
+                setValue("milliseconds", Number(newValue));
+                this.#focusNextField(type);
+              }
+            }
+            break;
         }
         break;
       }
@@ -779,7 +798,9 @@ export class TimescapeManager implements Options {
                 ? 23
                 : type === "minutes" || type === "seconds"
                   ? 59
-                  : ""
+                  : type === "milliseconds"
+                    ? 999
+                    : ""
         ).toString(),
       );
     }

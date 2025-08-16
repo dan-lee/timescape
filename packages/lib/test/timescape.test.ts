@@ -1,7 +1,6 @@
 import {
   fireEvent,
   getByTestId,
-  prettyDOM,
   queryByTestId,
   waitFor,
 } from "@testing-library/dom";
@@ -1002,96 +1001,96 @@ describe("timescape", () => {
     });
   });
 
-  describe('partial input', () => {
-    it('should allow partial input', async () => {
-      manager = new TimescapeManager()
+  describe("partial input", () => {
+    it("should allow partial input", async () => {
+      manager = new TimescapeManager();
 
-      container = register(manager, ['years', 'months', 'days', 'am/pm'])
-      document.body.appendChild(container)
+      container = register(manager, ["years", "months", "days", "am/pm"]);
+      document.body.appendChild(container);
 
-      expect(manager.date).toBeUndefined()
-      const fields = getFields()
+      expect(manager.date).toBeUndefined();
+      const fields = getFields();
 
-      fields.years.focus()
-      await user.keyboard('{ArrowUp}')
+      fields.years.focus();
+      await user.keyboard("{ArrowUp}");
 
-      const now = new Date()
+      const now = new Date();
 
-      expect(fields.years).toHaveValue(String(now.getFullYear()))
-      expect(fields.months).toHaveValue('')
-      expect(manager.date).toBeUndefined()
+      expect(fields.years).toHaveValue(String(now.getFullYear()));
+      expect(fields.months).toHaveValue("");
+      expect(manager.date).toBeUndefined();
 
-      fields.months.focus()
-      await user.keyboard('{ArrowUp}')
+      fields.months.focus();
+      await user.keyboard("{ArrowUp}");
 
       expect(fields.months).toHaveValue(
-        String(now.getMonth() + 1).padStart(2, '0'),
-      )
+        String(now.getMonth() + 1).padStart(2, "0"),
+      );
 
-      fields.days.focus()
-      await user.keyboard('{ArrowUp}')
+      fields.days.focus();
+      await user.keyboard("{ArrowUp}");
 
-      expect(fields.days).toHaveValue(String(now.getDate()).padStart(2, '0'))
+      expect(fields.days).toHaveValue(String(now.getDate()).padStart(2, "0"));
 
-      fields.ampm.focus()
-      await user.keyboard('{ArrowUp}')
+      fields.ampm.focus();
+      await user.keyboard("{ArrowUp}");
 
-      expect(fields.ampm).toHaveValue(now.getHours() < 12 ? 'AM' : 'PM')
+      expect(fields.ampm).toHaveValue(now.getHours() < 12 ? "AM" : "PM");
 
-      expect(manager.date).not.toBeUndefined()
-    })
+      expect(manager.date).not.toBeUndefined();
+    });
 
-    it('should allow to clear individual segments', async () => {
-      document.body.appendChild(container)
+    it("should allow to clear individual segments", async () => {
+      document.body.appendChild(container);
 
-      const fields = getFields()
+      const fields = getFields();
 
-      fields.years.focus()
-      await user.keyboard('{Delete}')
+      fields.years.focus();
+      await user.keyboard("{Delete}");
 
-      expect(fields.years).toHaveValue('')
-      expect(manager.date).toBeUndefined()
-    })
+      expect(fields.years).toHaveValue("");
+      expect(manager.date).toBeUndefined();
+    });
 
-    it('should handle backspace by deleting character by character', async () => {
-      document.body.appendChild(container)
+    it("should handle backspace by deleting character by character", async () => {
+      document.body.appendChild(container);
 
-      const fields = getFields()
+      const fields = getFields();
 
-      fields.years.focus()
+      fields.years.focus();
 
-      await user.keyboard('{Backspace}')
-      expect(fields.years).toHaveValue('0202')
+      await user.keyboard("{Backspace}");
+      expect(fields.years).toHaveValue("0202");
 
-      await user.keyboard('{Backspace}')
-      expect(fields.years).toHaveValue('0020')
+      await user.keyboard("{Backspace}");
+      expect(fields.years).toHaveValue("0020");
 
-      await user.keyboard('{Backspace}')
-      expect(fields.years).toHaveValue('0002')
+      await user.keyboard("{Backspace}");
+      expect(fields.years).toHaveValue("0002");
 
-      await user.keyboard('{Backspace}')
-      expect(fields.years).toHaveValue('')
+      await user.keyboard("{Backspace}");
+      expect(fields.years).toHaveValue("");
 
-      expect(manager.date).toBeUndefined()
-    })
+      expect(manager.date).toBeUndefined();
+    });
 
-    it('should work with partial input disabled', async () => {
-      const now = new Date()
+    it("should work with partial input disabled", async () => {
+      const now = new Date();
       manager = new TimescapeManager(now, {
         disallowPartial: true,
-      })
+      });
 
-      container = register(manager, ['years', 'months', 'days'])
-      document.body.appendChild(container)
+      container = register(manager, ["years", "months", "days"]);
+      document.body.appendChild(container);
 
-      const fields = getFields()
+      const fields = getFields();
 
-      fields.years.focus()
-      await user.keyboard('{Delete}')
+      fields.years.focus();
+      await user.keyboard("{Delete}");
 
-      expect(manager.date).toStrictEqual(now)
-    })
-  })
+      expect(manager.date).toStrictEqual(now);
+    });
+  });
 
   it("should support setting options on constructor", () => {
     const container = document.createElement("div");
@@ -1199,6 +1198,104 @@ describe("timescape", () => {
       await user.keyboard("{ArrowDown}");
       await user.keyboard("{ArrowDown}");
       expect(getByTestId(container, "from-years")).toHaveValue("2024");
+    });
+  });
+
+  describe("milliseconds field", () => {
+    beforeEach(() => {
+      // Create a new container with milliseconds field
+      container = register(manager, [
+        "hours",
+        "minutes",
+        "seconds",
+        "milliseconds",
+      ] satisfies DateType[]);
+    });
+
+    it("should render milliseconds correctly", () => {
+      document.body.appendChild(container);
+
+      const milliseconds = queryByTestId<HTMLInputElement>(
+        container,
+        "milliseconds",
+      );
+      expect(milliseconds).toHaveValue("000");
+    });
+
+    it("should handle manual typing in milliseconds", async () => {
+      document.body.appendChild(container);
+
+      const milliseconds = queryByTestId<HTMLInputElement>(
+        container,
+        "milliseconds",
+      );
+
+      milliseconds?.focus();
+      await user.keyboard("1");
+      expect(milliseconds).toHaveValue("001");
+
+      await user.keyboard("2");
+      expect(milliseconds).toHaveValue("012");
+
+      await user.keyboard("3");
+      expect(milliseconds).toHaveValue("123");
+
+      // Should handle 3-digit input
+      milliseconds?.focus();
+      milliseconds?.select();
+      await user.keyboard("999");
+      expect(milliseconds).toHaveValue("999");
+    });
+
+    it("should handle arrow keys for milliseconds", async () => {
+      document.body.appendChild(container);
+
+      const milliseconds = queryByTestId<HTMLInputElement>(
+        container,
+        "milliseconds",
+      );
+
+      milliseconds?.focus();
+      await user.keyboard("{ArrowUp}");
+      expect(milliseconds).toHaveValue("001");
+
+      await user.keyboard("{ArrowDown}");
+      expect(milliseconds).toHaveValue("000");
+
+      milliseconds?.select();
+      await user.keyboard("999");
+      await user.keyboard("{ArrowUp}");
+      expect(milliseconds).toHaveValue("000");
+
+      await user.keyboard("{ArrowDown}");
+      expect(milliseconds).toHaveValue("999");
+    });
+
+    it("should handle milliseconds with different date objects", () => {
+      const testDate = new Date("2024-01-15T14:30:45.678Z");
+      manager.date = testDate;
+      document.body.appendChild(container);
+
+      const milliseconds = queryByTestId<HTMLInputElement>(
+        container,
+        "milliseconds",
+      );
+      expect(milliseconds).toHaveValue("678");
+    });
+
+    it("should update date object when milliseconds change", async () => {
+      document.body.appendChild(container);
+
+      const milliseconds = queryByTestId<HTMLInputElement>(
+        container,
+        "milliseconds",
+      );
+
+      milliseconds?.focus();
+      milliseconds?.select();
+      await user.keyboard("456");
+
+      expect(manager.date?.getMilliseconds()).toBe(456);
     });
   });
 });

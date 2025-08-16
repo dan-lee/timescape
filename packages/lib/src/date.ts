@@ -52,6 +52,9 @@ export const add = (date: Date, type: DateType, amount: number) => {
     case "seconds":
       newDate.setSeconds(newDate.getSeconds() + amount);
       break;
+    case "milliseconds":
+      newDate.setMilliseconds(newDate.getMilliseconds() + amount);
+      break;
   }
 
   return newDate;
@@ -87,6 +90,9 @@ export const set = (date: Date, type: DateType, value: number) => {
     case "seconds":
       newDate.setSeconds(value);
       break;
+    case "milliseconds":
+      newDate.setMilliseconds(value);
+      break;
     case "am/pm":
       newDate.setHours(value);
       break;
@@ -109,6 +115,8 @@ export const get = (date: Date, type: DateType) => {
       return date.getMinutes();
     case "seconds":
       return date.getSeconds();
+    case "milliseconds":
+      return date.getMilliseconds();
     case "am/pm":
       return date.getHours();
   }
@@ -156,6 +164,8 @@ export const format = (
       return String(date.getMinutes()).padStart(2, "0");
     case "seconds":
       return String(date.getSeconds()).padStart(2, "0");
+    case "milliseconds":
+      return String(date.getMilliseconds()).padStart(3, "0");
     case "am/pm":
       return date.getHours() < 12 ? "AM" : "PM";
   }
