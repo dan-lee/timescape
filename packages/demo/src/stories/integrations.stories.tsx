@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect } from "react";
 import { makeLiveEditStory } from "storybook-addon-code-editor";
 import SolidLogo from "./SolidLogo";
@@ -100,6 +100,7 @@ export default {
   component: () => null,
   parameters: {
     layout: "fullscreen",
+    controls: { disable: true },
   },
 } satisfies Meta;
 
