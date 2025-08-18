@@ -50,17 +50,24 @@ npm install --save timescape
 
 ```tsx
 import { useTimescape } from "timescape/react";
+import { useState } from "react";
 
 function App() {
-  const { getRootProps, getInputProps, options, update } = useTimescape({
-    date: new Date(),
-    onChangeDate: (nextDate) => {
+  // Controlled example
+  const [date, setDate] = useState(new Date());
+  const { getRootProps, getInputProps } = useTimescape({
+    date,
+    onChange: (nextDate) => {
       console.log("Date changed to", nextDate);
+      setDate(nextDate);
     },
   });
 
-  // To change any option:
-  // update((prev) => ({ ...prev, date: new Date() }))
+  // Or uncontrolled with defaultDate
+  // const { getRootProps, getInputProps } = useTimescape({
+  //   defaultDate: new Date(),
+  //   onChange: (nextDate) => console.log("Date changed to", nextDate),
+  // });
 
   return (
     <div className="timescape" {...getRootProps()}>
@@ -87,23 +94,27 @@ function App() {
 
 [Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-preact?file=src%2Fapp.tsx)
 
-This package uses Preact signals, if you want to use it without just use the React implementation in compat mode.
 
 ```tsx
-import { effect } from "@preact/signals";
 import { useTimescape } from "timescape/preact";
+import { useState } from "preact/hooks";
 
 function App() {
-  const { getRootProps, getInputProps, options } = useTimescape({
-    date: new Date(),
+  // Controlled example
+  const [date, setDate] = useState(new Date());
+  const { getRootProps, getInputProps } = useTimescape({
+    date,
+    onChange: (nextDate) => {
+      console.log("Date changed to", nextDate);
+      setDate(nextDate);
+    },
   });
 
-  effect(() => {
-    console.log("Date changed to", options.value.date);
-  });
-
-  // To change any option:
-  // options.value = { ...options.value, date: new Date() }
+  // Or uncontrolled with defaultDate
+  // const { getRootProps, getInputProps } = useTimescape({
+  //   defaultDate: new Date(),
+  //   onChange: (nextDate) => console.log("Date changed to", nextDate),
+  // });
 
   return (
     <div className="timescape" {...getRootProps()}>
@@ -134,21 +145,29 @@ function App() {
     <input :ref="registerElement('days')" />
   </div>
 
-  <!-- Change any option -->
-  <button @click="options.date = new Date()">Change date</button>
+  <!-- Controlled: update the date through v-model or state -->
+  <button @click="date = new Date()">Change date</button>
 </template>
 
 <script lang="ts" setup>
-import { type UseTimescapeOptions, useTimescape } from "timescape/vue";
-import { watchEffect } from "vue";
+import { useTimescape } from "timescape/vue";
+import { ref, watch } from "vue";
 
-const { registerElement, registerRoot, options } = useTimescape({
-  date: new Date(),
+// Controlled example
+const date = ref(new Date());
+const { registerElement, registerRoot } = useTimescape({
+  date,
+  onChange: (nextDate) => {
+    console.log("Date changed to", nextDate);
+    date.value = nextDate;
+  },
 });
 
-watchEffect(() => {
-  console.log("Date changed to", options.value.date);
-});
+// Or uncontrolled with defaultDate
+// const { registerElement, registerRoot } = useTimescape({
+//   defaultDate: new Date(),
+//   onChange: (nextDate) => console.log("Date changed to", nextDate),
+// });
 </script>
 ```
 
@@ -161,21 +180,24 @@ watchEffect(() => {
 
 ```svelte
 <script lang="ts">
-import { derived } from "svelte/store";
 import { createTimescape } from "timescape/svelte";
+import { writable } from "svelte/store";
 
-const { inputProps, rootProps, options } = createTimescape({
-  date: new Date(),
+// Controlled example with Svelte store
+const date = writable(new Date());
+const { inputProps, rootProps } = createTimescape({
+  date: $date,
+  onChange: (nextDate) => {
+    console.log("Date changed to", nextDate);
+    date.set(nextDate);
+  },
 });
 
-const date = derived(options, ($o) => $o.date);
-
-date.subscribe((nextDate) => {
-  console.log("Date changed to", nextDate);
-});
-
-// To change any option:
-// options.update((prev) => ({ ...prev, date: new Date() }))
+// Or uncontrolled with defaultDate
+// const { inputProps, rootProps } = createTimescape({
+//   defaultDate: new Date(),
+//   onChange: (nextDate) => console.log("Date changed to", nextDate),
+// });
 </script>
 
 <div class="timescape" use:rootProps>
@@ -186,6 +208,8 @@ date.subscribe((nextDate) => {
   <input use:inputProps={'years'} />
 </div>
 
+<!-- Update controlled date -->
+<button on:click={() => date.set(new Date())}>Change date</button>
 ```
 
 </details>
@@ -196,21 +220,25 @@ date.subscribe((nextDate) => {
 [Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-solid?file=src%2FApp.tsx)
 
 ```tsx
-import { createEffect } from "solid-js";
+import { createSignal } from "solid-js";
 import { useTimescape } from "timescape/solid";
 
 function App() {
-  const { getInputProps, getRootProps, options, update } = useTimescape({
-    date: new Date(),
+  // Controlled example
+  const [date, setDate] = createSignal(new Date());
+  const { getInputProps, getRootProps } = useTimescape({
+    date: date(),
+    onChange: (nextDate) => {
+      console.log("Date changed to", nextDate);
+      setDate(nextDate);
+    },
   });
 
-  createEffect(() => {
-    console.log("Date changed to", options.date);
-  });
-
-  // To change any option:
-  // update('date', new Date())
-  // or update({ date: new Date() })
+  // Or uncontrolled with defaultDate
+  // const { getInputProps, getRootProps } = useTimescape({
+  //   defaultDate: new Date(),
+  //   onChange: (nextDate) => console.log("Date changed to", nextDate),
+  // });
 
   return (
     <div class="timescape" {...getRootProps()}>
@@ -273,11 +301,15 @@ timeManager.registerElement(
 
 ## Options
 
-The options passed to `timescape` are the _initial values_. `timescape` returns the options either as store/signal or with an updater function (depending on the library you are using).
+`timescape` supports both controlled and uncontrolled modes:
+- **Controlled**: Use `date` prop and `onChange` callback to manage state externally
+- **Uncontrolled**: Use `defaultDate` for initial value, component manages state internally
 
 ```tsx
 type Options = {
-  date?: Date;
+  date?: Date;           // For controlled mode
+  defaultDate?: Date;    // For uncontrolled mode  
+  onChange?: (date: Date | undefined) => void; // Called on any date change
   minDate?: Date | $NOW; // see more about $NOW below
   maxDate?: Date | $NOW;
   hour12?: boolean;
@@ -291,7 +323,9 @@ type Options = {
 
 | Option            | Default     | Description                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `date`            | `undefined` | The initial date. If not set, it will render the placeholders in their respective input fields (if set).                                                                                                                                                                                                                                                         |
+| `date`            | `undefined` | The current date value for controlled mode. When provided, you must handle updates via `onChange`.                                                                                                                                                                                                                                                                |
+| `defaultDate`     | `undefined` | The initial date for uncontrolled mode. Component manages state internally.                                                                                                                                                                                                                                                                                       |
+| `onChange`        | `undefined` | Callback fired when the date changes. Required for controlled mode, optional for uncontrolled.                                                                                                                                                                                                                                                                    |
 | `minDate`         | `undefined` | The minimum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-vavue)                                                                                                                                                                                                                     |
 | `maxDate`         | `undefined` | The maximum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-value)                                                                                                                                                                                                                     |
 | `hour12`          | `false`     | If set to `true`, the time input will use a 12-hour format (with AM/PM). If set to `false`, it will use a 24-hour format.                                                                                                                                                                                                                                        |
@@ -356,11 +390,14 @@ ampm.getSelectProps() // Returns props for binding to a `<select>` element
 
 ```tsx
 import { useTimescape } from "timescape/react";
+import { useState } from "react";
 
 function CustomAmPmExample() {
+  const [date, setDate] = useState(new Date());
   const { getInputProps, getRootProps, ampm } = useTimescape({
-    date: new Date(),
+    date,
     hour12: true,
+    onChange: setDate,
   });
 
   return (
@@ -419,12 +456,29 @@ Example usage (this works similar for all supported libraries):
 
 ```tsx
 import { useTimescapeRange } from "timescape/react";
+import { useState } from "react";
 // Use `createTimescapeRange` for Svelte
 
+// Controlled example
+const [fromDate, setFromDate] = useState(new Date("2000-01-01"));
+const [toDate, setToDate] = useState(new Date());
+
 const { getRootProps, from, to } = useTimescapeRange({
-  from: { date: new Date("2000-01-01") },
-  to: { date: new Date() },
+  from: { 
+    date: fromDate,
+    onChange: setFromDate,
+  },
+  to: { 
+    date: toDate,
+    onChange: setToDate,
+  },
 });
+
+// Or uncontrolled with defaultDate
+// const { getRootProps, from, to } = useTimescapeRange({
+//   from: { defaultDate: new Date("2000-01-01") },
+//   to: { defaultDate: new Date() },
+// });
 
 return (
   <div {...getRootProps()}>

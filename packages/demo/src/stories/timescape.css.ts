@@ -47,6 +47,12 @@ export const input = style({
     borderRadius: "6px",
     paddingInline: "2px",
   },
+
+  selectors: {
+    "&:focus::placeholder": {
+      color: "rgb(255 255 255 / 0.8)",
+    },
+  },
 });
 
 export const separator = style({

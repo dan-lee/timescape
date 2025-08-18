@@ -1,9 +1,14 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useTimescape, useTimescapeRange } from "timescape/react";
 
 export const ReactDemo = () => {
-  const { getRootProps, getInputProps, options } = useTimescape({
-    date: new Date(),
+  const [hour12, setHour12] = useState(false);
+  const { getRootProps, getInputProps } = useTimescape({
+    defaultDate: new Date(),
+    onChange: (date) => {
+      console.log("date changed", date);
+    },
+    hour12,
   });
 
   const {
@@ -13,21 +18,17 @@ export const ReactDemo = () => {
   } = useTimescapeRange({
     from: {
       date: new Date(),
-      onChangeDate: () => {
-        console.log("from date changed");
+      onChange: (date) => {
+        console.log("from date changed", date);
       },
     },
     to: {
-      date: new Date("2024-12-31"),
-      onChangeDate: () => {
-        console.log("to date changed");
+      date: new Date("2027-12-31"),
+      onChange: (date) => {
+        console.log("to date changed", date);
       },
     },
   });
-
-  useEffect(() => {
-    console.log("Date changed", options.date);
-  }, [options.date]);
 
   return (
     <div>
@@ -69,7 +70,24 @@ export const ReactDemo = () => {
           {...getInputProps("seconds")}
           placeholder="mm"
         />
+        <span className="separator">&nbsp;</span>
+        {hour12 && (
+          <input
+            className="timescape-input"
+            {...getInputProps("am/pm")}
+            placeholder="am/pm"
+          />
+        )}
       </div>
+      <label>
+        12 hour clock:
+        <input
+          type="checkbox"
+          checked={hour12}
+          onChange={(e) => setHour12(e.target.checked)}
+        />
+      </label>
+      <br />
       <br />
       Range:
       <div>

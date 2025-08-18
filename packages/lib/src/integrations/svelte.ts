@@ -1,12 +1,6 @@
 import { onDestroy } from "svelte";
-import { derived, writable } from "svelte/store";
-import {
-  $NOW,
-  type DateType,
-  type Options,
-  type RangeOptions,
-  TimescapeManager,
-} from "../index";
+import { type Readable, readable, writable } from "svelte/store";
+import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
 
@@ -14,20 +8,54 @@ export {
   // Svelte import names prohibit a $ prefix, so it's renamed to NOW there
   $NOW as NOW,
   type DateType,
-  type Options,
-  type RangeOptions,
 };
 
-export const createTimescape = (options: Options = {}) => {
-  const optionsStore = writable<Options>(options);
-  const { date, ...rest } = options;
-  const manager = new TimescapeManager(date, rest);
+type BaseOptions = Omit<Options, "date">;
+
+export type SvelteOptions = BaseOptions & {
+  date?: Readable<Date | undefined>;
+  defaultDate?: Date | undefined;
+  onChange?: (date: Date | undefined) => void;
+};
+
+export type SvelteRangeOptions = {
+  from?: SvelteOptions;
+  to?: SvelteOptions;
+};
+
+export const createTimescape = (options: SvelteOptions = {}) => {
+  const { date, defaultDate, onChange, ...rest } = options;
+
+  const isControlled = date !== undefined;
+
+  const internalStore = writable<Date | undefined>(
+    isControlled ? undefined : defaultDate,
+  );
+
+  const dateStore = isControlled ? date : internalStore;
+
+  let currentValue: Date | undefined;
+  dateStore.subscribe((value) => {
+    currentValue = value;
+  })();
+
+  const manager = new TimescapeManager(currentValue, rest);
 
   manager.on("changeDate", (nextDate) => {
-    optionsStore.update((value) => ({ ...value, date: nextDate }));
+    onChange?.(nextDate);
+
+    if (!isControlled) {
+      internalStore.set(nextDate);
+    }
   });
 
-  optionsStore.subscribe((value) => {
+  const unsubscribeDate = dateStore.subscribe((value) => {
+    manager.date = value;
+  });
+
+  const optionsStore = writable(rest);
+
+  const unsubscribeOptions = optionsStore.subscribe((value) => {
     manager.minDate = value.minDate;
     manager.maxDate = value.maxDate;
     manager.hour12 = value.hour12;
@@ -38,50 +66,39 @@ export const createTimescape = (options: Options = {}) => {
     manager.disallowPartial = value.disallowPartial;
   });
 
-  derived(optionsStore, ($options) => $options.date).subscribe((value) => {
-    manager.date = value;
+  onDestroy(() => {
+    manager.remove();
+    unsubscribeDate();
+    unsubscribeOptions();
   });
 
   const inputProps = (element: HTMLInputElement, type: DateType) =>
     manager.registerElement(element, type);
   const rootProps = (element: HTMLElement) => manager.registerRoot(element);
 
-  onDestroy(() => manager.remove());
-
   return {
     _manager: manager,
     inputProps,
     rootProps,
     ampm: createAmPmHandler(manager),
-    options: optionsStore,
-    update: optionsStore.update,
+    date: dateStore,
   } as const;
 };
 
-export const createTimescapeRange = (options: RangeOptions = {}) => {
+export const createTimescapeRange = (options: SvelteRangeOptions = {}) => {
   const from = createTimescape(options.from);
   const to = createTimescape(options.to);
 
   marry(from._manager, to._manager);
 
-  const rangeRootProps = (element: HTMLElement) => {
-    from.rootProps(element);
-    to.rootProps(element);
+  const rootProps = (element: HTMLElement) => {
+    from._manager.registerRoot(element);
+    to._manager.registerRoot(element);
   };
 
   return {
-    fromInputProps: from.inputProps,
-    toInputProps: to.inputProps,
-    from: {
-      inputProps: from.inputProps,
-      options: from.options,
-      update: from.update,
-    },
-    to: {
-      inputProps: to.inputProps,
-      options: to.options,
-      update: to.update,
-    },
-    rangeRootProps,
+    rootProps,
+    from: { inputProps: from.inputProps, ampm: from.ampm, date: from.date },
+    to: { inputProps: to.inputProps, ampm: to.ampm, date: to.date },
   } as const;
 };
