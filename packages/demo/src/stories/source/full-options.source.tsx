@@ -1,10 +1,10 @@
-import { useTimescape } from "timescape/react";
+import { useState } from "react";
+import { type Options, useTimescape } from "timescape/react";
 import { SetOptions } from "../SetOptions";
 import { input, root, separator, wrapper } from "../timescape.css";
 
 const App = () => {
-  const { getRootProps, getInputProps, options, update } = useTimescape({
-    date: new Date(),
+  const [options, setOptions] = useState<Options>({
     minDate: undefined,
     maxDate: undefined,
     hour12: false,
@@ -13,9 +13,13 @@ const App = () => {
     snapToStep: false,
     wheelControl: true,
     disallowPartial: false,
-  })
+  });
 
-  console.log(options.date);
+  const { getRootProps, getInputProps } = useTimescape({
+    ...options,
+    defaultDate: new Date(),
+    onChange: (date) => setOptions((p) => ({ ...p, date })),
+  });
 
   return (
     <div className={wrapper}>
@@ -35,7 +39,7 @@ const App = () => {
           <input className={input} {...getInputProps("am/pm")} />
         )}
       </div>
-      <SetOptions options={options} updateFn={update} />
+      <SetOptions options={options} updateFn={setOptions} />
     </div>
   );
 };

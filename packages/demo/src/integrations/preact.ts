@@ -1,10 +1,18 @@
-import { useSignalEffect } from "@preact/signals";
 import { html, render } from "htm/preact";
+import { useState } from "preact/hooks";
 import { useTimescape, useTimescapeRange } from "timescape/preact";
 
 const PreactDemo = () => {
-  const { getRootProps, getInputProps, options } = useTimescape({
-    date: new Date(),
+  const [controlledDate, setControlledDate] = useState<Date | undefined>(
+    new Date(),
+  );
+
+  const { getRootProps, getInputProps } = useTimescape({
+    date: controlledDate,
+    onChange: (date) => {
+      console.log("Date changed to", date);
+      setControlledDate(date);
+    },
   });
 
   const {
@@ -12,18 +20,14 @@ const PreactDemo = () => {
     from,
     to,
   } = useTimescapeRange({
-    from: { date: new Date() },
-    to: { date: new Date("2024-12-31") },
-  });
-
-  useSignalEffect(() => {
-    console.log("Date changed to", options.value);
-  });
-  useSignalEffect(() => {
-    console.log("Range `from` changed to", from.options.value.date);
-  });
-  useSignalEffect(() => {
-    console.log("Range `to` changed to", to.options.value.date);
+    from: {
+      defaultDate: new Date(),
+      onChange: (date) => console.log("Range `from` changed to", date),
+    },
+    to: {
+      defaultDate: new Date("2024-12-31"),
+      onChange: (date) => console.log("Range `to` changed to", date),
+    },
   });
 
   return html`

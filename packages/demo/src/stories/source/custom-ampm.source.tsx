@@ -3,7 +3,7 @@ import { input, root, separator } from "../timescape.css";
 
 const SelectExample = () => {
   const { getInputProps, getRootProps, ampm } = useTimescape({
-    date: new Date(),
+    defaultDate: new Date(),
   });
 
   return (
@@ -22,7 +22,7 @@ const SelectExample = () => {
 
 const RadioExample = () => {
   const { getInputProps, getRootProps, ampm } = useTimescape({
-    date: new Date(),
+    defaultDate: new Date(),
   });
 
   return (
@@ -59,7 +59,7 @@ const RadioExample = () => {
 
 const ToggleButtonExample = () => {
   const { getInputProps, getRootProps, ampm } = useTimescape({
-    date: new Date(),
+    defaultDate: new Date(),
   });
 
   return (
@@ -88,7 +88,7 @@ const ToggleButtonExample = () => {
 
 const CheckboxExample = () => {
   const { getInputProps, getRootProps, ampm } = useTimescape({
-    date: new Date(),
+    defaultDate: new Date(),
   });
 
   return (

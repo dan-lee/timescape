@@ -8,10 +8,15 @@ import { input, root, separator } from "../timescape.css";
 
 const App = () => {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [fromDate, setFromDate] = useState<Date | undefined>(new Date());
+  const [toDate, setToDate] = useState<Date | undefined>(
+    new Date(String(new Date().getFullYear() + 1)),
+  );
+
   const { getRootProps, from, to } = useTimescapeRange({
     from: {
-      date: new Date(),
-      onChangeDate: (nextDate) => {
+      date: fromDate,
+      onChange: (nextDate) => {
         if (selectedDates.length !== 2 || !nextDate || !selectedDates[1])
           return;
 
@@ -22,8 +27,8 @@ const App = () => {
       },
     },
     to: {
-      date: new Date(String(new Date().getFullYear() + 1)),
-      onChangeDate: (nextDate) => {
+      date: toDate,
+      onChange: (nextDate) => {
         if (selectedDates.length !== 2 || !nextDate || !selectedDates[0])
           return;
 
@@ -44,8 +49,8 @@ const App = () => {
       setSelectedDates(dates);
       const [rangeFrom, rangeTo] = dates;
 
-      from.update((prev) => ({ ...prev, date: rangeFrom }));
-      to.update((prev) => ({ ...prev, date: rangeTo }));
+      setFromDate(rangeFrom);
+      setToDate(rangeTo);
     },
   });
 
@@ -60,7 +65,7 @@ const App = () => {
     >
       <Calendar state={dpCalendar} />
 
-      <UpdateFlasher data={`${from.options.date}-${to.options.date}`}>
+      <UpdateFlasher data={`${fromDate}-${toDate}`}>
         <div {...getRootProps()} className={root}>
           <input className={input} {...from.getInputProps("years")} />
           <span className={separator}>/</span>

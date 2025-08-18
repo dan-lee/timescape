@@ -1,38 +1,64 @@
-import { createEffect, onCleanup } from "solid-js";
-import { createStore } from "solid-js/store";
-import {
-  $NOW,
-  type DateType,
-  type Options,
-  type RangeOptions,
-  TimescapeManager,
-} from "../index";
+import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
+import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
 
-export { $NOW, type DateType, type Options, type RangeOptions };
+export { $NOW, type DateType };
 
-export const useTimescape = (options: Options = {}) => {
-  const [optionsStore, update] = createStore<Options>(options);
-  const { date, ...rest } = options;
-  const manager = new TimescapeManager(date, rest);
+type BaseOptions = Omit<Options, "date">;
+
+export type SolidOptions = BaseOptions & {
+  date?: Accessor<Date | undefined>;
+  defaultDate?: Date | undefined;
+  onChange?: (date: Date | undefined) => void;
+};
+
+export type SolidRangeOptions = {
+  from?: SolidOptions;
+  to?: SolidOptions;
+};
+
+export const useTimescape = (options: SolidOptions = {}) => {
+  const { date, defaultDate, onChange, ...rest } = options;
+
+  const isControlled = date !== undefined;
+
+  const [internalDate, setInternalDate] = createSignal<Date | undefined>(
+    isControlled ? undefined : defaultDate,
+  );
+
+  const currentDate = () => {
+    if (isControlled) {
+      return typeof date === "function" ? date() : date;
+    }
+    return internalDate();
+  };
+
+  const manager = new TimescapeManager(currentDate(), rest);
+
+  const unsubscribe = manager.on("changeDate", (nextDate) => {
+    onChange?.(nextDate);
+
+    if (!isControlled) {
+      setInternalDate(nextDate);
+    }
+  });
+
+  onCleanup(unsubscribe);
 
   createEffect(() => {
-    manager.on("changeDate", (nextDate) => {
-      update("date", nextDate);
-    });
+    manager.date = currentDate();
   });
 
   createEffect(() => {
-    manager.date = optionsStore.date;
-    manager.minDate = optionsStore.minDate;
-    manager.maxDate = optionsStore.maxDate;
-    manager.hour12 = optionsStore.hour12;
-    manager.digits = optionsStore.digits;
-    manager.wrapAround = optionsStore.wrapAround;
-    manager.snapToStep = optionsStore.snapToStep;
-    manager.wheelControl = optionsStore.wheelControl;
-    manager.disallowPartial = optionsStore.disallowPartial;
+    manager.minDate = rest.minDate;
+    manager.maxDate = rest.maxDate;
+    manager.hour12 = rest.hour12;
+    manager.digits = rest.digits;
+    manager.wrapAround = rest.wrapAround;
+    manager.snapToStep = rest.snapToStep;
+    manager.wheelControl = rest.wheelControl;
+    manager.disallowPartial = rest.disallowPartial;
   });
 
   onCleanup(() => manager.remove());
@@ -48,12 +74,10 @@ export const useTimescape = (options: Options = {}) => {
         element && manager.registerRoot(element),
     }),
     ampm: createAmPmHandler(manager),
-    update,
-    options: optionsStore,
   } as const;
 };
 
-export const useTimescapeRange = (options: RangeOptions = {}) => {
+export const useTimescapeRange = (options: SolidRangeOptions = {}) => {
   const from = useTimescape(options.from);
   const to = useTimescape(options.to);
 
@@ -62,20 +86,19 @@ export const useTimescapeRange = (options: RangeOptions = {}) => {
   return {
     getRootProps: () => ({
       ref: (element: HTMLElement | null) => {
-        if (!element) return;
-        from._manager.registerRoot(element);
-        to._manager.registerRoot(element);
+        if (element) {
+          from._manager.registerRoot(element);
+          to._manager.registerRoot(element);
+        }
       },
     }),
     from: {
       getInputProps: from.getInputProps,
-      options: from.options,
-      update: from.update,
+      ampm: from.ampm,
     },
     to: {
       getInputProps: to.getInputProps,
-      options: to.options,
-      update: to.update,
+      ampm: to.ampm,
     },
   } as const;
 };

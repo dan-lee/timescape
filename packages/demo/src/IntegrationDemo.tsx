@@ -5,7 +5,7 @@ import "./IntegrationDemo.css";
 
 const IntegrationDemo = () => {
   const renderTargetRef = useRef<HTMLDivElement>(null);
-  const unmountRef = useRef<() => void>();
+  const unmountRef = useRef<() => void>(() => {});
   const [integration, setIntegration] = useState("");
 
   useEffect(() => {

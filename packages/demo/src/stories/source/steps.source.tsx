@@ -1,4 +1,5 @@
-import { useTimescape } from "timescape/react";
+import { useState } from "react";
+import { type Options, useTimescape } from "timescape/react";
 import { SetOptions } from "../SetOptions";
 import { input, root, separator } from "../timescape.css";
 
@@ -10,8 +11,15 @@ const App = () => {
     seconds: 30,
   };
 
-  const { getRootProps, getInputProps, options, update } = useTimescape({
-    date: new Date(),
+  const [options, setOptions] = useState<Options>({
+    hour12: true,
+    digits: "2-digit",
+    snapToStep: false,
+  });
+
+  const { getRootProps, getInputProps } = useTimescape({
+    ...options,
+    defaultDate: new Date(),
   });
 
   return (
@@ -36,9 +44,9 @@ const App = () => {
         />
       </div>
       <SetOptions
-        enabled={["date", "snapToStep", "wrapAround", "hour12", "digits"]}
+        enabled={["snapToStep", "wrapAround", "hour12", "digits"]}
         options={options}
-        updateFn={update}
+        updateFn={setOptions}
       />
     </>
   );
