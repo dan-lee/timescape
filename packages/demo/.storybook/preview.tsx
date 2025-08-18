@@ -20,7 +20,7 @@ setupMonaco({
 
 export const parameters: Parameters = {
   options: {
-    // @ts-ignore
+    // @ts-expect-error - storySort is not typed
     storySort: (a, b) => b.title.localeCompare(a.title),
   },
   actions: { disable: true },

@@ -1,11 +1,10 @@
 import { useDatePicker } from "@rehookify/datepicker";
 import { useState } from "react";
 import { type Options, useTimescape } from "timescape/react";
-
-import { SetOptions } from "../SetOptions";
-import { UpdateFlasher } from "../UpdateFlasher";
 import { Calendar } from "../calendar";
+import { SetOptions } from "../SetOptions";
 import { input, root, separator } from "../timescape.css";
+import { UpdateFlasher } from "../UpdateFlasher";
 
 const App = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);

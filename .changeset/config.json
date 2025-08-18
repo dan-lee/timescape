@@ -1,8 +1,9 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@2.3.1/schema.json",
-  "changelog": ["@changesets/changelog-github", {
-    "repo": "dan-lee/timescape"
-  }],
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "dan-lee/timescape" }
+  ],
   "commit": false,
   "fixed": [],
   "linked": [],

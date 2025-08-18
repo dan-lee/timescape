@@ -1,4 +1,4 @@
-import { type DateType, TimescapeManager, marry } from "timescape";
+import { type DateType, marry, TimescapeManager } from "timescape";
 
 const prepare = (container: HTMLElement) => {
   container.innerHTML = `

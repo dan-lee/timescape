@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { type Options, useTimescape } from "timescape/react";
+import { useTimescape } from "timescape/react";
 import { input, root, separator } from "../timescape.css";
 
 const App = () => {
