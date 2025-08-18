@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["timescape-react.d.ts", "dist/**", ".storybook/**"]
+    "ignore": ["timescape-react.d.ts", "dist/**"]
   },
   "formatter": {
     "enabled": true,

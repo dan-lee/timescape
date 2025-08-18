@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createLiveStory } from "./utils";
 
 export default {
@@ -6,9 +6,7 @@ export default {
   component: () => null,
   parameters: {
     layout: "centered",
-    options: {
-      showPanel: true,
-    },
+    controls: { disable: true },
   },
 } satisfies Meta;
 
