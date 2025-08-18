@@ -8,8 +8,8 @@ import {
   toggleAmPm,
 } from "./date";
 import {
-  type Callback,
   addElementListener,
+  type Callback,
   createPubSub,
   isTouchDevice,
 } from "./util";
@@ -876,7 +876,7 @@ export class TimescapeManager implements Options {
     }
 
     const newTimestamp = validatedDate.getTime();
-    
+
     // For partial dates, check if seconds are the same
     if (
       this.#timestamp &&

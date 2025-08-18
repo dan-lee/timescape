@@ -2,8 +2,8 @@ import { Icon } from "@iconify-icon/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect } from "react";
 import { makeLiveEditStory } from "storybook-addon-code-editor";
-import SolidLogo from "./SolidLogo";
 import * as styles from "./integrations.css";
+import SolidLogo from "./SolidLogo";
 
 type Integration = "react" | "preact" | "solid" | "svelte" | "vue" | "vanilla";
 const Badge = ({ integration }: { integration: Integration }) => {

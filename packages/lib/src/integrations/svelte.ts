@@ -1,5 +1,6 @@
 import { onDestroy } from "svelte";
-import { type Readable, readable, writable } from "svelte/store";
+import type { Action } from "svelte/action";
+import { type Readable, writable } from "svelte/store";
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
@@ -72,9 +73,12 @@ export const createTimescape = (options: SvelteOptions = {}) => {
     unsubscribeOptions();
   });
 
-  const inputProps = (element: HTMLInputElement, type: DateType) =>
-    manager.registerElement(element, type);
-  const rootProps = (element: HTMLElement) => manager.registerRoot(element);
+  const inputProps: Action<HTMLInputElement, DateType> = (element, type) => {
+    manager.registerElement(element as HTMLInputElement, type as DateType);
+  };
+  const rootProps: Action<HTMLElement, void> = (element) => {
+    manager.registerRoot(element as HTMLElement);
+  };
 
   return {
     _manager: manager,
@@ -91,9 +95,9 @@ export const createTimescapeRange = (options: SvelteRangeOptions = {}) => {
 
   marry(from._manager, to._manager);
 
-  const rootProps = (element: HTMLElement) => {
-    from._manager.registerRoot(element);
-    to._manager.registerRoot(element);
+  const rootProps: Action<HTMLElement, void> = (element) => {
+    from._manager.registerRoot(element as HTMLElement);
+    to._manager.registerRoot(element as HTMLElement);
   };
 
   return {

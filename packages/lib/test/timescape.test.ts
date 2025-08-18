@@ -7,8 +7,7 @@ import {
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { PropertySymbol } from "happy-dom";
 import { beforeEach, describe, expect, it } from "vitest";
-
-import { type DateType, TimescapeManager, marry } from "../src";
+import { type DateType, marry, TimescapeManager } from "../src";
 
 const register = (manager: TimescapeManager, fields: DateType[]) => {
   const container = document.createElement("div");
@@ -1400,7 +1399,7 @@ describe("timescape", () => {
       manager.date = new Date("2021-01-01T00:00:00");
       document.body.appendChild(container);
       const hoursField = queryByTestId<HTMLInputElement>(container, "hours");
-      
+
       expect(manager.ampm).toBe("am");
       expect(hoursField).toHaveValue("12");
 

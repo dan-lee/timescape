@@ -1,3 +1,5 @@
+// biome-ignore-all lint/correctness/useUniqueElementIds: Not needed
+
 import type { SVGProps } from "react";
 
 const SolidLogo = (props: SVGProps<SVGSVGElement>) => (
