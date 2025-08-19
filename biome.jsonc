@@ -30,6 +30,7 @@
     "rules": {
       "recommended": true,
       "correctness": {
+        "useUniqueElementIds": "off",
         "noConstructorReturn": "off",
         "noUnusedImports": {
           "level": "warn",

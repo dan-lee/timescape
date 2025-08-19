@@ -37,16 +37,18 @@ export const useTimescape = (options: PreactOptions = {}) => {
 
   useEffect(() => {
     return manager.on("changeDate", (nextDate) => {
-      onChangeRef.current?.(nextDate);
-
       if (!isControlled) {
         setInternalDate(nextDate);
+      } else {
+        // Basically makes this a controlled component
+        manager.date = currentDate?.getTime();
       }
+      onChangeRef.current?.(nextDate);
     });
-  }, [manager, isControlled]);
+  }, [manager, isControlled, currentDate]);
 
   useEffect(() => {
-    manager.date = currentDate;
+    manager.date = currentDate?.getTime();
   }, [manager, currentDate]);
 
   useEffect(() => {

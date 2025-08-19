@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { useTimescape, useTimescapeRange } from "timescape/react";
 
+console.log("hello", window.date);
+
 export const ReactDemo = () => {
   const [hour12, setHour12] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(
+    () => window.date ?? new Date(),
+  );
   const { getRootProps, getInputProps } = useTimescape({
-    defaultDate: new Date(),
-    onChange: (date) => {
-      console.log("date changed", date);
+    date,
+    onChange: (newDate) => {
+      console.log("date changed", newDate);
+      setDate(newDate);
     },
     hour12,
   });
@@ -36,8 +42,8 @@ export const ReactDemo = () => {
       <div className="timescape-root" {...getRootProps()}>
         <input
           className="timescape-input"
-          {...getInputProps("days")}
-          placeholder="dd"
+          {...getInputProps("years")}
+          placeholder="yyyy"
         />
         <span className="separator">/</span>
         <input
@@ -48,8 +54,8 @@ export const ReactDemo = () => {
         <span className="separator">/</span>
         <input
           className="timescape-input"
-          {...getInputProps("years")}
-          placeholder="yyyy"
+          {...getInputProps("days")}
+          placeholder="dd"
         />
         <span className="separator">&nbsp;</span>
         <input
@@ -107,6 +113,9 @@ export const ReactDemo = () => {
           <span className="separator">/</span>
           <input className="timescape-input" {...to.getInputProps("days")} />
         </div>
+      </div>
+      <div id="output" style={{ display: "none" }}>
+        {date?.toISOString()}
       </div>
     </div>
   );

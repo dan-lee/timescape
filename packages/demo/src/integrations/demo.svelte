@@ -3,12 +3,13 @@ import { createTimescape, createTimescapeRange } from "timescape/svelte";
 import "../IntegrationDemo.css";
 import { writable } from "svelte/store";
 
-const date = writable(new Date());
+const date = writable<Date | undefined>(window.date ?? new Date());
 
 const { inputProps, rootProps } = createTimescape({
   date,
-  onChange: (date) => {
-    console.log("Date changed to", date?.toLocaleString());
+  onChange: (newDate) => {
+    console.log("Date changed to", newDate?.toLocaleString());
+    date.set(newDate);
   },
 });
 
@@ -22,7 +23,6 @@ const {
 });
 </script>
 
-<div>
   Simple date time:
   <div class="timescape-root" use:rootProps>
     <input use:inputProps={'years'} class="timescape-input" />
@@ -52,4 +52,6 @@ const {
     <span class="separator">/</span>
     <input use:to.inputProps={'days'} class="timescape-input" />
   </div>
-</div>
+  <div id="output" style="display: none">
+    {$date?.toISOString()}
+  </div>

@@ -1,46 +1,41 @@
 // Check out the './integrations' folder for the demo code of the different integrations
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import "./IntegrationDemo.css";
+
+declare global {
+  interface Window {
+    date?: Date;
+  }
+}
 
 const IntegrationDemo = () => {
   const renderTargetRef = useRef<HTMLDivElement>(null);
-  const unmountRef = useRef<() => void>(() => {});
-  const [integration, setIntegration] = useState("");
+  const unmountRef = useRef(() => {});
+  const searchParams = new URLSearchParams(window.location.search);
+  const integration = searchParams.get("value");
+  const date = searchParams.get("date");
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const integration = urlParams.get("value");
-    integration && setIntegration(integration);
-  }, []);
+    if (!date) return;
+
+    window.date = new Date(Number.isNaN(Number(date)) ? date : Number(date));
+  }, [date]);
 
   useEffect(() => {
     if (!integration) return;
 
     unmountRef.current?.();
 
-    switch (integration) {
-      case "react":
-      case "preact":
-      case "vue":
-      case "svelte":
-      case "solid":
-      case "vanilla": {
-        const ext = integration === "react" ? "tsx" : "ts";
-        import(`./integrations/${integration}.${ext}`)
-          .then(({ renderTo }) => {
-            if (!renderTargetRef.current) return;
-            unmountRef.current = renderTo(renderTargetRef.current);
-          })
-          .catch((err) => {
-            console.error("Failed to load integration", err);
-          });
-        break;
-      }
-      default:
-        alert("Integration not implemented");
-        return;
-    }
+    const ext = integration === "react" ? "tsx" : "ts";
+    import(`./integrations/${integration}.${ext}`)
+      .then(({ renderTo }) => {
+        if (!renderTargetRef.current) return;
+        unmountRef.current = renderTo(renderTargetRef.current);
+      })
+      .catch((err) => {
+        console.error("Failed to load integration", err);
+      });
   }, [integration]);
 
   return <div ref={renderTargetRef} />;
