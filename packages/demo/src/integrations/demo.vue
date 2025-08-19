@@ -30,18 +30,22 @@
     <input class="timescape-input" :ref="to.registerElement('days')" />
   </div>
   </div>
+  <div id="output" style="display: none">
+    {{ date?.toISOString() }}
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { useTimescape, useTimescapeRange } from "timescape/vue";
 import { ref } from "vue";
 
-const date = ref(new Date());
+const date = ref<Date | undefined>(window.date ?? new Date());
 
 const { registerElement, registerRoot } = useTimescape({
   date,
   onChange: (newDate) => {
     console.log("Date changed to", newDate);
+    date.value = newDate;
   },
 });
 

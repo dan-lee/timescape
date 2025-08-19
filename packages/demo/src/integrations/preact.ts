@@ -3,15 +3,13 @@ import { useState } from "preact/hooks";
 import { useTimescape, useTimescapeRange } from "timescape/preact";
 
 const PreactDemo = () => {
-  const [controlledDate, setControlledDate] = useState<Date | undefined>(
-    new Date(),
-  );
+  const [date, setDate] = useState<Date | undefined>(window.date ?? new Date());
 
   const { getRootProps, getInputProps } = useTimescape({
-    date: controlledDate,
+    date,
     onChange: (date) => {
       console.log("Date changed to", date);
-      setControlledDate(date);
+      setDate(date);
     },
   });
 
@@ -34,11 +32,11 @@ const PreactDemo = () => {
     <div>
       Simple date time:
       <div class="timescape-root" ...${getRootProps()}>
-        <input class="timescape-input" ...${getInputProps("days")} />
+        <input class="timescape-input" ...${getInputProps("years")} />
         <span class="separator">/</span>
         <input class="timescape-input" ...${getInputProps("months")} />
         <span class="separator">/</span>
-        <input class="timescape-input" ...${getInputProps("years")} />
+        <input class="timescape-input" ...${getInputProps("days")} />
         <!-- non-breaking space -->
         <span class="separator">${"\xA0"}</span>
         <input class="timescape-input" ...${getInputProps("hours")} />
@@ -61,6 +59,9 @@ const PreactDemo = () => {
         <input class="timescape-input" ...${to.getInputProps("months")} />
         <span class="separator">/</span>
         <input class="timescape-input" ...${to.getInputProps("days")} />
+      </div>
+      <div id="output" style="display: none">
+        ${date?.toISOString()}
       </div>
     </div>
   `;

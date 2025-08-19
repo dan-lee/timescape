@@ -5,12 +5,17 @@ import { render } from "solid-js/web";
 import { useTimescape, useTimescapeRange } from "timescape/solid";
 
 const App = () => {
-  const [date, setDate] = createSignal<Date | undefined>(new Date());
+  const [date, setDate] = createSignal<Date | undefined>(
+    window.date ?? new Date(),
+  );
 
   const { getInputProps, getRootProps } = useTimescape({
     date,
     minDate: new Date("2022-01-01"),
-    onChange: setDate,
+    onChange: (newDate) => {
+      console.log("Date changed to", newDate);
+      setDate(newDate);
+    },
   });
 
   const {
@@ -52,6 +57,9 @@ const App = () => {
       <input class="timescape-input" ...${to.getInputProps("months")} />
       <span class="separator">/</span>
       <input class="timescape-input" ...${to.getInputProps("days")} />
+    </div>
+    <div id="output" style="display: none">
+      ${() => date()?.toISOString()}
     </div>
   </div>`;
 };
