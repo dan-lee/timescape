@@ -43,7 +43,7 @@ const date = ref<Date | undefined>(window.date ?? new Date());
 
 const { registerElement, registerRoot } = useTimescape({
   date,
-  onChange: (newDate) => {
+  onChangeDate: (newDate) => {
     console.log("Date changed to", newDate);
     date.value = newDate;
   },

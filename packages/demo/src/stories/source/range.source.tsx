@@ -12,11 +12,11 @@ const App = () => {
   const { from, to, getRootProps } = useTimescapeRange({
     from: {
       date: fromDate,
-      onChange: (nextDate) => setFromDate(nextDate),
+      onChangeDate: (nextDate) => setFromDate(nextDate),
     },
     to: {
       date: toDate,
-      onChange: (nextDate) => setToDate(nextDate),
+      onChangeDate: (nextDate) => setToDate(nextDate),
     },
   });
 

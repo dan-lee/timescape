@@ -19,7 +19,7 @@ type BaseOptions = Omit<Options, "date">;
 export type VueOptions = BaseOptions & {
   date?: Ref<Date | undefined>;
   defaultDate?: Date | undefined;
-  onChange?: (date: Date | undefined) => void;
+  onChangeDate?: (date: Date | undefined) => void;
 };
 
 export type VueRangeOptions = {
@@ -28,7 +28,7 @@ export type VueRangeOptions = {
 };
 
 export const useTimescape = (options: VueOptions = {}) => {
-  const { date, defaultDate, onChange, ...rest } = options;
+  const { date, defaultDate, onChangeDate, ...rest } = options;
 
   const isControlled = date !== undefined;
 
@@ -46,7 +46,7 @@ export const useTimescape = (options: VueOptions = {}) => {
   const manager = new TimescapeManager(currentDate.value, rest);
 
   manager.on("changeDate", (nextDate) => {
-    onChange?.(nextDate);
+    onChangeDate?.(nextDate);
 
     if (!isControlled) {
       internalDate.value = nextDate;

@@ -16,7 +16,7 @@ type BaseOptions = Omit<Options, "date">;
 export type SvelteOptions = BaseOptions & {
   date?: Readable<Date | undefined>;
   defaultDate?: Date | undefined;
-  onChange?: (date: Date | undefined) => void;
+  onChangeDate?: (date: Date | undefined) => void;
 };
 
 export type SvelteRangeOptions = {
@@ -25,7 +25,7 @@ export type SvelteRangeOptions = {
 };
 
 export const createTimescape = (options: SvelteOptions = {}) => {
-  const { date, defaultDate, onChange, ...rest } = options;
+  const { date, defaultDate, onChangeDate, ...rest } = options;
 
   const isControlled = date !== undefined;
 
@@ -43,7 +43,7 @@ export const createTimescape = (options: SvelteOptions = {}) => {
   const manager = new TimescapeManager(currentValue, rest);
 
   manager.on("changeDate", (nextDate) => {
-    onChange?.(nextDate);
+    onChangeDate?.(nextDate);
 
     if (!isControlled) {
       internalStore.set(nextDate);

@@ -10,7 +10,7 @@ type BaseOptions = Omit<Options, "date">;
 export type SolidOptions = BaseOptions & {
   date?: Accessor<Date | undefined>;
   defaultDate?: Date | undefined;
-  onChange?: (date: Date | undefined) => void;
+  onChangeDate?: (date: Date | undefined) => void;
 };
 
 export type SolidRangeOptions = {
@@ -19,7 +19,7 @@ export type SolidRangeOptions = {
 };
 
 export const useTimescape = (options: SolidOptions = {}) => {
-  const { date, defaultDate, onChange, ...rest } = options;
+  const { date, defaultDate, onChangeDate, ...rest } = options;
 
   const isControlled = date !== undefined;
 
@@ -37,7 +37,7 @@ export const useTimescape = (options: SolidOptions = {}) => {
   const manager = new TimescapeManager(currentDate(), rest);
 
   const unsubscribe = manager.on("changeDate", (nextDate) => {
-    onChange?.(nextDate);
+    onChangeDate?.(nextDate);
 
     if (!isControlled) {
       setInternalDate(nextDate);

@@ -12,7 +12,7 @@ const App = () => {
   const { getInputProps, getRootProps } = useTimescape({
     date,
     minDate: new Date("2022-01-01"),
-    onChange: (newDate) => {
+    onChangeDate: (newDate) => {
       console.log("Date changed to", newDate);
       setDate(newDate);
     },
