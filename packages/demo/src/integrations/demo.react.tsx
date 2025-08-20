@@ -10,7 +10,7 @@ export const ReactDemo = () => {
   );
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChange: (newDate) => {
+    onChangeDate: (newDate) => {
       console.log("date changed", newDate);
       setDate(newDate);
     },
@@ -24,13 +24,13 @@ export const ReactDemo = () => {
   } = useTimescapeRange({
     from: {
       date: new Date(),
-      onChange: (date) => {
+      onChangeDate: (date) => {
         console.log("from date changed", date);
       },
     },
     to: {
       date: new Date("2027-12-31"),
-      onChange: (date) => {
+      onChangeDate: (date) => {
         console.log("to date changed", date);
       },
     },

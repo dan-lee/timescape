@@ -15,7 +15,7 @@ const App = () => {
   const { getRootProps, from, to } = useTimescapeRange({
     from: {
       date: fromDate,
-      onChange: (nextDate) => {
+      onChangeDate: (nextDate) => {
         if (selectedDates.length !== 2 || !nextDate || !selectedDates[1])
           return;
 
@@ -27,7 +27,7 @@ const App = () => {
     },
     to: {
       date: toDate,
-      onChange: (nextDate) => {
+      onChangeDate: (nextDate) => {
         if (selectedDates.length !== 2 || !nextDate || !selectedDates[0])
           return;
 

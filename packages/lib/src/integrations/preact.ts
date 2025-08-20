@@ -10,7 +10,7 @@ type BaseOptions = Omit<Options, "date">;
 export type PreactOptions = BaseOptions & {
   date?: Date | undefined;
   defaultDate?: Date | undefined;
-  onChange?: (date: Date | undefined) => void;
+  onChangeDate?: (date: Date | undefined) => void;
 };
 
 export type PreactRangeOptions = {
@@ -19,7 +19,7 @@ export type PreactRangeOptions = {
 };
 
 export const useTimescape = (options: PreactOptions = {}) => {
-  const { date, defaultDate, onChange, ...rest } = options;
+  const { date, defaultDate, onChangeDate, ...rest } = options;
 
   const isControlled = date !== undefined;
 
@@ -29,10 +29,10 @@ export const useTimescape = (options: PreactOptions = {}) => {
 
   const currentDate = isControlled ? date : internalDate;
   const [manager] = useState(() => new TimescapeManager(currentDate, rest));
-  const onChangeRef = useRef(onChange);
+  const onChangeDateRef = useRef(onChangeDate);
 
   useEffect(() => {
-    onChangeRef.current = onChange;
+    onChangeDateRef.current = onChangeDate;
   });
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export const useTimescape = (options: PreactOptions = {}) => {
         // Basically makes this a controlled component
         manager.date = currentDate?.getTime();
       }
-      onChangeRef.current?.(nextDate);
+      onChangeDateRef.current?.(nextDate);
     });
   }, [manager, isControlled, currentDate]);
 

@@ -7,7 +7,7 @@ const PreactDemo = () => {
 
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChange: (date) => {
+    onChangeDate: (date) => {
       console.log("Date changed to", date);
       setDate(date);
     },
@@ -20,11 +20,11 @@ const PreactDemo = () => {
   } = useTimescapeRange({
     from: {
       defaultDate: new Date(),
-      onChange: (date) => console.log("Range `from` changed to", date),
+      onChangeDate: (date) => console.log("Range `from` changed to", date),
     },
     to: {
       defaultDate: new Date("2024-12-31"),
-      onChange: (date) => console.log("Range `to` changed to", date),
+      onChangeDate: (date) => console.log("Range `to` changed to", date),
     },
   });
 

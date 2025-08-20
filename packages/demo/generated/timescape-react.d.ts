@@ -28,7 +28,7 @@ declare type Options_2 = {
 
 declare type ReactOptions = Options_2 & {
     defaultDate?: Date | undefined;
-    onChange?: (date: Date | undefined) => void;
+    onChangeDate?: (date: Date | undefined) => void;
 };
 export { ReactOptions as Options }
 export { ReactOptions }

@@ -6,7 +6,7 @@ const App = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChange: (date) => setDate(date),
+    onChangeDate: (date) => setDate(date),
     hour12: true,
   });
 

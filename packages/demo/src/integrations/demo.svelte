@@ -7,7 +7,7 @@ const date = writable<Date | undefined>(window.date ?? new Date());
 
 const { inputProps, rootProps } = createTimescape({
   date,
-  onChange: (newDate) => {
+  onChangeDate: (newDate) => {
     console.log("Date changed to", newDate?.toLocaleString());
     date.set(newDate);
   },

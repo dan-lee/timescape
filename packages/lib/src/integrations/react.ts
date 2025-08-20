@@ -18,7 +18,7 @@ export {
 
 export type ReactOptions = Options & {
   defaultDate?: Date | undefined;
-  onChange?: (date: Date | undefined) => void;
+  onChangeDate?: (date: Date | undefined) => void;
 };
 
 export type ReactRangeOptions = {
@@ -27,7 +27,7 @@ export type ReactRangeOptions = {
 };
 
 export const useTimescape = (options: ReactOptions = {}) => {
-  const { date, defaultDate, onChange, ...rest } = options;
+  const { date, defaultDate, onChangeDate, ...rest } = options;
   const isControlled = date !== undefined;
 
   const [internalDate, setInternalDate] = useState<Date | undefined>(
@@ -36,10 +36,10 @@ export const useTimescape = (options: ReactOptions = {}) => {
 
   const currentDate = isControlled ? date : internalDate;
   const [manager] = useState(() => new TimescapeManager(currentDate, rest));
-  const onChangeRef = useRef(onChange);
+  const onChangeDateRef = useRef(onChangeDate);
 
   useLayoutEffect(() => {
-    onChangeRef.current = onChange;
+    onChangeDateRef.current = onChangeDate;
   });
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
         // Basically makes this a controlled component
         manager.date = currentDate?.getTime();
       }
-      onChangeRef.current?.(nextDate);
+      onChangeDateRef.current?.(nextDate);
     });
   }, [manager, isControlled, currentDate]);
 

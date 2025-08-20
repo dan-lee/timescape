@@ -1,14 +1,20 @@
 # timescape
 
-A powerful, headless library that elegantly fills the void left by HTML's native [`<input type="time">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/time) and [`<input type="date">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date).
+A powerful, headless library that elegantly fills the void left by HTML's native
+[`<input type="time">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/time) and
+[`<input type="date">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date).
 
-`timescape` is a toolkit for creating custom date and time input components. It helps you handle date and time data easily while giving you full control over the design and presentation. `timescape` supports multiple libraries, including React, Vue, Preact, Svelte, Solid, and native JavaScript.
+`timescape` is a toolkit for creating custom date and time input components. It helps you handle date and time
+data easily while giving you full control over the design and presentation. `timescape` supports multiple
+libraries, including React, Vue, Preact, Svelte, Solid, and native JavaScript.
 
-Key features such as accessibility and keyboard navigation are at the core of `timescape`, allowing you to focus on creating user-centric date and time inputs that integrate seamlessly into your projects.
+Key features such as accessibility and keyboard navigation are at the core of `timescape`, allowing you to
+focus on creating user-centric date and time inputs that integrate seamlessly into your projects.
 
 <img src="./assets/timescape.apng" style="max-height:120px" />
 
-See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#examples) of how to use it + [StackBlitz ⚡](https://stackblitz.com/@dan-lee/collections/timescape) for more demonstrations.
+See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#examples) of how to use it +
+[StackBlitz ⚡](https://stackblitz.com/@dan-lee/collections/timescape) for more demonstrations.
 
 <a href="https://stellate.co" target="_blank">
   <picture>
@@ -20,8 +26,10 @@ See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#ex
 ## Features
 
 - **🧢 Headless Architecture**: You control the UI – `timescape` handles the logic.
-- **🧩 Framework Compatibility**: Adapters for [React](https://react.dev/), [Preact](https://preactjs.com/), [Vue](https://vuejs.org/), [Svelte](https://svelte.dev/), and [Solid](https://www.solidjs.com/).
-- **⚙ Flexible API**: Hooks (or equivalents) return getters for seamless component integration. Order of inputs (i.e. format) is completely up to you by just rendering in the order you prefer.
+- **🧩 Framework Compatibility**: Adapters for [React](https://react.dev/), [Preact](https://preactjs.com/),
+  [Vue](https://vuejs.org/), [Svelte](https://svelte.dev/), and [Solid](https://www.solidjs.com/).
+- **⚙ Flexible API**: Hooks (or equivalents) return getters for seamless component integration. Order of
+  inputs (i.e. format) is completely up to you by just rendering in the order you prefer.
 - **👥 Accessibility**: Full A11y compliance, keyboard navigation and manual input.
 - **⏰ Date and time flexibility**: Supports min/max dates and 24/12 hour clock formats.
 - **🪶 Lightweight**: No external dependencies.
@@ -57,7 +65,7 @@ function App() {
   const [date, setDate] = useState(new Date());
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChange: (nextDate) => {
+    onChangeDate: (nextDate) => {
       console.log("Date changed to", nextDate);
       setDate(nextDate);
     },
@@ -66,7 +74,7 @@ function App() {
   // Or uncontrolled with defaultDate
   // const { getRootProps, getInputProps } = useTimescape({
   //   defaultDate: new Date(),
-  //   onChange: (nextDate) => console.log("Date changed to", nextDate),
+  //   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
   // });
 
   return (
@@ -94,7 +102,6 @@ function App() {
 
 [Edit on StackBlitz ⚡](https://stackblitz.com/edit/timescape-preact?file=src%2Fapp.tsx)
 
-
 ```tsx
 import { useTimescape } from "timescape/preact";
 import { useState } from "preact/hooks";
@@ -104,7 +111,7 @@ function App() {
   const [date, setDate] = useState(new Date());
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChange: (nextDate) => {
+    onChangeDate: (nextDate) => {
       console.log("Date changed to", nextDate);
       setDate(nextDate);
     },
@@ -113,7 +120,7 @@ function App() {
   // Or uncontrolled with defaultDate
   // const { getRootProps, getInputProps } = useTimescape({
   //   defaultDate: new Date(),
-  //   onChange: (nextDate) => console.log("Date changed to", nextDate),
+  //   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
   // });
 
   return (
@@ -157,7 +164,7 @@ import { ref, watch } from "vue";
 const date = ref(new Date());
 const { registerElement, registerRoot } = useTimescape({
   date,
-  onChange: (nextDate) => {
+  onChangeDate: (nextDate) => {
     console.log("Date changed to", nextDate);
     date.value = nextDate;
   },
@@ -166,7 +173,7 @@ const { registerElement, registerRoot } = useTimescape({
 // Or uncontrolled with defaultDate
 // const { registerElement, registerRoot } = useTimescape({
 //   defaultDate: new Date(),
-//   onChange: (nextDate) => console.log("Date changed to", nextDate),
+//   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
 // });
 </script>
 ```
@@ -187,7 +194,7 @@ import { writable } from "svelte/store";
 const date = writable(new Date());
 const { inputProps, rootProps } = createTimescape({
   date: $date,
-  onChange: (nextDate) => {
+  onChangeDate: (nextDate) => {
     console.log("Date changed to", nextDate);
     date.set(nextDate);
   },
@@ -196,7 +203,7 @@ const { inputProps, rootProps } = createTimescape({
 // Or uncontrolled with defaultDate
 // const { inputProps, rootProps } = createTimescape({
 //   defaultDate: new Date(),
-//   onChange: (nextDate) => console.log("Date changed to", nextDate),
+//   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
 // });
 </script>
 
@@ -228,7 +235,7 @@ function App() {
   const [date, setDate] = createSignal(new Date());
   const { getInputProps, getRootProps } = useTimescape({
     date: date(),
-    onChange: (nextDate) => {
+    onChangeDate: (nextDate) => {
       console.log("Date changed to", nextDate);
       setDate(nextDate);
     },
@@ -237,7 +244,7 @@ function App() {
   // Or uncontrolled with defaultDate
   // const { getInputProps, getRootProps } = useTimescape({
   //   defaultDate: new Date(),
-  //   onChange: (nextDate) => console.log("Date changed to", nextDate),
+  //   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
   // });
 
   return (
@@ -283,18 +290,9 @@ timeManager.subscribe((nextDate) => {
 
 timeManager.registerRoot(document.getElementById("timescape-root")!);
 
-timeManager.registerElement(
-  container.querySelector('[data-type="days"]')!,
-  "days",
-);
-timeManager.registerElement(
-  container.querySelector('[data-type="months"]')!,
-  "months",
-);
-timeManager.registerElement(
-  container.querySelector('[data-type="years"]')!,
-  "years",
-);
+timeManager.registerElement(container.querySelector('[data-type="days"]')!, "days");
+timeManager.registerElement(container.querySelector('[data-type="months"]')!, "months");
+timeManager.registerElement(container.querySelector('[data-type="years"]')!, "years");
 ```
 
 </details>
@@ -302,14 +300,15 @@ timeManager.registerElement(
 ## Options
 
 `timescape` supports both controlled and uncontrolled modes:
-- **Controlled**: Use `date` prop and `onChange` callback to manage state externally
+
+- **Controlled**: Use `date` prop and `onChangeDate` callback to manage state externally
 - **Uncontrolled**: Use `defaultDate` for initial value, component manages state internally
 
 ```tsx
 type Options = {
-  date?: Date;           // For controlled mode
-  defaultDate?: Date;    // For uncontrolled mode  
-  onChange?: (date: Date | undefined) => void; // Called on any date change
+  date?: Date; // For controlled mode
+  defaultDate?: Date; // For uncontrolled mode
+  onChangeDate?: (date: Date | undefined) => void; // Called on any date change
   minDate?: Date | $NOW; // see more about $NOW below
   maxDate?: Date | $NOW;
   hour12?: boolean;
@@ -317,15 +316,15 @@ type Options = {
   digits?: "numeric" | "2-digit";
   snapToStep?: boolean;
   wheelControl?: boolean;
-  disallowPartial?: boolean
+  disallowPartial?: boolean;
 };
 ```
 
 | Option            | Default     | Description                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `date`            | `undefined` | The current date value for controlled mode. When provided, you must handle updates via `onChange`.                                                                                                                                                                                                                                                                |
-| `defaultDate`     | `undefined` | The initial date for uncontrolled mode. Component manages state internally.                                                                                                                                                                                                                                                                                       |
-| `onChange`        | `undefined` | Callback fired when the date changes. Required for controlled mode, optional for uncontrolled.                                                                                                                                                                                                                                                                    |
+| `date`            | `undefined` | The current date value for controlled mode. When provided, you must handle updates via `onChangeDate`.                                                                                                                                                                                                                                                           |
+| `defaultDate`     | `undefined` | The initial date for uncontrolled mode. Component manages state internally.                                                                                                                                                                                                                                                                                      |
+| `onChangeDate`    | `undefined` | Callback fired when the date changes. Required for controlled mode, optional for uncontrolled.                                                                                                                                                                                                                                                                   |
 | `minDate`         | `undefined` | The minimum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-vavue)                                                                                                                                                                                                                     |
 | `maxDate`         | `undefined` | The maximum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-value)                                                                                                                                                                                                                     |
 | `hour12`          | `false`     | If set to `true`, the time input will use a 12-hour format (with AM/PM). If set to `false`, it will use a 24-hour format.                                                                                                                                                                                                                                        |
@@ -337,9 +336,12 @@ type Options = {
 
 ### `$NOW` value
 
-`$NOW` is a convenience value you can use for `minDate` and `maxDate`. It represents the current date and time at the moment of the user's interaction, dynamically adjusting to always reflect the current datetime value. This means you don't need to manually update it, as it always keeps itself current.
+`$NOW` is a convenience value you can use for `minDate` and `maxDate`. It represents the current date and time
+at the moment of the user's interaction, dynamically adjusting to always reflect the current datetime value.
+This means you don't need to manually update it, as it always keeps itself current.
 
-`$NOW` is exported as a constant for better type safety. By doing so, it eliminates the need for casting it `as const`, which would be required if `$NOW` were simply a string."
+`$NOW` is exported as a constant for better type safety. By doing so, it eliminates the need for casting it
+`as const`, which would be required if `$NOW` were simply a string."
 
 It can be imported from the package like so:
 
@@ -355,21 +357,27 @@ import { NOW } from "timescape/svelte";
 
 ### `placeholder` on input elements
 
-The `placeholder` attribute on the input elements is supported and will be used to display the placeholder text. Usually it's to indicate the expected format of the input, e.g. `yyyy/mm/dd`
+The `placeholder` attribute on the input elements is supported and will be used to display the placeholder
+text. Usually it's to indicate the expected format of the input, e.g. `yyyy/mm/dd`
 
 ### `step` on input elements
 
-The [`step` attribute for input elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/step) is supported and will be used to increment/decrement the values when the user uses the arrow keys. The default value is `1`, but you can set it to any value you want. Also see [`snapToStep`](#options) if you want to snap to the nearest step.
+The [`step` attribute for input elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/step)
+is supported and will be used to increment/decrement the values when the user uses the arrow keys. The default
+value is `1`, but you can set it to any value you want. Also see [`snapToStep`](#options) if you want to snap
+to the nearest step.
 
 ### Preventing default `keydown` behavior
 
-By default, timescape intercepts keydown events to enhance input behavior. If you want to handle keydown events yourself and prevent the default processing, you can do so by attaching your event handler during the capturing phase and calling `preventDefault`:
+By default, timescape intercepts keydown events to enhance input behavior. If you want to handle keydown
+events yourself and prevent the default processing, you can do so by attaching your event handler during the
+capturing phase and calling `preventDefault`:
 
 ```tsx
 <input
   onKeyDownCapture={(e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
+    if (e.key === "Enter") {
+      e.preventDefault();
     }
   }}
 />
@@ -377,13 +385,15 @@ By default, timescape intercepts keydown events to enhance input behavior. If yo
 
 ## Custom AM/PM Controls
 
-While `timescape` provides `getInputProps("am/pm")` for a standard input field, you may want to use custom controls like select dropdowns, buttons, or checkboxes for AM/PM selection. All hooks/functions return an `ampm` object with the following methods:
+While `timescape` provides `getInputProps("am/pm")` for a standard input field, you may want to use custom
+controls like select dropdowns, buttons, or checkboxes for AM/PM selection. All hooks/functions return an
+`ampm` object with the following methods:
 
 ```tsx
-ampm.value            // Current value: "am" | "pm" | undefined
-ampm.set(value)       // Set to "am" or "pm"
-ampm.toggle()         // Toggle between AM and PM
-ampm.getSelectProps() // Returns props for binding to a `<select>` element
+ampm.value; // Current value: "am" | "pm" | undefined
+ampm.set(value); // Set to "am" or "pm"
+ampm.toggle(); // Toggle between AM and PM
+ampm.getSelectProps(); // Returns props for binding to a `<select>` element
 ```
 
 ### Example with React
@@ -397,7 +407,7 @@ function CustomAmPmExample() {
   const { getInputProps, getRootProps, ampm } = useTimescape({
     date,
     hour12: true,
-    onChange: setDate,
+    onChangeDate: setDate,
   });
 
   return (
@@ -413,32 +423,18 @@ function CustomAmPmExample() {
       </select>
 
       {/* Example 2: Toggle button */}
-      <button onClick={ampm.toggle}>
-        {ampm.value === "am" ? "☀️ AM" : "🌙 PM"}
-      </button>
+      <button onClick={ampm.toggle}>{ampm.value === "am" ? "☀️ AM" : "🌙 PM"}</button>
 
       {/* Example 3: Checkbox */}
-      <input
-        type="checkbox"
-        checked={ampm.value === "pm"}
-        onChange={ampm.toggle}
-      />
+      <input type="checkbox" checked={ampm.value === "pm"} onChange={ampm.toggle} />
 
       {/* Example 4: Radio buttons */}
       <label>
-        <input
-          type="radio"
-          checked={ampm.value === "am"}
-          onChange={() => ampm.set("am")}
-        />
+        <input type="radio" checked={ampm.value === "am"} onChange={() => ampm.set("am")} />
         AM
       </label>
       <label>
-        <input
-          type="radio"
-          checked={ampm.value === "pm"}
-          onChange={() => ampm.set("pm")}
-        />
+        <input type="radio" checked={ampm.value === "pm"} onChange={() => ampm.set("pm")} />
         PM
       </label>
     </div>
@@ -448,9 +444,12 @@ function CustomAmPmExample() {
 
 ## Ranges
 
-`timescape` supports ranges for the date/time inputs. This means a user can select a start and end. This is useful for things like booking systems, where you want to allow the user to select a range of dates.
+`timescape` supports ranges for the date/time inputs. This means a user can select a start and end. This is
+useful for things like booking systems, where you want to allow the user to select a range of dates.
 
-This is achieved by using two `timescape` instances, one for the start and one for the end. You can set their options independently, and they return the respective options and update functions in the `from` and `to` objects.
+This is achieved by using two `timescape` instances, one for the start and one for the end. You can set their
+options independently, and they return the respective options and update functions in the `from` and `to`
+objects.
 
 Example usage (this works similar for all supported libraries):
 
@@ -464,13 +463,13 @@ const [fromDate, setFromDate] = useState(new Date("2000-01-01"));
 const [toDate, setToDate] = useState(new Date());
 
 const { getRootProps, from, to } = useTimescapeRange({
-  from: { 
+  from: {
     date: fromDate,
-    onChange: setFromDate,
+    onChangeDate: setFromDate,
   },
-  to: { 
+  to: {
     date: toDate,
-    onChange: setToDate,
+    onChangeDate: setToDate,
   },
 });
 
@@ -502,7 +501,8 @@ return (
 
 ## Anatomy & styling
 
-The component is designed to be as un-opinionated as possible, so it doesn't come with any styling out of the box. You can style it however you want, but here are some tips to get you started.
+The component is designed to be as un-opinionated as possible, so it doesn't come with any styling out of the
+box. You can style it however you want, but here are some tips to get you started.
 
 This is how it could look like:
 
