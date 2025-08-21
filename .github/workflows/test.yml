@@ -10,6 +10,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.55.0-jammy
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -30,9 +32,6 @@ jobs:
 
       - name: Run test
         run: pnpm --filter timescape -- test run --coverage.enabled=true --coverage.reporter=text
-
-      - name: Install Playwright Browsers
-        run: pnpm --filter demo -- exec playwright install --with-deps
 
       - name: Run smoke tests
         run: pnpm --filter demo -- test
