@@ -60,7 +60,6 @@ export default defineConfig({
       "react",
       "preact",
       "preact/hooks",
-      "@preact/signals",
       "htm/preact",
       "svelte",
       "solid-js",

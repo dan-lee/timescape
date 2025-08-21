@@ -15,7 +15,6 @@
     "test": "playwright test"
   },
   "dependencies": {
-    "@preact/signals": "2.2.1",
     "@rehookify/datepicker": "6.6.8",
     "htm": "3.1.1",
     "preact": "10.27.1",
@@ -24,11 +23,11 @@
     "solid-js": "1.9.9",
     "svelte": "4.2.19",
     "timescape": "workspace:*",
-    "vue": "3.5.18"
+    "vue": "3.5.19"
   },
   "devDependencies": {
     "@iconify-icon/react": "3.0.0",
-    "@playwright/test": "1.54.2",
+    "@playwright/test": "1.55.0",
     "@storybook/react-vite": "9.1.2",
     "@sveltejs/vite-plugin-svelte": "3.1.2",
     "@types/node": "22.7.5",
