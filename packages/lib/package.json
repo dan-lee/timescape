@@ -40,15 +40,14 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@microsoft/api-extractor": "7.52.10",
-    "@preact/signals": "2.2.1",
+    "@microsoft/api-extractor": "7.52.11",
     "@testing-library/dom": "10.4.1",
-    "@testing-library/jest-dom": "6.7.0",
+    "@testing-library/jest-dom": "6.8.0",
     "@testing-library/user-event": "14.6.1",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.7",
     "@vitest/coverage-v8": "3.2.4",
-    "happy-dom": "14.12.3",
+    "happy-dom": "18.0.1",
     "preact": "10.27.1",
     "react": "19.1.1",
     "react-dom": "19.1.1",
@@ -56,10 +55,9 @@
     "svelte": "4.2.19",
     "tsup": "8.5.0",
     "vitest": "3.2.4",
-    "vue": "3.5.18"
+    "vue": "3.5.19"
   },
   "peerDependencies": {
-    "@preact/signals": "1.x",
     "preact": "10.x",
     "react": ">=17",
     "react-dom": ">=17",
@@ -68,9 +66,6 @@
     "vue": "3.x"
   },
   "peerDependenciesMeta": {
-    "@preact/signals": {
-      "optional": true
-    },
     "preact": {
       "optional": true
     },
