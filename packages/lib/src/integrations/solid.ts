@@ -29,7 +29,7 @@ export const useTimescape = (options: SolidOptions = {}) => {
 
   const currentDate = () => {
     if (isControlled) {
-      return typeof date === "function" ? date() : date;
+      return date();
     }
     return internalDate();
   };

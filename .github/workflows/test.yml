@@ -30,8 +30,8 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
-      - name: Run test
+      - name: Run unit tests
         run: pnpm --filter timescape -- test run --coverage.enabled=true --coverage.reporter=text
 
-      - name: Run smoke tests
+      - name: Run Playwright integration tests
         run: pnpm --filter demo -- test
