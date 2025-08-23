@@ -16,13 +16,6 @@ focus on creating user-centric date and time inputs that integrate seamlessly in
 See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#examples) of how to use it +
 [StackBlitz ⚡](https://stackblitz.com/@dan-lee/collections/timescape) for more demonstrations.
 
-<a href="https://stellate.co" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/dan-lee/timescape/main/assets/badge-dark.svg" />
-    <img src="https://raw.githubusercontent.com/dan-lee/timescape/main/assets/badge-light.svg" alt="Sponsored by Stellate" />
-  </picture>
-</a>
-
 ## Features
 
 - **🧢 Headless Architecture**: You control the UI – `timescape` handles the logic.

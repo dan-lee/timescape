@@ -45,7 +45,7 @@ const { getRootProps, getInputProps } = useTimescape({
 setDate(new Date());
 ```
 
-**After:**
+**After (uncontrolled):**
 
 ```tsx
 const { getRootProps, getInputProps } = useTimescape({

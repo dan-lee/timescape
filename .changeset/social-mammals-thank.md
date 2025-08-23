@@ -12,4 +12,4 @@ All framework integrations now follow controlled/uncontrolled component patterns
 - Removed `update` function from all hooks
 - Removed `options` object from hook returns (needs to be maintained manually)
 
-This affects all framework integrations (React, Preact, Vue, Svelte, Solid). See [MIGRATION-v0.9.md](./MIGRATION-v0.9.md) for detailed migration examples.
+This affects all framework integrations (React, Preact, Vue, Svelte, Solid). See [MIGRATION-v0.9.md](https://github.com/dan-lee/timescape/blob/main/MIGRATION-v0.9.md) for detailed migration examples.
