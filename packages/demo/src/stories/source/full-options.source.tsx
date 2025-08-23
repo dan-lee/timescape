@@ -5,6 +5,7 @@ import { input, root, separator, wrapper } from "../timescape.css";
 
 const App = () => {
   const [options, setOptions] = useState<Options>({
+    date: new Date(),
     minDate: undefined,
     maxDate: undefined,
     hour12: false,
@@ -17,7 +18,6 @@ const App = () => {
 
   const { getRootProps, getInputProps } = useTimescape({
     ...options,
-    defaultDate: new Date(),
     onChangeDate: (date) => setOptions((p) => ({ ...p, date })),
   });
 
