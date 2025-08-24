@@ -75,7 +75,9 @@ export const renderTo = (container: HTMLElement) => {
   // Range
 
   const fromManager = new TimescapeManager(new Date());
-  const toManager = new TimescapeManager(new Date("2025"));
+  const toManager = new TimescapeManager(
+    new Date(Date.now() + 31536e6 * 3), // 3 years from now
+  );
 
   fromManager.on("changeDate", (date) => {
     console.log("changed range from", date);

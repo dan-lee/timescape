@@ -23,7 +23,7 @@ const PreactDemo = () => {
       onChangeDate: (date) => console.log("Range `from` changed to", date),
     },
     to: {
-      defaultDate: new Date("2024-12-31"),
+      defaultDate: new Date(Date.now() + 31536e6 * 3), // 3 years from now
       onChangeDate: (date) => console.log("Range `to` changed to", date),
     },
   });

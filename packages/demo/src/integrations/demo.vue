@@ -51,6 +51,6 @@ const { registerElement, registerRoot } = useTimescape({
 
 const { from, to, registerRangeRoot } = useTimescapeRange({
   from: { defaultDate: new Date() },
-  to: { defaultDate: new Date("2024-12-12") },
+  to: { defaultDate: new Date(Date.now() + 31536e6 * 3) }, // 3 years from now
 });
 </script>

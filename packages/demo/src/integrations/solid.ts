@@ -23,8 +23,8 @@ const App = () => {
     from,
     to,
   } = useTimescapeRange({
-    from: { defaultDate: new Date("2001") },
-    to: { defaultDate: new Date() },
+    from: { defaultDate: new Date() },
+    to: { defaultDate: new Date(Date.now() + 31536e6 * 3) }, // 3 years from now
   });
 
   return html` <div>

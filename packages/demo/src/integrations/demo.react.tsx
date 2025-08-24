@@ -23,13 +23,13 @@ export const ReactDemo = () => {
     to,
   } = useTimescapeRange({
     from: {
-      date: new Date(),
+      defaultDate: new Date(),
       onChangeDate: (date) => {
         console.log("from date changed", date);
       },
     },
     to: {
-      date: new Date("2027-12-31"),
+      defaultDate: new Date(Date.now() + 31536e6 * 3), // 3 years from now
       onChangeDate: (date) => {
         console.log("to date changed", date);
       },
