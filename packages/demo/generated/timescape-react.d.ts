@@ -1,7 +1,5 @@
 import { ChangeEvent } from 'react';
-import { Dispatch } from 'react';
-import { MutableRefObject } from 'react';
-import { SetStateAction } from 'react';
+import { RefObject } from 'react';
 
 export declare const $NOW: "$NOW";
 
@@ -16,10 +14,6 @@ declare type Events = {
     focusWrap: "start" | "end";
 };
 
-export declare type Options = Options_2 & {
-    onChangeDate?: (nextDate: Date | undefined) => void;
-};
-
 declare type Options_2 = {
     date?: Date;
     minDate?: Date | $NOW;
@@ -32,22 +26,16 @@ declare type Options_2 = {
     disallowPartial?: boolean;
 };
 
-declare type RangeOptions_2 = {
-    from?: Options_2 & {
-        date?: Date;
-    };
-    to?: Options_2 & {
-        date?: Date;
-    };
+declare type ReactOptions = Options_2 & {
+    defaultDate?: Date | undefined;
+    onChangeDate?: (date: Date | undefined) => void;
 };
+export { ReactOptions as Options }
+export { ReactOptions }
 
-declare type ReactRangeOptions = RangeOptions_2 & {
-    from?: {
-        onChangeDate?: (nextDate: Date | undefined) => void;
-    };
-    to?: {
-        onChangeDate?: (nextDate: Date | undefined) => void;
-    };
+declare type ReactRangeOptions = {
+    from?: ReactOptions;
+    to?: ReactOptions;
 };
 export { ReactRangeOptions as RangeOptions }
 export { ReactRangeOptions }
@@ -81,18 +69,16 @@ declare class TimescapeManager implements Options_2 {
     on<E extends keyof Events>(event: E, callback: Callback<Events[E]>): () => void;
 }
 
-export declare type UpdateFn = Dispatch<SetStateAction<Options_2>>;
-
-export declare const useTimescape: (options?: Options) => {
+export declare const useTimescape: (options?: ReactOptions) => {
     readonly _manager: TimescapeManager;
     readonly getInputProps: (type: DateType, opts?: {
-        ref?: MutableRefObject<HTMLInputElement | null>;
+        ref?: RefObject<HTMLInputElement | null>;
         autofocus?: boolean;
     }) => {
         ref: (element: HTMLInputElement | null) => void;
     };
     readonly getRootProps: () => {
-        ref: (element: HTMLElement | null) => void | null;
+        ref: (element: HTMLElement | null) => void;
     };
     readonly ampm: {
         readonly value: "am" | "pm" | undefined;
@@ -103,33 +89,45 @@ export declare const useTimescape: (options?: Options) => {
             onChange: (e: Event | ChangeEvent<HTMLSelectElement>) => void;
         };
     };
-    readonly options: Options;
-    readonly update: Dispatch<SetStateAction<Options>>;
 };
 
-export declare const useTimescapeRange: (options: ReactRangeOptions) => {
+export declare const useTimescapeRange: (options?: ReactRangeOptions) => {
     readonly getRootProps: () => {
         ref: (element: HTMLElement | null) => void;
     };
     readonly from: {
         readonly getInputProps: (type: DateType, opts?: {
-            ref?: MutableRefObject<HTMLInputElement | null>;
+            ref?: RefObject<HTMLInputElement | null>;
             autofocus?: boolean;
         }) => {
             ref: (element: HTMLInputElement | null) => void;
         };
-        readonly options: Options;
-        readonly update: Dispatch<SetStateAction<Options>>;
+        readonly ampm: {
+            readonly value: "am" | "pm" | undefined;
+            set: (value: "am" | "pm") => void;
+            toggle: () => void;
+            getSelectProps: () => {
+                value: "am" | "pm" | undefined;
+                onChange: (e: Event | ChangeEvent<HTMLSelectElement>) => void;
+            };
+        };
     };
     readonly to: {
         readonly getInputProps: (type: DateType, opts?: {
-            ref?: MutableRefObject<HTMLInputElement | null>;
+            ref?: RefObject<HTMLInputElement | null>;
             autofocus?: boolean;
         }) => {
             ref: (element: HTMLInputElement | null) => void;
         };
-        readonly options: Options;
-        readonly update: Dispatch<SetStateAction<Options>>;
+        readonly ampm: {
+            readonly value: "am" | "pm" | undefined;
+            set: (value: "am" | "pm") => void;
+            toggle: () => void;
+            getSelectProps: () => {
+                value: "am" | "pm" | undefined;
+                onChange: (e: Event | ChangeEvent<HTMLSelectElement>) => void;
+            };
+        };
     };
 };
 

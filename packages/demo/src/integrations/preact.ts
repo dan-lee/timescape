@@ -1,10 +1,16 @@
-import { useSignalEffect } from "@preact/signals";
 import { html, render } from "htm/preact";
+import { useState } from "preact/hooks";
 import { useTimescape, useTimescapeRange } from "timescape/preact";
 
 const PreactDemo = () => {
-  const { getRootProps, getInputProps, options } = useTimescape({
-    date: new Date(),
+  const [date, setDate] = useState<Date | undefined>(window.date ?? new Date());
+
+  const { getRootProps, getInputProps } = useTimescape({
+    date,
+    onChangeDate: (date) => {
+      console.log("Date changed to", date);
+      setDate(date);
+    },
   });
 
   const {
@@ -12,29 +18,25 @@ const PreactDemo = () => {
     from,
     to,
   } = useTimescapeRange({
-    from: { date: new Date() },
-    to: { date: new Date("2024-12-31") },
-  });
-
-  useSignalEffect(() => {
-    console.log("Date changed to", options.value);
-  });
-  useSignalEffect(() => {
-    console.log("Range `from` changed to", from.options.value.date);
-  });
-  useSignalEffect(() => {
-    console.log("Range `to` changed to", to.options.value.date);
+    from: {
+      defaultDate: new Date(),
+      onChangeDate: (date) => console.log("Range `from` changed to", date),
+    },
+    to: {
+      defaultDate: new Date("2024-12-31"),
+      onChangeDate: (date) => console.log("Range `to` changed to", date),
+    },
   });
 
   return html`
     <div>
       Simple date time:
       <div class="timescape-root" ...${getRootProps()}>
-        <input class="timescape-input" ...${getInputProps("days")} />
+        <input class="timescape-input" ...${getInputProps("years")} />
         <span class="separator">/</span>
         <input class="timescape-input" ...${getInputProps("months")} />
         <span class="separator">/</span>
-        <input class="timescape-input" ...${getInputProps("years")} />
+        <input class="timescape-input" ...${getInputProps("days")} />
         <!-- non-breaking space -->
         <span class="separator">${"\xA0"}</span>
         <input class="timescape-input" ...${getInputProps("hours")} />
@@ -57,6 +59,9 @@ const PreactDemo = () => {
         <input class="timescape-input" ...${to.getInputProps("months")} />
         <span class="separator">/</span>
         <input class="timescape-input" ...${to.getInputProps("days")} />
+      </div>
+      <div id="output" style="display: none">
+        ${date?.toISOString()}
       </div>
     </div>
   `;

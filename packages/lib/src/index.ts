@@ -8,8 +8,8 @@ import {
   toggleAmPm,
 } from "./date";
 import {
-  type Callback,
   addElementListener,
+  type Callback,
   createPubSub,
   isTouchDevice,
 } from "./util";
@@ -856,8 +856,11 @@ export class TimescapeManager implements Options {
    */
   #setDate(date: Date | undefined) {
     if (!date) {
-      this.#timestamp = undefined;
-      this.#pubsub.emit("changeDate", undefined);
+      // Only emit if actually changing from a value to undefined
+      if (this.#timestamp !== undefined) {
+        this.#timestamp = undefined;
+        this.#pubsub.emit("changeDate", undefined);
+      }
       return;
     }
 
@@ -872,15 +875,23 @@ export class TimescapeManager implements Options {
       validatedDate = maxDate;
     }
 
+    const newTimestamp = validatedDate.getTime();
+
+    // For partial dates, check if seconds are the same
     if (
       this.#timestamp &&
-      isSameSeconds(validatedDate.getTime(), this.#timestamp) &&
+      isSameSeconds(newTimestamp, this.#timestamp) &&
       !this.isCompleted()
     ) {
       return;
     }
 
-    this.#timestamp = validatedDate.getTime();
+    // For complete dates, check exact timestamp match to prevent infinite loops
+    if (this.#timestamp === newTimestamp && this.isCompleted()) {
+      return;
+    }
+
+    this.#timestamp = newTimestamp;
     this.#prevTimestamp = undefined;
 
     if (!this.isCompleted()) return;

@@ -1,10 +1,14 @@
-import { useTimescape } from 'timescape/react'
-import { root, input, separator } from '../timescape.css'
+import { useState } from "react";
+import { useTimescape } from "timescape/react";
+import { input, root, separator } from "../timescape.css";
 
 const App = () => {
-  const { getRootProps, getInputProps, options } = useTimescape({
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const { getRootProps, getInputProps } = useTimescape({
+    date,
+    onChangeDate: (date) => setDate(date),
     hour12: true,
-  })
+  });
 
   return (
     <div>
@@ -12,38 +16,38 @@ const App = () => {
         <input
           placeholder="yyyy"
           className={input}
-          {...getInputProps('years')}
+          {...getInputProps("years")}
         />
         <span className={separator}>/</span>
         <input
           placeholder="mm"
           className={input}
-          {...getInputProps('months')}
+          {...getInputProps("months")}
         />
         <span className={separator}>/</span>
-        <input placeholder="dd" className={input} {...getInputProps('days')} />
+        <input placeholder="dd" className={input} {...getInputProps("days")} />
         <span className={separator}>&nbsp;</span>
-        <input placeholder="--" className={input} {...getInputProps('hours')} />
+        <input placeholder="--" className={input} {...getInputProps("hours")} />
         <span className={separator}>:</span>
         <input
           placeholder="--"
           className={input}
-          {...getInputProps('minutes')}
+          {...getInputProps("minutes")}
         />
         <span className={separator}>:</span>
         <input
           placeholder="--"
           className={input}
-          {...getInputProps('seconds')}
+          {...getInputProps("seconds")}
         />
         <span className={separator}>&nbsp;</span>
-        <input placeholder="am" className={input} {...getInputProps('am/pm')} />
+        <input placeholder="am" className={input} {...getInputProps("am/pm")} />
       </div>
-      <pre style={{ position: 'absolute' }}>
-        Output: {options.date?.toISOString() ?? '-'}
+      <pre style={{ position: "absolute" }}>
+        Output: {date?.toISOString() ?? "-"}
       </pre>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

@@ -1,19 +1,11 @@
 import {
-  type Dispatch,
-  type MutableRefObject,
-  type SetStateAction,
+  type RefObject,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
-import {
-  $NOW,
-  type DateType,
-  type Options,
-  type RangeOptions,
-  TimescapeManager,
-} from "../index";
+import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
 
@@ -24,71 +16,81 @@ export {
   type ReactRangeOptions as RangeOptions,
 };
 
-type ReactOptions = Options & {
-  onChangeDate?: (nextDate: Date | undefined) => void;
+export type ReactOptions = Options & {
+  defaultDate?: Date | undefined;
+  onChangeDate?: (date: Date | undefined) => void;
 };
 
-export type UpdateFn = Dispatch<SetStateAction<Options>>;
+export type ReactRangeOptions = {
+  from?: ReactOptions;
+  to?: ReactOptions;
+};
 
 export const useTimescape = (options: ReactOptions = {}) => {
-  const { date, onChangeDate, ...rest } = options;
-  const [manager] = useState(() => new TimescapeManager(date, rest));
+  const { date, defaultDate, onChangeDate, ...rest } = options;
+  const isControlled = date !== undefined;
+
+  const [internalDate, setInternalDate] = useState<Date | undefined>(
+    isControlled ? undefined : defaultDate,
+  );
+
+  const currentDate = isControlled ? date : internalDate;
+  const [manager] = useState(() => new TimescapeManager(currentDate, rest));
   const onChangeDateRef = useRef(onChangeDate);
+
   useLayoutEffect(() => {
     onChangeDateRef.current = onChangeDate;
-  }, [onChangeDate]);
-  const [optionsState, update] = useState<ReactOptions>(() => ({
-    date,
-    ...rest,
-  }));
-
-  useEffect(() => {
-    // this is to work around StrictMode shenanigans
-    manager.resync();
-
-    return () => {
-      manager.remove();
-    };
-  }, [manager]);
+  });
 
   useEffect(() => {
     return manager.on("changeDate", (nextDate) => {
+      if (!isControlled) {
+        setInternalDate(nextDate);
+      } else {
+        // Basically makes this a controlled component
+        manager.date = currentDate?.getTime();
+      }
       onChangeDateRef.current?.(nextDate);
-      update((value) => ({ ...value, date: nextDate }));
     });
-  }, [manager]);
-
-  const timestamp = optionsState.date?.getTime();
+  }, [manager, isControlled, currentDate]);
 
   useEffect(() => {
-    manager.date = timestamp;
-    manager.minDate = optionsState.minDate;
-    manager.maxDate = optionsState.maxDate;
-    manager.hour12 = optionsState.hour12;
-    manager.wrapAround = optionsState.wrapAround;
-    manager.digits = optionsState.digits;
-    manager.snapToStep = optionsState.snapToStep;
-    manager.wheelControl = optionsState.wheelControl;
-    manager.disallowPartial = optionsState.disallowPartial;
+    manager.date = currentDate?.getTime();
+  }, [manager, currentDate]);
+
+  useEffect(() => {
+    manager.minDate = rest.minDate;
+    manager.maxDate = rest.maxDate;
+    manager.hour12 = rest.hour12;
+    manager.wrapAround = rest.wrapAround;
+    manager.digits = rest.digits;
+    manager.snapToStep = rest.snapToStep;
+    manager.wheelControl = rest.wheelControl;
+    manager.disallowPartial = rest.disallowPartial;
   }, [
     manager,
-    timestamp,
-    optionsState.minDate,
-    optionsState.maxDate,
-    optionsState.hour12,
-    optionsState.wrapAround,
-    optionsState.digits,
-    optionsState.snapToStep,
-    optionsState.wheelControl,
-    optionsState.disallowPartial,
+    rest.minDate,
+    rest.maxDate,
+    rest.hour12,
+    rest.wrapAround,
+    rest.digits,
+    rest.snapToStep,
+    rest.wheelControl,
+    rest.disallowPartial,
   ]);
+
+  useEffect(() => {
+    // Handle StrictMode double-mounting
+    manager.resync();
+    return () => manager.remove();
+  }, [manager]);
 
   return {
     _manager: manager,
     getInputProps: (
       type: DateType,
       opts?: {
-        ref?: MutableRefObject<HTMLInputElement | null>;
+        ref?: RefObject<HTMLInputElement | null>;
         autofocus?: boolean;
       },
     ) => ({
@@ -99,21 +101,15 @@ export const useTimescape = (options: ReactOptions = {}) => {
       },
     }),
     getRootProps: () => ({
-      ref: (element: HTMLElement | null) =>
-        element && manager.registerRoot(element),
+      ref: (element: HTMLElement | null) => {
+        if (element) manager.registerRoot(element);
+      },
     }),
     ampm: createAmPmHandler(manager),
-    options: optionsState,
-    update,
   } as const;
 };
 
-export type ReactRangeOptions = RangeOptions & {
-  from?: { onChangeDate?: (nextDate: Date | undefined) => void };
-  to?: { onChangeDate?: (nextDate: Date | undefined) => void };
-};
-
-export const useTimescapeRange = (options: ReactRangeOptions) => {
+export const useTimescapeRange = (options: ReactRangeOptions = {}) => {
   const from = useTimescape(options.from);
   const to = useTimescape(options.to);
 
@@ -129,15 +125,7 @@ export const useTimescapeRange = (options: ReactRangeOptions) => {
         to._manager.registerRoot(element);
       },
     }),
-    from: {
-      getInputProps: from.getInputProps,
-      options: from.options,
-      update: from.update,
-    },
-    to: {
-      getInputProps: to.getInputProps,
-      options: to.options,
-      update: to.update,
-    },
+    from: { getInputProps: from.getInputProps, ampm: from.ampm },
+    to: { getInputProps: to.getInputProps, ampm: to.ampm },
   } as const;
 };

@@ -1,6 +1,5 @@
-import type { Options, UpdateFn } from "timescape/react";
-
-import { Fragment, useState } from "react";
+import { type Dispatch, Fragment, type SetStateAction, useState } from "react";
+import type { Options } from "timescape/react";
 import {
   button,
   checkbox,
@@ -34,9 +33,11 @@ const ALL_OPTIONS = [
   "wrapAround",
   "snapToStep",
   "wheelControl",
-  'disallowPartial',
+  "disallowPartial",
 ] as const;
-type PossibleOptions = keyof Omit<Options, "onChangeDate">;
+
+type UpdateFn = Dispatch<SetStateAction<Options>>;
+type PossibleOptions = (typeof ALL_OPTIONS)[number];
 
 export const SetOptions = ({
   enabled,
@@ -145,7 +146,7 @@ const InputField = ({
     case "snapToStep":
     case "hour12":
     case "wheelControl":
-    case 'disallowPartial':
+    case "disallowPartial":
       return (
         <input
           id={`input-${optionName}`}

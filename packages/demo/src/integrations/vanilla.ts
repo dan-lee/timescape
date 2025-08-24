@@ -1,4 +1,4 @@
-import { type DateType, TimescapeManager, marry } from "timescape";
+import { type DateType, marry, TimescapeManager } from "timescape";
 
 const prepare = (container: HTMLElement) => {
   container.innerHTML = `
@@ -33,16 +33,28 @@ const prepare = (container: HTMLElement) => {
       <span class="separator">/</span>
       <input class="timescape-input" data-type="days" data-range="to" />
     </div>
+    <div id="output" style="display: none"></div>
   `.trim();
+};
+
+const updateOutput = (date: Date | undefined) => {
+  const output = document.querySelector("#output");
+  if (output) {
+    output.textContent = date?.toISOString() ?? "";
+  }
 };
 
 export const renderTo = (container: HTMLElement) => {
   prepare(container);
 
-  const manager = new TimescapeManager(new Date());
+  const manager = new TimescapeManager(window.date ?? new Date());
+
+  updateOutput(manager.date);
 
   manager.on("changeDate", (date) => {
     console.log("changed date", date);
+
+    updateOutput(date);
   });
 
   const simple = container.querySelector<HTMLElement>(".timescape-root.simple");

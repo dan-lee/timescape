@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -7,27 +7,57 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["timescape-react.d.ts", "dist/**", ".storybook/**"]
+    "includes": [
+      "**",
+      "!**/timescape-react.d.ts",
+      "!**/dist",
+      "!packages/demo/src/integrations/*.{svelte,vue}"
+    ]
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space"
   },
-  "organizeImports": {
-    "enabled": true
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
   },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
       "correctness": {
-        "noConstructorReturn": "off"
+        "useUniqueElementIds": "off",
+        "noConstructorReturn": "off",
+        "noUnusedImports": {
+          "level": "warn",
+          "fix": "safe"
+        }
       },
       "complexity": {
         "noForEach": "off"
       },
       "a11y": {
         "useKeyWithClickEvents": "off"
+      },
+      "suspicious": {
+        "useIterableCallbackReturn": "off"
+      },
+      "style": {
+        "useNodejsImportProtocol": {
+          "level": "warn",
+          "fix": "safe"
+        },
+        "useImportType": {
+          "level": "warn",
+          "fix": "safe",
+          "options": {
+            "style": "auto"
+          }
+        }
       }
     }
   },

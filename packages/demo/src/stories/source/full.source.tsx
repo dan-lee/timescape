@@ -1,14 +1,16 @@
+import { useState } from "react";
 import { useTimescape } from "timescape/react";
 import { input, root, separator } from "../timescape.css";
 
 const App = () => {
-  const { getRootProps, getInputProps, options } = useTimescape({
+  const [hour12] = useState(false);
+  const { getRootProps, getInputProps } = useTimescape({
     // Edit these options in real-time 👇
-    date: new Date(),
+    defaultDate: new Date(),
     disallowPartial: false,
     minDate: undefined,
     maxDate: undefined,
-    hour12: false,
+    hour12,
     digits: "2-digit",
     wrapAround: false,
     snapToStep: false,
@@ -28,9 +30,7 @@ const App = () => {
       <input className={input} {...getInputProps("minutes")} />
       <span className={separator}>:</span>
       <input className={input} {...getInputProps("seconds")} />
-      {options.hour12 && (
-        <input className={input} {...getInputProps("am/pm")} />
-      )}
+      {hour12 && <input className={input} {...getInputProps("am/pm")} />}
     </div>
   );
 };

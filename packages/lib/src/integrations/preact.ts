@@ -1,44 +1,76 @@
-import * as signals from "@preact/signals";
-import { type MutableRef, useEffect, useState } from "preact/hooks";
-import {
-  $NOW,
-  type DateType,
-  type Options,
-  type RangeOptions,
-  TimescapeManager,
-} from "../index";
+import { type MutableRef, useEffect, useRef, useState } from "preact/hooks";
+import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
 
-export { $NOW, type DateType, type Options, type RangeOptions };
+export { $NOW, type DateType };
 
-// This is to prevent the error: "Typescript inferred type cannot be named without reference".
-const { useSignalEffect, useSignal } = signals;
+type BaseOptions = Omit<Options, "date">;
 
-export const useTimescape = (options: Options = {}) => {
-  const [manager] = useState(() => {
-    const { date, ...rest } = options;
-    return new TimescapeManager(date, rest);
+export type PreactOptions = BaseOptions & {
+  date?: Date | undefined;
+  defaultDate?: Date | undefined;
+  onChangeDate?: (date: Date | undefined) => void;
+};
+
+export type PreactRangeOptions = {
+  from?: PreactOptions;
+  to?: PreactOptions;
+};
+
+export const useTimescape = (options: PreactOptions = {}) => {
+  const { date, defaultDate, onChangeDate, ...rest } = options;
+
+  const isControlled = date !== undefined;
+
+  const [internalDate, setInternalDate] = useState<Date | undefined>(
+    isControlled ? undefined : defaultDate,
+  );
+
+  const currentDate = isControlled ? date : internalDate;
+  const [manager] = useState(() => new TimescapeManager(currentDate, rest));
+  const onChangeDateRef = useRef(onChangeDate);
+
+  useEffect(() => {
+    onChangeDateRef.current = onChangeDate;
   });
-  const optionsSignal = useSignal(options);
 
   useEffect(() => {
     return manager.on("changeDate", (nextDate) => {
-      optionsSignal.value = { ...optionsSignal.value, date: nextDate };
+      if (!isControlled) {
+        setInternalDate(nextDate);
+      } else {
+        // Basically makes this a controlled component
+        manager.date = currentDate?.getTime();
+      }
+      onChangeDateRef.current?.(nextDate);
     });
-  }, [manager, optionsSignal]);
+  }, [manager, isControlled, currentDate]);
 
-  useSignalEffect(() => {
-    manager.date = optionsSignal.value.date;
-    manager.minDate = optionsSignal.value.minDate;
-    manager.maxDate = optionsSignal.value.maxDate;
-    manager.digits = optionsSignal.value.digits;
-    manager.wrapAround = optionsSignal.value.wrapAround;
-    manager.hour12 = optionsSignal.value.hour12;
-    manager.snapToStep = optionsSignal.value.snapToStep;
-    manager.wheelControl = optionsSignal.value.wheelControl;
-    manager.disallowPartial = optionsSignal.value.disallowPartial;
-  });
+  useEffect(() => {
+    manager.date = currentDate?.getTime();
+  }, [manager, currentDate]);
+
+  useEffect(() => {
+    manager.minDate = rest.minDate;
+    manager.maxDate = rest.maxDate;
+    manager.digits = rest.digits;
+    manager.wrapAround = rest.wrapAround;
+    manager.hour12 = rest.hour12;
+    manager.snapToStep = rest.snapToStep;
+    manager.wheelControl = rest.wheelControl;
+    manager.disallowPartial = rest.disallowPartial;
+  }, [
+    manager,
+    rest.minDate,
+    rest.maxDate,
+    rest.digits,
+    rest.wrapAround,
+    rest.hour12,
+    rest.snapToStep,
+    rest.wheelControl,
+    rest.disallowPartial,
+  ]);
 
   useEffect(() => () => manager.remove(), [manager]);
 
@@ -59,11 +91,10 @@ export const useTimescape = (options: Options = {}) => {
         element && manager.registerRoot(element),
     }),
     ampm: createAmPmHandler(manager),
-    options: optionsSignal,
   } as const;
 };
 
-export const useTimescapeRange = (options: RangeOptions = {}) => {
+export const useTimescapeRange = (options: PreactRangeOptions = {}) => {
   const from = useTimescape(options.from);
   const to = useTimescape(options.to);
 
@@ -74,18 +105,19 @@ export const useTimescapeRange = (options: RangeOptions = {}) => {
   return {
     getRootProps: () => ({
       ref: (element: HTMLElement | null) => {
-        if (!element) return;
-        from._manager.registerRoot(element);
-        to._manager.registerRoot(element);
+        if (element) {
+          from._manager.registerRoot(element);
+          to._manager.registerRoot(element);
+        }
       },
     }),
     from: {
       getInputProps: from.getInputProps,
-      options: from.options,
+      ampm: from.ampm,
     },
     to: {
       getInputProps: to.getInputProps,
-      options: to.options,
+      ampm: to.ampm,
     },
   } as const;
 };

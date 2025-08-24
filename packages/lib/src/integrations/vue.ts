@@ -1,42 +1,71 @@
 import {
   type ComponentPublicInstance,
+  computed,
   onUnmounted,
+  type Ref,
   ref,
+  watch,
   watchEffect,
 } from "vue";
 
-import {
-  $NOW,
-  type DateType,
-  type Options,
-  type RangeOptions,
-  TimescapeManager,
-} from "../index";
+import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
 
-export { $NOW, type DateType, type Options, type RangeOptions };
+export { $NOW, type DateType };
 
-export const useTimescape = (options: Options = {}) => {
-  const optionsRef = ref(options);
-  const { date, ...rest } = options;
+type BaseOptions = Omit<Options, "date">;
 
-  const manager = new TimescapeManager(date, rest);
+export type VueOptions = BaseOptions & {
+  date?: Ref<Date | undefined>;
+  defaultDate?: Date | undefined;
+  onChangeDate?: (date: Date | undefined) => void;
+};
+
+export type VueRangeOptions = {
+  from?: VueOptions;
+  to?: VueOptions;
+};
+
+export const useTimescape = (options: VueOptions = {}) => {
+  const { date, defaultDate, onChangeDate, ...rest } = options;
+
+  const isControlled = date !== undefined;
+
+  const internalDate = ref<Date | undefined>(
+    isControlled ? undefined : defaultDate,
+  );
+
+  const currentDate = computed(() => {
+    if (date !== undefined) {
+      return date.value;
+    }
+    return internalDate.value;
+  });
+
+  const manager = new TimescapeManager(currentDate.value, rest);
 
   manager.on("changeDate", (nextDate) => {
-    optionsRef.value.date = nextDate;
+    onChangeDate?.(nextDate);
+
+    if (!isControlled) {
+      internalDate.value = nextDate;
+    }
+  });
+
+  watch(currentDate, (newDate) => {
+    manager.date = newDate;
   });
 
   watchEffect(() => {
-    manager.date = optionsRef.value.date;
-    manager.minDate = optionsRef.value.minDate;
-    manager.maxDate = optionsRef.value.maxDate;
-    manager.digits = optionsRef.value.digits;
-    manager.wrapAround = optionsRef.value.wrapAround;
-    manager.hour12 = optionsRef.value.hour12;
-    manager.snapToStep = optionsRef.value.snapToStep;
-    manager.wheelControl = optionsRef.value.wheelControl;
-    manager.disallowPartial = optionsRef.value.disallowPartial;
+    manager.minDate = rest.minDate;
+    manager.maxDate = rest.maxDate;
+    manager.digits = rest.digits;
+    manager.wrapAround = rest.wrapAround;
+    manager.hour12 = rest.hour12;
+    manager.snapToStep = rest.snapToStep;
+    manager.wheelControl = rest.wheelControl;
+    manager.disallowPartial = rest.disallowPartial;
   });
 
   onUnmounted(() => manager.remove());
@@ -48,14 +77,15 @@ export const useTimescape = (options: Options = {}) => {
         element instanceof HTMLInputElement &&
         manager.registerElement(element, type),
     registerRoot: () => (element: Element | ComponentPublicInstance | null) => {
-      element instanceof HTMLElement && manager.registerRoot(element);
+      if (element instanceof HTMLElement) {
+        manager.registerRoot(element);
+      }
     },
     ampm: createAmPmHandler(manager),
-    options: optionsRef,
   } as const;
 };
 
-export const useTimescapeRange = (options: RangeOptions = {}) => {
+export const useTimescapeRange = (options: VueRangeOptions = {}) => {
   const from = useTimescape(options.from);
   const to = useTimescape(options.to);
 
@@ -69,13 +99,7 @@ export const useTimescapeRange = (options: RangeOptions = {}) => {
           to._manager.registerRoot(element);
         }
       },
-    from: {
-      registerElement: from.registerElement,
-      options: from.options,
-    },
-    to: {
-      registerElement: to.registerElement,
-      options: to.options,
-    },
+    from: { registerElement: from.registerElement, ampm: from.ampm },
+    to: { registerElement: to.registerElement, ampm: to.ampm },
   } as const;
 };

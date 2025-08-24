@@ -5,10 +5,9 @@ import {
   waitFor,
 } from "@testing-library/dom";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
-import { PropertySymbol } from "happy-dom";
+import { type EventTarget, PropertySymbol } from "happy-dom";
 import { beforeEach, describe, expect, it } from "vitest";
-
-import { type DateType, TimescapeManager, marry } from "../src";
+import { type DateType, marry, TimescapeManager } from "../src";
 
 const register = (manager: TimescapeManager, fields: DateType[]) => {
   const container = document.createElement("div");
@@ -202,22 +201,22 @@ describe("timescape", () => {
 
       const fields = getFields();
 
-      Object.values(fields).forEach((field) => {
-        // @ts-expect-error not public API
-        const listeners = field[PropertySymbol.listeners];
-        return Object.values(listeners).forEach((l) => {
-          expect(l).not.toHaveLength(0);
-        });
+      const countListeners = (element: HTMLElement) => {
+        const { bubbling, capturing } = (element as unknown as EventTarget)[
+          PropertySymbol.listeners
+        ];
+
+        return [...capturing.values(), ...bubbling.values()].flat().length;
+      };
+
+      Object.values(fields).map((field) => {
+        expect(countListeners(field)).toBeGreaterThan(0);
       });
 
       manager.remove();
 
       Object.values(fields).forEach((field) => {
-        // @ts-expect-error not public API
-        const listeners = field[PropertySymbol.listeners];
-        return Object.values(listeners).forEach((l) => {
-          expect(l).toHaveLength(0);
-        });
+        expect(countListeners(field)).toBe(0);
       });
     });
   });
@@ -1400,7 +1399,7 @@ describe("timescape", () => {
       manager.date = new Date("2021-01-01T00:00:00");
       document.body.appendChild(container);
       const hoursField = queryByTestId<HTMLInputElement>(container, "hours");
-      
+
       expect(manager.ampm).toBe("am");
       expect(hoursField).toHaveValue("12");
 
