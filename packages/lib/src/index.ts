@@ -138,6 +138,10 @@ export class TimescapeManager implements Options {
   }
 
   set date(nextDate: Date | number | string | undefined) {
+    for (const entry of this.#registry.values()) {
+      entry.isUnset = typeof nextDate === "undefined";
+    }
+
     this.#setDate(nextDate ? new Date(nextDate) : undefined);
   }
 

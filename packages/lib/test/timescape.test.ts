@@ -70,6 +70,50 @@ const getFields = () => {
 };
 
 describe("timescape", () => {
+  describe("Initial date undefined", () => {
+    beforeEach(() => {
+      document.body.innerHTML = "";
+      manager = new TimescapeManager(undefined);
+
+      container = register(manager, [
+        "years",
+        "months",
+        "days",
+        "hours",
+        "minutes",
+        "seconds",
+        "am/pm",
+      ] satisfies DateType[]);
+    });
+
+    it("Should render empty fields with default date undefined", () => {
+      document.body.appendChild(container);
+      const fields = getFields();
+
+      expect(fields.years).toHaveValue("");
+      expect(fields.months).toHaveValue("");
+      expect(fields.days).toHaveValue("");
+      expect(fields.hours).toHaveValue("");
+      expect(fields.minutes).toHaveValue("");
+      expect(fields.seconds).toHaveValue("");
+      expect(fields.ampm).toHaveValue("");
+    });
+
+    it("Should allow setting the date", () => {
+      document.body.appendChild(container);
+      const fields = getFields();
+
+      manager.date = baseDate;
+
+      expect(fields.years).toHaveValue("2021");
+      expect(fields.months).toHaveValue("12");
+      expect(fields.days).toHaveValue("31");
+      expect(fields.hours).toHaveValue("23");
+      expect(fields.minutes).toHaveValue("59");
+      expect(fields.seconds).toHaveValue("59");
+      expect(fields.ampm).toHaveValue("PM");
+    });
+  });
   describe("rendering", () => {
     it("should render correctly", async () => {
       document.body.appendChild(container);
@@ -1150,6 +1194,68 @@ describe("timescape", () => {
   });
 
   describe("ranges", () => {
+    describe("Default dates undefined", () => {
+      let fromManager: TimescapeManager;
+      let toManager: TimescapeManager;
+
+      beforeEach(() => {
+        container.innerHTML = `
+          <div data-testid="root">
+            <input data-testid="from-days" />
+            <input data-testid="from-months" />
+            <input data-testid="from-years" />
+            <input data-testid="to-days" />
+            <input data-testid="to-months" />
+            <input data-testid="to-years" />
+          </div>
+
+        `;
+
+        fromManager = new TimescapeManager();
+        toManager = new TimescapeManager();
+
+        const root = getByTestId(container, "root");
+
+        marry(fromManager, toManager);
+
+        fromManager.registerRoot(root);
+        toManager.registerRoot(root);
+
+        fromManager.registerElement(
+          getByTestId(container, "from-days"),
+          "days",
+        );
+        fromManager.registerElement(
+          getByTestId(container, "from-months"),
+          "months",
+        );
+        fromManager.registerElement(
+          getByTestId(container, "from-years"),
+          "years",
+        );
+
+        toManager.registerElement(getByTestId(container, "to-days"), "days");
+        toManager.registerElement(
+          getByTestId(container, "to-months"),
+          "months",
+        );
+        toManager.registerElement(getByTestId(container, "to-years"), "years");
+      });
+
+      it("Should allow setting the dates", () => {
+        document.body.appendChild(container);
+        toManager.date = new Date("2006-5-4");
+        fromManager.date = new Date("2003-2-1");
+
+        expect(getByTestId(container, "to-years")).toHaveValue("2006");
+        expect(getByTestId(container, "to-months")).toHaveValue("05");
+        expect(getByTestId(container, "to-days")).toHaveValue("04");
+        expect(getByTestId(container, "from-years")).toHaveValue("2003");
+        expect(getByTestId(container, "from-months")).toHaveValue("02");
+        expect(getByTestId(container, "from-days")).toHaveValue("01");
+      });
+    });
+
     beforeEach(() => {
       container.innerHTML = `
         <div data-testid="root">
@@ -1400,7 +1506,7 @@ describe("timescape", () => {
       manager.date = new Date("2021-01-01T00:00:00");
       document.body.appendChild(container);
       const hoursField = queryByTestId<HTMLInputElement>(container, "hours");
-      
+
       expect(manager.ampm).toBe("am");
       expect(hoursField).toHaveValue("12");
 
