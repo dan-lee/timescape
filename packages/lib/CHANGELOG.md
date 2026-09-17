@@ -1,5 +1,33 @@
 # timescape
 
+## 0.9.0
+
+### Minor Changes
+
+- [#57](https://github.com/dan-lee/timescape/pull/57) [`29973c5`](https://github.com/dan-lee/timescape/commit/29973c56bcc87c94dfeec6f899f4e12d6e962ed1) Thanks [@dan-lee](https://github.com/dan-lee)! - **BREAKING**: Refactor to controlled/uncontrolled component pattern
+  
+  All framework integrations now follow controlled/uncontrolled component patterns, replacing the previous imperative API with a more declarative approach.
+  
+  **Key Changes:**
+  - **Controlled mode**: Pass `date` prop with `onDateChange` callback to manage state externally
+  - **Uncontrolled mode**: Use `defaultDate` for initial value, component manages state internally
+  - Removed `update` function from all hooks
+  - Removed `options` object from hook returns (needs to be maintained manually)
+  - Renamed `onChangeDate` to `onDateChange`
+  - `null` is the empty date: `date: null` is an empty controlled input, `date: undefined` means uncontrolled. Which mode an input is in is decided on its first render, and switching warns in development.
+  - Controlled inputs revert user edits unless the parent accepts the new date, but keep the edit in progress: clearing a segment no longer loses the date it is based on
+  - An external date now reaches the input even while a segment is cleared
+  - `onDateChange` no longer fires for programmatic updates
+  - Ranges constrain each other through internal bounds instead of overwriting `minDate`/`maxDate`, and `marry()` returns a function that dissolves the range again
+  
+  This affects all framework integrations (React, Preact, Vue, Svelte, Solid). See [MIGRATION-v0.9.md](https://github.com/dan-lee/timescape/blob/main/MIGRATION-v0.9.md) for detailed migration examples.
+
+### Patch Changes
+
+- [#63](https://github.com/dan-lee/timescape/pull/63) [`b6285e4`](https://github.com/dan-lee/timescape/commit/b6285e4846b8c9a9a15e95063d9321c79d6b347e) Thanks [@dan-lee](https://github.com/dan-lee)! - Fix `getRootProps` ref type in the React integration so its callback returns `void` instead of `void | null`, resolving a TS2322 error when spreading `getRootProps()` onto an element.
+
+- [#61](https://github.com/dan-lee/timescape/pull/61) [`cf4f227`](https://github.com/dan-lee/timescape/commit/cf4f2276c002505a0d8d95d4896cd0bfd84ee62c) Thanks [@houkanshan](https://github.com/houkanshan)! - Fix: re-entering parts after clearing changes the rest to today
+
 ## 0.8.0
 
 ### Minor Changes
