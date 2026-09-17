@@ -19,7 +19,6 @@ type BaseOptions = Omit<Options, "date">;
 export type SvelteOptions = BaseOptions & {
   /** Passing a store makes the input controlled; its `null` is the empty date. */
   date?: Readable<DateProp>;
-  /** Initial value for uncontrolled usage. */
   defaultDate?: DateProp;
   onDateChange?: (date: Date | null) => void;
 };

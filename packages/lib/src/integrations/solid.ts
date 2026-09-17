@@ -2,7 +2,7 @@ import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
-import { bindDate, type DateProp, toDate } from "./shared";
+import { applyOptions, bindDate, type DateProp, toDate } from "./shared";
 
 export {
   $NOW,
@@ -16,7 +16,6 @@ type BaseOptions = Omit<Options, "date">;
 export type SolidOptions = BaseOptions & {
   /** Passing an accessor makes the input controlled; its `null` is the empty date. */
   date?: Accessor<DateProp>;
-  /** Initial value for uncontrolled usage. */
   defaultDate?: DateProp;
   onDateChange?: (date: Date | null) => void;
 };
@@ -53,16 +52,7 @@ export const useTimescape = (options: SolidOptions = {}) => {
     dateBinding.sync(currentDate());
   });
 
-  createEffect(() => {
-    manager.minDate = options.minDate;
-    manager.maxDate = options.maxDate;
-    manager.hour12 = options.hour12;
-    manager.digits = options.digits;
-    manager.wrapAround = options.wrapAround;
-    manager.snapToStep = options.snapToStep;
-    manager.wheelControl = options.wheelControl;
-    manager.disallowPartial = options.disallowPartial;
-  });
+  createEffect(() => applyOptions(manager, options));
 
   onCleanup(() => manager.remove());
 

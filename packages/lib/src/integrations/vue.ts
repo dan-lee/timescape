@@ -10,7 +10,7 @@ import {
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
-import { bindDate, type DateProp, toDate } from "./shared";
+import { applyOptions, bindDate, type DateProp, toDate } from "./shared";
 
 export {
   $NOW,
@@ -27,7 +27,6 @@ export type DateRef = { readonly value: DateProp };
 export type VueOptions = BaseOptions & {
   /** Passing a ref makes the input controlled; its `null` is the empty date. */
   date?: DateRef;
-  /** Initial value for uncontrolled usage. */
   defaultDate?: DateProp;
   onDateChange?: (date: Date | null) => void;
 };
@@ -63,16 +62,7 @@ export const useTimescape = (options: VueOptions = {}) => {
 
   watch(currentDate, dateBinding.sync);
 
-  watchEffect(() => {
-    manager.minDate = options.minDate;
-    manager.maxDate = options.maxDate;
-    manager.digits = options.digits;
-    manager.wrapAround = options.wrapAround;
-    manager.hour12 = options.hour12;
-    manager.snapToStep = options.snapToStep;
-    manager.wheelControl = options.wheelControl;
-    manager.disallowPartial = options.disallowPartial;
-  });
+  watchEffect(() => applyOptions(manager, options));
 
   onUnmounted(() => {
     dateBinding.unsubscribe();

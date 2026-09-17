@@ -1,13 +1,27 @@
-import type TimescapeManager from "../index";
+import type { Options, TimescapeManager } from "../index";
 
 /**
- * `null` is an empty value, `undefined` is no value at all: passing `date`
- * as `undefined` means "this input is uncontrolled", the same distinction
- * React Aria and MUI draw for their date fields.
+ * `null` is an empty date, `undefined` is no date at all -- passing `date` as
+ * `undefined` leaves the input uncontrolled. Same distinction React Aria and
+ * MUI draw for their date fields.
  */
 export type DateProp = Date | null | undefined;
 
 export const toDate = (date: DateProp) => date ?? undefined;
+
+export const applyOptions = (
+  manager: TimescapeManager,
+  options: Omit<Options, "date">,
+) => {
+  manager.minDate = options.minDate;
+  manager.maxDate = options.maxDate;
+  manager.hour12 = options.hour12;
+  manager.digits = options.digits;
+  manager.wrapAround = options.wrapAround;
+  manager.snapToStep = options.snapToStep;
+  manager.wheelControl = options.wheelControl;
+  manager.disallowPartial = options.disallowPartial;
+};
 
 type DateBindingOptions = {
   controlled: boolean;
@@ -36,9 +50,9 @@ export const bindDate = (
 
     if (!options.controlled) options.setDate(date);
     options.onDateChange?.(date ?? null);
-    // Writing the current date back is what reverts an edit the parent did not
-    // accept. The manager ignores it when it would overwrite an edit in
-    // progress, so a cleared segment survives until the parent answers.
+    // Reverts an edit the parent did not accept. The manager ignores the write
+    // when it would overwrite an edit in progress, so a cleared segment
+    // survives until the parent answers.
     if (options.controlled) sync(options.getDate());
   });
 
@@ -46,8 +60,8 @@ export const bindDate = (
 };
 
 export const warnControlledSwitch = () => {
-  // `process` is absent in a browser loading the package unbundled; where a
-  // bundler does define it, this lets the warning be stripped in production.
+  // Absent in a browser loading the package unbundled; where a bundler defines
+  // it, this lets the warning be stripped in production.
   if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
     return;
   }
