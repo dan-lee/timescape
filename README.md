@@ -54,11 +54,11 @@ import { useTimescape } from "timescape/react";
 import { useState } from "react";
 
 function App() {
-  // Controlled example
-  const [date, setDate] = useState(new Date());
+  // Controlled example (`null` is the empty date)
+  const [date, setDate] = useState<Date | null>(new Date());
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChangeDate: (nextDate) => {
+    onDateChange: (nextDate) => {
       console.log("Date changed to", nextDate);
       setDate(nextDate);
     },
@@ -67,7 +67,7 @@ function App() {
   // Or uncontrolled with defaultDate
   // const { getRootProps, getInputProps } = useTimescape({
   //   defaultDate: new Date(),
-  //   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
+  //   onDateChange: (nextDate) => console.log("Date changed to", nextDate),
   // });
 
   return (
@@ -100,11 +100,11 @@ import { useTimescape } from "timescape/preact";
 import { useState } from "preact/hooks";
 
 function App() {
-  // Controlled example
-  const [date, setDate] = useState(new Date());
+  // Controlled example (`null` is the empty date)
+  const [date, setDate] = useState<Date | null>(new Date());
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChangeDate: (nextDate) => {
+    onDateChange: (nextDate) => {
       console.log("Date changed to", nextDate);
       setDate(nextDate);
     },
@@ -113,7 +113,7 @@ function App() {
   // Or uncontrolled with defaultDate
   // const { getRootProps, getInputProps } = useTimescape({
   //   defaultDate: new Date(),
-  //   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
+  //   onDateChange: (nextDate) => console.log("Date changed to", nextDate),
   // });
 
   return (
@@ -157,7 +157,7 @@ import { ref, watch } from "vue";
 const date = ref(new Date());
 const { registerElement, registerRoot } = useTimescape({
   date,
-  onChangeDate: (nextDate) => {
+  onDateChange: (nextDate) => {
     console.log("Date changed to", nextDate);
     date.value = nextDate;
   },
@@ -166,7 +166,7 @@ const { registerElement, registerRoot } = useTimescape({
 // Or uncontrolled with defaultDate
 // const { registerElement, registerRoot } = useTimescape({
 //   defaultDate: new Date(),
-//   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
+//   onDateChange: (nextDate) => console.log("Date changed to", nextDate),
 // });
 </script>
 ```
@@ -187,7 +187,7 @@ import { writable } from "svelte/store";
 const date = writable(new Date());
 const { inputProps, rootProps } = createTimescape({
   date: $date,
-  onChangeDate: (nextDate) => {
+  onDateChange: (nextDate) => {
     console.log("Date changed to", nextDate);
     date.set(nextDate);
   },
@@ -196,7 +196,7 @@ const { inputProps, rootProps } = createTimescape({
 // Or uncontrolled with defaultDate
 // const { inputProps, rootProps } = createTimescape({
 //   defaultDate: new Date(),
-//   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
+//   onDateChange: (nextDate) => console.log("Date changed to", nextDate),
 // });
 </script>
 
@@ -228,7 +228,7 @@ function App() {
   const [date, setDate] = createSignal(new Date());
   const { getInputProps, getRootProps } = useTimescape({
     date: date(),
-    onChangeDate: (nextDate) => {
+    onDateChange: (nextDate) => {
       console.log("Date changed to", nextDate);
       setDate(nextDate);
     },
@@ -237,7 +237,7 @@ function App() {
   // Or uncontrolled with defaultDate
   // const { getInputProps, getRootProps } = useTimescape({
   //   defaultDate: new Date(),
-  //   onChangeDate: (nextDate) => console.log("Date changed to", nextDate),
+  //   onDateChange: (nextDate) => console.log("Date changed to", nextDate),
   // });
 
   return (
@@ -294,14 +294,25 @@ timeManager.registerElement(container.querySelector('[data-type="years"]')!, "ye
 
 `timescape` supports both controlled and uncontrolled modes:
 
-- **Controlled**: Use `date` prop and `onChangeDate` callback to manage state externally
+- **Controlled**: Use `date` prop and `onDateChange` callback to manage state externally
 - **Uncontrolled**: Use `defaultDate` for initial value, component manages state internally
+
+Pass `null` for an empty controlled date, and `undefined` only to opt out of
+controlled mode -- the same distinction React Aria and MUI draw. Which mode an
+input is in is decided on its first render, so a controlled input that reports
+an empty date stays controlled.
+
+While the user is mid-edit -- a cleared segment, a partially typed value -- the
+input keeps that editing state. The parent owns the date, the input owns the
+edit: writing the same date back (because you rejected the change, or have not
+answered yet) leaves the edit alone, while writing a *different* date replaces
+what is on screen.
 
 ```tsx
 type Options = {
-  date?: Date; // For controlled mode
-  defaultDate?: Date; // For uncontrolled mode
-  onChangeDate?: (date: Date | undefined) => void; // Called on any date change
+  date?: Date | null; // For controlled mode, `null` is the empty date
+  defaultDate?: Date | null; // For uncontrolled mode
+  onDateChange?: (date: Date | null) => void; // Called on any date change
   minDate?: Date | $NOW; // see more about $NOW below
   maxDate?: Date | $NOW;
   hour12?: boolean;
@@ -315,9 +326,9 @@ type Options = {
 
 | Option            | Default     | Description                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `date`            | `undefined` | The current date value for controlled mode. When provided, you must handle updates via `onChangeDate`.                                                                                                                                                                                                                                                           |
+| `date`            | `undefined` | The current date value for controlled mode. When provided, you must handle updates via `onDateChange`. Use `null` for an empty value; `undefined` means uncontrolled.                                                                                                                                                                                                                                                           |
 | `defaultDate`     | `undefined` | The initial date for uncontrolled mode. Component manages state internally.                                                                                                                                                                                                                                                                                      |
-| `onChangeDate`    | `undefined` | Callback fired when the date changes. Required for controlled mode, optional for uncontrolled.                                                                                                                                                                                                                                                                   |
+| `onDateChange`    | `undefined` | Callback fired when the date changes, with `null` when the date is empty or incomplete. Required for controlled mode, optional for uncontrolled.                                                                                                                                                                                                                                                                   |
 | `minDate`         | `undefined` | The minimum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-vavue)                                                                                                                                                                                                                     |
 | `maxDate`         | `undefined` | The maximum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-value)                                                                                                                                                                                                                     |
 | `hour12`          | `false`     | If set to `true`, the time input will use a 12-hour format (with AM/PM). If set to `false`, it will use a 24-hour format.                                                                                                                                                                                                                                        |
@@ -400,7 +411,7 @@ function CustomAmPmExample() {
   const { getInputProps, getRootProps, ampm } = useTimescape({
     date,
     hour12: true,
-    onChangeDate: setDate,
+    onDateChange: setDate,
   });
 
   return (
@@ -458,11 +469,11 @@ const [toDate, setToDate] = useState(new Date());
 const { getRootProps, from, to } = useTimescapeRange({
   from: {
     date: fromDate,
-    onChangeDate: setFromDate,
+    onDateChange: setFromDate,
   },
   to: {
     date: toDate,
-    onChangeDate: setToDate,
+    onDateChange: setToDate,
   },
 });
 
