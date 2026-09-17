@@ -42,35 +42,38 @@ export const createTimescape = (options: SvelteOptions = {}) => {
 
   const manager = new TimescapeManager(currentValue, rest);
 
-  manager.on("changeDate", (nextDate) => {
-    onChangeDate?.(nextDate);
+  // Programmatic writes to `manager.date` (syncing the store, or snapping back
+  // in controlled mode) emit `changeDate` too. This flag lets us ignore those
+  // echoes so `onChangeDate` only fires for genuine user edits.
+  let suppressChange = false;
+  const applyDate = (nextDate: Date | undefined) => {
+    suppressChange = true;
+    manager.date = nextDate;
+    suppressChange = false;
+  };
 
-    if (!isControlled) {
+  manager.on("changeDate", (nextDate) => {
+    if (suppressChange) return;
+
+    if (isControlled) {
+      onChangeDate?.(nextDate);
+      // Snap back to the controlled value; the parent must update the `date`
+      // store to accept the change.
+      applyDate(currentValue);
+    } else {
       internalStore.set(nextDate);
+      onChangeDate?.(nextDate);
     }
   });
 
   const unsubscribeDate = dateStore.subscribe((value) => {
-    manager.date = value;
-  });
-
-  const optionsStore = writable(rest);
-
-  const unsubscribeOptions = optionsStore.subscribe((value) => {
-    manager.minDate = value.minDate;
-    manager.maxDate = value.maxDate;
-    manager.hour12 = value.hour12;
-    manager.digits = value.digits;
-    manager.wrapAround = value.wrapAround;
-    manager.snapToStep = value.snapToStep;
-    manager.wheelControl = value.wheelControl;
-    manager.disallowPartial = value.disallowPartial;
+    currentValue = value;
+    applyDate(value);
   });
 
   onDestroy(() => {
     manager.remove();
     unsubscribeDate();
-    unsubscribeOptions();
   });
 
   const inputProps: Action<HTMLInputElement, DateType> = (element, type) => {

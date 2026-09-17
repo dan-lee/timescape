@@ -45,27 +45,43 @@ export const useTimescape = (options: VueOptions = {}) => {
 
   const manager = new TimescapeManager(currentDate.value, rest);
 
-  manager.on("changeDate", (nextDate) => {
-    onChangeDate?.(nextDate);
+  // Programmatic writes to `manager.date` (syncing the source, or snapping
+  // back in controlled mode) emit `changeDate` too. This flag lets us ignore
+  // those echoes so `onChangeDate` only fires for genuine user edits.
+  let suppressChange = false;
+  const applyDate = (nextDate: Date | undefined) => {
+    suppressChange = true;
+    manager.date = nextDate;
+    suppressChange = false;
+  };
 
-    if (!isControlled) {
+  manager.on("changeDate", (nextDate) => {
+    if (suppressChange) return;
+
+    if (isControlled) {
+      onChangeDate?.(nextDate);
+      // Snap back to the controlled value; the parent must update `date`
+      // to accept the change.
+      applyDate(currentDate.value);
+    } else {
       internalDate.value = nextDate;
+      onChangeDate?.(nextDate);
     }
   });
 
-  watch(currentDate, (newDate) => {
-    manager.date = newDate;
-  });
+  watch(currentDate, (newDate) => applyDate(newDate));
 
+  // Reading `options` (rather than a destructured copy) keeps these reactive
+  // when a reactive options object is passed.
   watchEffect(() => {
-    manager.minDate = rest.minDate;
-    manager.maxDate = rest.maxDate;
-    manager.digits = rest.digits;
-    manager.wrapAround = rest.wrapAround;
-    manager.hour12 = rest.hour12;
-    manager.snapToStep = rest.snapToStep;
-    manager.wheelControl = rest.wheelControl;
-    manager.disallowPartial = rest.disallowPartial;
+    manager.minDate = options.minDate;
+    manager.maxDate = options.maxDate;
+    manager.digits = options.digits;
+    manager.wrapAround = options.wrapAround;
+    manager.hour12 = options.hour12;
+    manager.snapToStep = options.snapToStep;
+    manager.wheelControl = options.wheelControl;
+    manager.disallowPartial = options.disallowPartial;
   });
 
   onUnmounted(() => manager.remove());

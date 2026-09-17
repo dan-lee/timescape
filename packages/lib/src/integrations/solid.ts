@@ -36,29 +36,47 @@ export const useTimescape = (options: SolidOptions = {}) => {
 
   const manager = new TimescapeManager(currentDate(), rest);
 
-  const unsubscribe = manager.on("changeDate", (nextDate) => {
-    onChangeDate?.(nextDate);
+  // Programmatic writes to `manager.date` (syncing the source, or snapping
+  // back in controlled mode) emit `changeDate` too. This flag lets us ignore
+  // those echoes so `onChangeDate` only fires for genuine user edits.
+  let suppressChange = false;
+  const applyDate = (nextDate: Date | undefined) => {
+    suppressChange = true;
+    manager.date = nextDate;
+    suppressChange = false;
+  };
 
-    if (!isControlled) {
+  const unsubscribe = manager.on("changeDate", (nextDate) => {
+    if (suppressChange) return;
+
+    if (isControlled) {
+      onChangeDate?.(nextDate);
+      // Snap back to the controlled value; the parent must update `date`
+      // to accept the change.
+      applyDate(currentDate());
+    } else {
       setInternalDate(nextDate);
+      onChangeDate?.(nextDate);
     }
   });
 
   onCleanup(unsubscribe);
 
   createEffect(() => {
-    manager.date = currentDate();
+    applyDate(currentDate());
   });
 
+  // Reading `options` (rather than a destructured copy) keeps these reactive
+  // when the options come from a reactive source.
   createEffect(() => {
-    manager.minDate = rest.minDate;
-    manager.maxDate = rest.maxDate;
-    manager.hour12 = rest.hour12;
-    manager.digits = rest.digits;
-    manager.wrapAround = rest.wrapAround;
-    manager.snapToStep = rest.snapToStep;
-    manager.wheelControl = rest.wheelControl;
-    manager.disallowPartial = rest.disallowPartial;
+    manager.minDate = options.minDate;
+    manager.maxDate = options.maxDate;
+    manager.hour12 = options.hour12;
+    manager.digits = options.digits;
+    manager.wrapAround = options.wrapAround;
+    manager.snapToStep = options.snapToStep;
+    manager.wheelControl = options.wheelControl;
+    manager.disallowPartial = options.disallowPartial;
   });
 
   onCleanup(() => manager.remove());
