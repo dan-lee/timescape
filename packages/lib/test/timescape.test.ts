@@ -1074,6 +1074,52 @@ describe("timescape", () => {
       expect(manager.date).toBeUndefined();
     });
 
+    it("should keep previous date context when year is cleared and re-entered", async () => {
+      const initialDate = new Date("2012-02-29T10:00:00Z");
+
+      manager = new TimescapeManager();
+
+      container = register(manager, ["years", "months", "days"]);
+      manager.date = initialDate;
+      manager.resync();
+      document.body.appendChild(container);
+
+      const changes: Array<Date | undefined> = [];
+      const unsubscribe = manager.on("changeDate", (value) => {
+        changes.push(value);
+      });
+
+      const fields = getFields();
+
+      expect(fields.months).toHaveValue("02");
+      expect(fields.days).toHaveValue("29");
+
+      fields.years.focus();
+      await user.keyboard("{Backspace}{Backspace}{Backspace}{Backspace}");
+
+      expect(manager.date).toBeUndefined();
+      expect(changes.at(-1)).toBeUndefined();
+
+      await user.keyboard("2012");
+
+      expect(fields.months).toHaveValue("02");
+      expect(fields.days).toHaveValue("29");
+
+      const latestDate = manager.date;
+
+      expect(latestDate?.getFullYear()).toBe(2012);
+      expect(latestDate?.getMonth()).toBe(1);
+      expect(latestDate?.getDate()).toBe(29);
+
+      const lastChange = changes.at(-1);
+      expect(lastChange).toBeInstanceOf(Date);
+      expect(lastChange?.getFullYear()).toBe(2012);
+      expect(lastChange?.getMonth()).toBe(1);
+      expect(lastChange?.getDate()).toBe(29);
+
+      unsubscribe();
+    });
+
     it("should work with partial input disabled", async () => {
       const now = new Date();
       manager = new TimescapeManager(now, {

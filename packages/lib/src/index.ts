@@ -403,7 +403,9 @@ export class TimescapeManager implements Options {
   };
 
   get #currentDate(): Date {
-    return this.#timestamp ? new Date(this.#timestamp) : new Date();
+    if (this.#timestamp) return new Date(this.#timestamp);
+    if (this.#prevTimestamp) return new Date(this.#prevTimestamp);
+    return new Date();
   }
 
   #getValue(type: DateType): string {
