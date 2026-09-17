@@ -3,8 +3,7 @@ import type { TimescapeManager } from "./index";
 /**
  * Keeps two managers in a from/to relationship: focus wraps from one into the
  * other, and neither end can cross the other.
- *
- * @returns a function that dissolves the relationship again.
+ * @returns a function that dissolves the relationship again
  */
 export const marry = (from: TimescapeManager, to: TimescapeManager) => {
   const unsubscribers = [

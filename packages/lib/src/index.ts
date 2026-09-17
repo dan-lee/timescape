@@ -332,8 +332,7 @@ export class TimescapeManager implements Options {
     }
 
     const listeners = this.#createListeners(element, type);
-    // Kept with the element's own listeners so re-registering (resync) does not
-    // pile up subscriptions on the pubsub.
+    // Kept with the element's listeners so resync does not pile up subscriptions.
     listeners.push(this.on("changeDate", () => this.#syncElement(element)));
 
     this.#registry.set(type, {
@@ -858,10 +857,7 @@ export class TimescapeManager implements Options {
     return listeners;
   }
 
-  /**
-   * Caps a date to the effective bounds: the user supplied minDate/maxDate and,
-   * for ranges, the bounds `marry()` derived from the other end.
-   */
+  /** Caps a date to minDate/maxDate and, for ranges, the bounds from the other end. */
   #clampDate(date: Date): Date {
     const userMin = this.minDate === $NOW ? new Date() : this.minDate;
     const userMax = this.maxDate === $NOW ? new Date() : this.maxDate;
@@ -885,39 +881,32 @@ export class TimescapeManager implements Options {
   }
 
   /**
-   * Reconciles a date coming from outside (the `date` setter, and through it
-   * every integration's controlled/uncontrolled binding) with what is on
-   * screen.
-   *
-   * The owner of the date is whoever writes here, but the owner of the
-   * *editing state* -- a cleared segment, a half typed value, the date a
-   * partial entry is based on -- is this class. So an external write only
-   * reconciles when it actually changes the value; writing back what is
-   * already being edited leaves the edit alone.
+   * Whoever writes here owns the date, but this class owns the editing state --
+   * a cleared segment, a half typed value, the date a partial entry is based
+   * on. So an external write only reconciles when it changes the value;
+   * writing back what is already being edited leaves the edit alone.
    */
   #setExternalDate(date: Date | undefined) {
     const nextTimestamp = date ? this.#clampDate(date).getTime() : undefined;
 
     if (nextTimestamp === undefined) {
-      // Already empty: this is the echo of a segment the user just cleared, so
-      // keep the partial state (and the date it is based on) intact.
+      // The echo of a segment the user just cleared.
       if (this.#timestamp === undefined) return;
 
       this.#prevTimestamp = undefined;
-      this.#resetSegments(true);
+      this.#resetSegments({ unset: true });
       this.#setDate(undefined);
       this.#syncAllElements();
       return;
     }
 
     if (this.#timestamp === nextTimestamp) {
-      // Same value, but a previously cleared segment may still need repainting.
+      // Unchanged, but a cleared segment may still need repainting.
       this.#syncAllElements();
       return;
     }
 
-    // The date a partial entry is based on is being written back unchanged,
-    // which means the edit has not been answered yet -- leave it alone.
+    // The date the partial entry is based on, so the edit is unanswered.
     if (
       this.#timestamp === undefined &&
       this.#prevTimestamp === nextTimestamp
@@ -925,23 +914,22 @@ export class TimescapeManager implements Options {
       return;
     }
 
-    // A genuinely different date from the outside resolves any partial entry.
     this.#prevTimestamp = undefined;
-    this.#resetSegments(false);
+    this.#resetSegments({ unset: false });
     this.#setDate(new Date(nextTimestamp));
     this.#syncAllElements();
   }
 
-  #resetSegments(isUnset: boolean) {
+  #resetSegments({ unset }: { unset: boolean }) {
     this.#registry.forEach((entry) => {
       entry.intermediateValue = "";
-      entry.isUnset = isUnset && !this.disallowPartial;
+      entry.isUnset = unset && !this.disallowPartial;
     });
   }
 
   /**
-   * Constrains this instance to one end of a range. Kept apart from
-   * minDate/maxDate so that reactive option updates cannot drop the constraint.
+   * Kept apart from minDate/maxDate so reactive option updates cannot drop the
+   * range constraint.
    * @internal
    */
   public setRangeBound(bound: "min" | "max", date: Date | undefined) {
