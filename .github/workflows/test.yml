@@ -7,31 +7,78 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  test:
+  checks:
+    name: Lint, typecheck, build, unit tests
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.55.0-jammy
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
-          version: 12
           run_install: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: "pnpm"
+          # Restoring the store is no faster than a cold install here, and the
+          # cache upload costs ~34s per lockfile change.
+          package-manager-cache: false
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm run lint
 
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Build
+        run: pnpm run build
+
       - name: Run unit tests
         run: pnpm --filter timescape -- test run --coverage.enabled=true --coverage.reporter=text
 
+  e2e:
+    name: Playwright integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      # Must match the @playwright/test version in packages/demo/package.json
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Run Playwright integration tests
         run: pnpm --filter demo -- test
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            packages/demo/playwright-report
+            packages/demo/test-results
+          retention-days: 7
+          if-no-files-found: ignore

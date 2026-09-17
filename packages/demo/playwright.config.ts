@@ -9,7 +9,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
-  reporter: "html",
+  reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "html",
   use: {
     baseURL: `http://localhost:${TEST_PORT}/integrations.html`,
     trace: "on-first-retry",
