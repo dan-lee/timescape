@@ -15,6 +15,7 @@ const App = () => {
     // Edit these options in real-time 👇
     ...options,
     onDateChange: (date) => {
+      setOptions((prev) => ({ ...prev, date }));
       if (!date) return;
 
       setSelectedDate(date);

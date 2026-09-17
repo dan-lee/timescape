@@ -1,25 +1,29 @@
 import { useDatePicker } from "@rehookify/datepicker";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTimescapeRange } from "timescape/react";
 import { Calendar } from "../calendar";
 import { input, root, separator } from "../timescape.css";
 import { UpdateFlasher } from "../UpdateFlasher";
 
 const App = () => {
-  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
-  const [fromDate, setFromDate] = useState<Date | undefined>(new Date());
-  const [toDate, setToDate] = useState<Date | undefined>(
+  const [fromDate, setFromDate] = useState<Date | null>(new Date());
+  const [toDate, setToDate] = useState<Date | null>(
     new Date(String(new Date().getFullYear() + 1)),
+  );
+
+  const selectedDates = useMemo(
+    () => [fromDate, toDate].filter((date) => date !== null),
+    [fromDate, toDate],
   );
 
   const { getRootProps, from, to } = useTimescapeRange({
     from: {
       date: fromDate,
       onDateChange: (nextDate) => {
-        if (selectedDates.length !== 2 || !nextDate || !selectedDates[1])
-          return;
+        setFromDate(nextDate);
+        if (!nextDate) return;
 
-        setSelectedDates([nextDate, selectedDates[1]]);
+        // Jumps to selected calendar month if necessary
         dpCalendar.propGetters
           .setOffset(nextDate)
           .onClick?.(undefined as never);
@@ -28,10 +32,9 @@ const App = () => {
     to: {
       date: toDate,
       onDateChange: (nextDate) => {
-        if (selectedDates.length !== 2 || !nextDate || !selectedDates[0])
-          return;
+        setToDate(nextDate);
+        if (!nextDate) return;
 
-        setSelectedDates([selectedDates[0], nextDate]);
         dpCalendar.propGetters
           .setOffset(nextDate)
           .onClick?.(undefined as never);
@@ -44,12 +47,9 @@ const App = () => {
       mode: "range",
     },
     selectedDates,
-    onDatesChange: (dates) => {
-      setSelectedDates(dates);
-      const [rangeFrom, rangeTo] = dates;
-
-      setFromDate(rangeFrom);
-      setToDate(rangeTo);
+    onDatesChange: ([rangeFrom, rangeTo]) => {
+      setFromDate(rangeFrom ?? null);
+      setToDate(rangeTo ?? null);
     },
   });
 

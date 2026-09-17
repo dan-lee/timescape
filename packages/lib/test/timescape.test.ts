@@ -1308,6 +1308,21 @@ describe("timescape", () => {
       expect(from.date).toEqual(new Date("2026-01-01"));
     });
 
+    it("should lift the bound when the other end is cleared", () => {
+      const from = new TimescapeManager(new Date("2024-01-01"));
+      const to = new TimescapeManager(new Date("2025-01-01"));
+      marry(from, to);
+
+      // capped at the to date
+      from.date = new Date("2026-01-01");
+      expect(from.date).toEqual(new Date("2025-01-01"));
+
+      to.date = undefined;
+
+      from.date = new Date("2026-01-01");
+      expect(from.date).toEqual(new Date("2026-01-01"));
+    });
+
     it("should keep a user supplied minDate when the range updates", () => {
       const userMin = new Date("2020-06-01");
       const from = new TimescapeManager(new Date("2024-01-01"));

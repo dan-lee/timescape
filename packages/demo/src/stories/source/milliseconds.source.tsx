@@ -10,7 +10,10 @@ const App = () => {
     wrapAround: false,
     snapToStep: false,
   });
-  const { getRootProps, getInputProps } = useTimescape(options);
+  const { getRootProps, getInputProps } = useTimescape({
+    ...options,
+    onDateChange: (date) => setOptions((prev) => ({ ...prev, date })),
+  });
 
   return (
     <div className={wrapper}>
