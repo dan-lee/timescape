@@ -4,6 +4,7 @@ import { type Readable, writable } from "svelte/store";
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
+import { bindDate } from "./shared";
 
 export {
   // Svelte import names prohibit a $ prefix, so it's renamed to NOW there
@@ -42,36 +43,20 @@ export const createTimescape = (options: SvelteOptions = {}) => {
 
   const manager = new TimescapeManager(currentValue, rest);
 
-  // Programmatic writes to `manager.date` (syncing the store, or snapping back
-  // in controlled mode) emit `changeDate` too. This flag lets us ignore those
-  // echoes so `onChangeDate` only fires for genuine user edits.
-  let suppressChange = false;
-  const applyDate = (nextDate: Date | undefined) => {
-    suppressChange = true;
-    manager.date = nextDate;
-    suppressChange = false;
-  };
-
-  manager.on("changeDate", (nextDate) => {
-    if (suppressChange) return;
-
-    if (isControlled) {
-      onChangeDate?.(nextDate);
-      // Snap back to the controlled value; the parent must update the `date`
-      // store to accept the change.
-      applyDate(currentValue);
-    } else {
-      internalStore.set(nextDate);
-      onChangeDate?.(nextDate);
-    }
+  const dateBinding = bindDate(manager, {
+    controlled: isControlled,
+    getDate: () => currentValue,
+    setDate: (nextDate) => internalStore.set(nextDate),
+    onChangeDate,
   });
 
   const unsubscribeDate = dateStore.subscribe((value) => {
     currentValue = value;
-    applyDate(value);
+    dateBinding.sync(value);
   });
 
   onDestroy(() => {
+    dateBinding.unsubscribe();
     manager.remove();
     unsubscribeDate();
   });

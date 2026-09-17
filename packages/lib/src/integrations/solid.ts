@@ -2,6 +2,7 @@ import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
+import { bindDate } from "./shared";
 
 export { $NOW, type DateType };
 
@@ -36,38 +37,19 @@ export const useTimescape = (options: SolidOptions = {}) => {
 
   const manager = new TimescapeManager(currentDate(), rest);
 
-  // Programmatic writes to `manager.date` (syncing the source, or snapping
-  // back in controlled mode) emit `changeDate` too. This flag lets us ignore
-  // those echoes so `onChangeDate` only fires for genuine user edits.
-  let suppressChange = false;
-  const applyDate = (nextDate: Date | undefined) => {
-    suppressChange = true;
-    manager.date = nextDate;
-    suppressChange = false;
-  };
-
-  const unsubscribe = manager.on("changeDate", (nextDate) => {
-    if (suppressChange) return;
-
-    if (isControlled) {
-      onChangeDate?.(nextDate);
-      // Snap back to the controlled value; the parent must update `date`
-      // to accept the change.
-      applyDate(currentDate());
-    } else {
-      setInternalDate(nextDate);
-      onChangeDate?.(nextDate);
-    }
+  const dateBinding = bindDate(manager, {
+    controlled: isControlled,
+    getDate: currentDate,
+    setDate: setInternalDate,
+    onChangeDate,
   });
 
-  onCleanup(unsubscribe);
+  onCleanup(dateBinding.unsubscribe);
 
   createEffect(() => {
-    applyDate(currentDate());
+    dateBinding.sync(currentDate());
   });
 
-  // Reading `options` (rather than a destructured copy) keeps these reactive
-  // when the options come from a reactive source.
   createEffect(() => {
     manager.minDate = options.minDate;
     manager.maxDate = options.maxDate;

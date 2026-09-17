@@ -1,6 +1,5 @@
 import {
   type RefObject,
-  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -9,6 +8,7 @@ import {
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
+import { bindDate } from "./shared";
 
 export {
   $NOW,
@@ -43,38 +43,16 @@ export const useTimescape = (options: ReactOptions = {}) => {
     onChangeDateRef.current = onChangeDate;
   });
 
-  // Programmatic writes to `manager.date` (syncing the prop, or snapping back
-  // in controlled mode) emit `changeDate` too. This flag lets us ignore those
-  // echoes so `onChangeDate` only fires for genuine user edits.
-  const suppressChangeRef = useRef(false);
-  const applyDate = useCallback(
-    (nextDate: number | undefined) => {
-      suppressChangeRef.current = true;
-      manager.date = nextDate;
-      suppressChangeRef.current = false;
-    },
-    [manager],
-  );
-
   useEffect(() => {
-    return manager.on("changeDate", (nextDate) => {
-      if (suppressChangeRef.current) return;
-
-      if (isControlled) {
-        onChangeDateRef.current?.(nextDate);
-        // Snap back to the controlled value; the parent must update `date`
-        // to accept the change.
-        applyDate(currentDate?.getTime());
-      } else {
-        setInternalDate(nextDate);
-        onChangeDateRef.current?.(nextDate);
-      }
+    const dateBinding = bindDate(manager, {
+      controlled: isControlled,
+      getDate: () => currentDate,
+      setDate: setInternalDate,
+      onChangeDate: (nextDate) => onChangeDateRef.current?.(nextDate),
     });
-  }, [manager, isControlled, currentDate, applyDate]);
-
-  useEffect(() => {
-    applyDate(currentDate?.getTime());
-  }, [currentDate, applyDate]);
+    dateBinding.sync(currentDate);
+    return dateBinding.unsubscribe;
+  }, [manager, isControlled, currentDate]);
 
   useEffect(() => {
     manager.minDate = rest.minDate;

@@ -11,6 +11,7 @@ import {
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
+import { bindDate } from "./shared";
 
 export { $NOW, type DateType };
 
@@ -45,34 +46,17 @@ export const useTimescape = (options: VueOptions = {}) => {
 
   const manager = new TimescapeManager(currentDate.value, rest);
 
-  // Programmatic writes to `manager.date` (syncing the source, or snapping
-  // back in controlled mode) emit `changeDate` too. This flag lets us ignore
-  // those echoes so `onChangeDate` only fires for genuine user edits.
-  let suppressChange = false;
-  const applyDate = (nextDate: Date | undefined) => {
-    suppressChange = true;
-    manager.date = nextDate;
-    suppressChange = false;
-  };
-
-  manager.on("changeDate", (nextDate) => {
-    if (suppressChange) return;
-
-    if (isControlled) {
-      onChangeDate?.(nextDate);
-      // Snap back to the controlled value; the parent must update `date`
-      // to accept the change.
-      applyDate(currentDate.value);
-    } else {
+  const dateBinding = bindDate(manager, {
+    controlled: isControlled,
+    getDate: () => currentDate.value,
+    setDate: (nextDate) => {
       internalDate.value = nextDate;
-      onChangeDate?.(nextDate);
-    }
+    },
+    onChangeDate,
   });
 
-  watch(currentDate, (newDate) => applyDate(newDate));
+  watch(currentDate, dateBinding.sync);
 
-  // Reading `options` (rather than a destructured copy) keeps these reactive
-  // when a reactive options object is passed.
   watchEffect(() => {
     manager.minDate = options.minDate;
     manager.maxDate = options.maxDate;
@@ -84,7 +68,10 @@ export const useTimescape = (options: VueOptions = {}) => {
     manager.disallowPartial = options.disallowPartial;
   });
 
-  onUnmounted(() => manager.remove());
+  onUnmounted(() => {
+    dateBinding.unsubscribe();
+    manager.remove();
+  });
 
   return {
     _manager: manager,
