@@ -45,15 +45,10 @@ export const bindDate = (
   return { sync, unsubscribe };
 };
 
-// Declared locally so the package does not need node types; the `typeof` guard
-// below keeps it safe in browsers, and bundlers can still strip the warning.
-declare const process: { env?: { NODE_ENV?: string } } | undefined;
-
 export const warnControlledSwitch = () => {
-  if (
-    typeof process !== "undefined" &&
-    process?.env?.NODE_ENV === "production"
-  ) {
+  // `process` is absent in a browser loading the package unbundled; where a
+  // bundler does define it, this lets the warning be stripped in production.
+  if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
     return;
   }
 
