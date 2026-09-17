@@ -29,6 +29,12 @@ See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#ex
 - **🔀 Enhanced input fields**: A supercharged `<input type="date/time">`, offering additional flexibility.
 - **🤳 Touch device support**: Use it on any device, including touch devices.
 
+> [!IMPORTANT]
+> Upgrading from 0.8? The integrations moved to controlled/uncontrolled props in
+> 0.9, which is a breaking change. See
+> [MIGRATION-v0.9.md](https://github.com/dan-lee/timescape/blob/main/MIGRATION-v0.9.md)
+> for per-framework examples.
+
 ## Installation
 
 ```shell
