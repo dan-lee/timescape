@@ -131,6 +131,19 @@ describe("timescape", () => {
       expect(fields.ampm).toHaveValue("AM");
     });
 
+    it("update when date changes on an input that started empty", () => {
+      document.body.innerHTML = "";
+      manager = new TimescapeManager();
+      container = register(manager, ["years", "months", "days"]);
+      document.body.appendChild(container);
+
+      manager.date = new Date("2021-01-21 11:01:21");
+
+      expect(getByTestId(container, "years")).toHaveValue("2021");
+      expect(getByTestId(container, "months")).toHaveValue("01");
+      expect(getByTestId(container, "days")).toHaveValue("21");
+    });
+
     it("should render correctly when date is undefined", () => {
       document.body.appendChild(container);
 
@@ -1243,6 +1256,36 @@ describe("timescape", () => {
       await user.keyboard("{ArrowDown}");
       await user.keyboard("{ArrowDown}");
       expect(getByTestId(container, "from-years")).toHaveValue("2024");
+    });
+
+    it("should lift the constraints once the range is dissolved", () => {
+      const from = new TimescapeManager(new Date("2024-01-01"));
+      const to = new TimescapeManager(new Date("2025-01-01"));
+      const divorce = marry(from, to);
+
+      // capped at the to date
+      from.date = new Date("2026-01-01");
+      expect(from.date).toEqual(new Date("2025-01-01"));
+
+      divorce();
+
+      from.date = new Date("2026-01-01");
+      expect(from.date).toEqual(new Date("2026-01-01"));
+    });
+
+    it("should keep a user supplied minDate when the range updates", () => {
+      const userMin = new Date("2020-06-01");
+      const from = new TimescapeManager(new Date("2024-01-01"));
+      const to = new TimescapeManager(new Date("2025-01-01"), {
+        minDate: userMin,
+      });
+      marry(from, to);
+
+      // what every integration's reactive options effect does
+      to.minDate = userMin;
+
+      to.date = new Date("2019-01-01");
+      expect(to.date).toEqual(new Date("2024-01-01"));
     });
   });
 
