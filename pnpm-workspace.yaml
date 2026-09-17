@@ -1,2 +1,9 @@
 packages:
-  - 'packages/*'
+  - "packages/*"
+allowBuilds:
+  "@ffmpeg-installer/darwin-arm64": true
+  "@ffprobe-installer/darwin-arm64": true
+  "@swc/core": true
+  esbuild: true
+patchedDependencies:
+  tsup@8.5.1: patches/tsup@8.5.1.patch

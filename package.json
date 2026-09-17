@@ -12,9 +12,10 @@
     "release": "changeset publish"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.2",
-    "@changesets/changelog-github": "0.5.1",
-    "@changesets/cli": "2.29.6",
-    "typescript": "5.9.2"
+    "@biomejs/biome": "2.5.14",
+    "@changesets/changelog-github": "1.0.1",
+    "@changesets/cli": "3.0.3",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   }
 }

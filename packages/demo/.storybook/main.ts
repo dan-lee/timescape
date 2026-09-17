@@ -1,5 +1,6 @@
 import type { StorybookConfig } from "@storybook/react-vite";
 import { getCodeEditorStaticDirs } from "storybook-addon-code-editor/getStaticDirs";
+import { getIntegrationVersionDefines } from "./vite.shared.ts";
 
 const config = {
   stories: ["../src/**/*.stories.@(js|jsx|ts|tsx)"],
@@ -22,9 +23,13 @@ const config = {
     viewport: false,
     controls: false,
   },
-  typescript: {
-    reactDocgen: "react-docgen-typescript",
-  },
+  viteFinal: (viteConfig) => ({
+    ...viteConfig,
+    define: {
+      ...viteConfig.define,
+      ...getIntegrationVersionDefines(),
+    },
+  }),
 } satisfies StorybookConfig;
 
 export default config;
