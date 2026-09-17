@@ -1,23 +1,27 @@
 import { onDestroy } from "svelte";
 import type { Action } from "svelte/action";
-import { type Readable, writable } from "svelte/store";
+import { get, type Readable, writable } from "svelte/store";
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
-import { bindDate } from "./shared";
+import { bindDate, type DateProp, toDate } from "./shared";
 
 export {
   // Svelte import names prohibit a $ prefix, so it's renamed to NOW there
   $NOW as NOW,
   type DateType,
+  type SvelteOptions as Options,
+  type SvelteRangeOptions as RangeOptions,
 };
 
 type BaseOptions = Omit<Options, "date">;
 
 export type SvelteOptions = BaseOptions & {
-  date?: Readable<Date | undefined>;
-  defaultDate?: Date | undefined;
-  onChangeDate?: (date: Date | undefined) => void;
+  /** Passing a store makes the input controlled; its `null` is the empty date. */
+  date?: Readable<DateProp>;
+  /** Initial value for uncontrolled usage. */
+  defaultDate?: DateProp;
+  onDateChange?: (date: Date | null) => void;
 };
 
 export type SvelteRangeOptions = {
@@ -26,20 +30,17 @@ export type SvelteRangeOptions = {
 };
 
 export const createTimescape = (options: SvelteOptions = {}) => {
-  const { date, defaultDate, onChangeDate, ...rest } = options;
+  const { date, defaultDate, onDateChange, ...rest } = options;
 
   const isControlled = date !== undefined;
 
   const internalStore = writable<Date | undefined>(
-    isControlled ? undefined : defaultDate,
+    isControlled ? undefined : toDate(defaultDate),
   );
 
   const dateStore = isControlled ? date : internalStore;
 
-  let currentValue: Date | undefined;
-  dateStore.subscribe((value) => {
-    currentValue = value;
-  })();
+  let currentValue = toDate(get(dateStore));
 
   const manager = new TimescapeManager(currentValue, rest);
 
@@ -47,12 +48,12 @@ export const createTimescape = (options: SvelteOptions = {}) => {
     controlled: isControlled,
     getDate: () => currentValue,
     setDate: (nextDate) => internalStore.set(nextDate),
-    onChangeDate,
+    onDateChange,
   });
 
   const unsubscribeDate = dateStore.subscribe((value) => {
-    currentValue = value;
-    dateBinding.sync(value);
+    currentValue = toDate(value);
+    dateBinding.sync(currentValue);
   });
 
   onDestroy(() => {
@@ -69,6 +70,7 @@ export const createTimescape = (options: SvelteOptions = {}) => {
   };
 
   return {
+    /** @internal */
     _manager: manager,
     inputProps,
     rootProps,
@@ -81,7 +83,7 @@ export const createTimescapeRange = (options: SvelteRangeOptions = {}) => {
   const from = createTimescape(options.from);
   const to = createTimescape(options.to);
 
-  marry(from._manager, to._manager);
+  onDestroy(marry(from._manager, to._manager));
 
   const rootProps: Action<HTMLElement, void> = (element) => {
     from._manager.registerRoot(element as HTMLElement);

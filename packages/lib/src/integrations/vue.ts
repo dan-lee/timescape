@@ -2,7 +2,6 @@ import {
   type ComponentPublicInstance,
   computed,
   onUnmounted,
-  type Ref,
   ref,
   watch,
   watchEffect,
@@ -11,16 +10,26 @@ import {
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
-import { bindDate } from "./shared";
+import { bindDate, type DateProp, toDate } from "./shared";
 
-export { $NOW, type DateType };
+export {
+  $NOW,
+  type DateType,
+  type VueOptions as Options,
+  type VueRangeOptions as RangeOptions,
+};
 
 type BaseOptions = Omit<Options, "date">;
 
+/** Any ref-like holder, so `Ref<Date>`, `Ref<Date | null>` and `computed` all fit. */
+export type DateRef = { readonly value: DateProp };
+
 export type VueOptions = BaseOptions & {
-  date?: Ref<Date | undefined>;
-  defaultDate?: Date | undefined;
-  onChangeDate?: (date: Date | undefined) => void;
+  /** Passing a ref makes the input controlled; its `null` is the empty date. */
+  date?: DateRef;
+  /** Initial value for uncontrolled usage. */
+  defaultDate?: DateProp;
+  onDateChange?: (date: Date | null) => void;
 };
 
 export type VueRangeOptions = {
@@ -29,20 +38,17 @@ export type VueRangeOptions = {
 };
 
 export const useTimescape = (options: VueOptions = {}) => {
-  const { date, defaultDate, onChangeDate, ...rest } = options;
+  const { date, defaultDate, onDateChange, ...rest } = options;
 
   const isControlled = date !== undefined;
 
   const internalDate = ref<Date | undefined>(
-    isControlled ? undefined : defaultDate,
+    isControlled ? undefined : toDate(defaultDate),
   );
 
-  const currentDate = computed(() => {
-    if (date !== undefined) {
-      return date.value;
-    }
-    return internalDate.value;
-  });
+  const currentDate = computed(() =>
+    date !== undefined ? toDate(date.value) : internalDate.value,
+  );
 
   const manager = new TimescapeManager(currentDate.value, rest);
 
@@ -52,7 +58,7 @@ export const useTimescape = (options: VueOptions = {}) => {
     setDate: (nextDate) => {
       internalDate.value = nextDate;
     },
-    onChangeDate,
+    onDateChange,
   });
 
   watch(currentDate, dateBinding.sync);
@@ -74,11 +80,15 @@ export const useTimescape = (options: VueOptions = {}) => {
   });
 
   return {
+    /** @internal */
     _manager: manager,
     registerElement:
-      (type: DateType) => (element: Element | ComponentPublicInstance | null) =>
-        element instanceof HTMLInputElement &&
-        manager.registerElement(element, type),
+      (type: DateType) =>
+      (element: Element | ComponentPublicInstance | null) => {
+        if (element instanceof HTMLInputElement) {
+          manager.registerElement(element, type);
+        }
+      },
     registerRoot: () => (element: Element | ComponentPublicInstance | null) => {
       if (element instanceof HTMLElement) {
         manager.registerRoot(element);
@@ -92,7 +102,8 @@ export const useTimescapeRange = (options: VueRangeOptions = {}) => {
   const from = useTimescape(options.from);
   const to = useTimescape(options.to);
 
-  marry(from._manager, to._manager);
+  const divorce = marry(from._manager, to._manager);
+  onUnmounted(divorce);
 
   return {
     registerRangeRoot:

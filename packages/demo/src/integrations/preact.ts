@@ -3,11 +3,11 @@ import { useState } from "preact/hooks";
 import { useTimescape, useTimescapeRange } from "timescape/preact";
 
 const PreactDemo = () => {
-  const [date, setDate] = useState<Date | undefined>(window.date ?? new Date());
+  const [date, setDate] = useState<Date | null>(window.date ?? new Date());
 
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChangeDate: (date) => {
+    onDateChange: (date) => {
       console.log("Date changed to", date);
       setDate(date);
     },
@@ -20,11 +20,11 @@ const PreactDemo = () => {
   } = useTimescapeRange({
     from: {
       defaultDate: new Date(),
-      onChangeDate: (date) => console.log("Range `from` changed to", date),
+      onDateChange: (date) => console.log("Range `from` changed to", date),
     },
     to: {
       defaultDate: new Date(Date.now() + 31536e6 * 3), // 3 years from now
-      onChangeDate: (date) => console.log("Range `to` changed to", date),
+      onDateChange: (date) => console.log("Range `to` changed to", date),
     },
   });
 

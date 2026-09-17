@@ -39,11 +39,11 @@
 import { useTimescape, useTimescapeRange } from "timescape/vue";
 import { ref } from "vue";
 
-const date = ref<Date | undefined>(window.date ?? new Date());
+const date = ref<Date | null>(window.date ?? new Date());
 
 const { registerElement, registerRoot } = useTimescape({
   date,
-  onChangeDate: (newDate) => {
+  onDateChange: (newDate) => {
     console.log("Date changed to", newDate);
     date.value = newDate;
   },

@@ -2,16 +2,23 @@ import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
-import { bindDate } from "./shared";
+import { bindDate, type DateProp, toDate } from "./shared";
 
-export { $NOW, type DateType };
+export {
+  $NOW,
+  type DateType,
+  type SolidOptions as Options,
+  type SolidRangeOptions as RangeOptions,
+};
 
 type BaseOptions = Omit<Options, "date">;
 
 export type SolidOptions = BaseOptions & {
-  date?: Accessor<Date | undefined>;
-  defaultDate?: Date | undefined;
-  onChangeDate?: (date: Date | undefined) => void;
+  /** Passing an accessor makes the input controlled; its `null` is the empty date. */
+  date?: Accessor<DateProp>;
+  /** Initial value for uncontrolled usage. */
+  defaultDate?: DateProp;
+  onDateChange?: (date: Date | null) => void;
 };
 
 export type SolidRangeOptions = {
@@ -20,20 +27,16 @@ export type SolidRangeOptions = {
 };
 
 export const useTimescape = (options: SolidOptions = {}) => {
-  const { date, defaultDate, onChangeDate, ...rest } = options;
+  const { date, defaultDate, onDateChange, ...rest } = options;
 
   const isControlled = date !== undefined;
 
   const [internalDate, setInternalDate] = createSignal<Date | undefined>(
-    isControlled ? undefined : defaultDate,
+    isControlled ? undefined : toDate(defaultDate),
   );
 
-  const currentDate = () => {
-    if (isControlled) {
-      return date();
-    }
-    return internalDate();
-  };
+  const currentDate = () =>
+    date !== undefined ? toDate(date()) : internalDate();
 
   const manager = new TimescapeManager(currentDate(), rest);
 
@@ -41,7 +44,7 @@ export const useTimescape = (options: SolidOptions = {}) => {
     controlled: isControlled,
     getDate: currentDate,
     setDate: setInternalDate,
-    onChangeDate,
+    onDateChange,
   });
 
   onCleanup(dateBinding.unsubscribe);
@@ -64,14 +67,17 @@ export const useTimescape = (options: SolidOptions = {}) => {
   onCleanup(() => manager.remove());
 
   return {
+    /** @internal */
     _manager: manager,
     getInputProps: (type: DateType) => ({
-      ref: (element: HTMLInputElement | null) =>
-        element && manager.registerElement(element, type),
+      ref: (element: HTMLInputElement | null) => {
+        if (element) manager.registerElement(element, type);
+      },
     }),
     getRootProps: () => ({
-      ref: (element: HTMLElement | null) =>
-        element && manager.registerRoot(element),
+      ref: (element: HTMLElement | null) => {
+        if (element) manager.registerRoot(element);
+      },
     }),
     ampm: createAmPmHandler(manager),
   } as const;
@@ -81,7 +87,7 @@ export const useTimescapeRange = (options: SolidRangeOptions = {}) => {
   const from = useTimescape(options.from);
   const to = useTimescape(options.to);
 
-  marry(from._manager, to._manager);
+  onCleanup(marry(from._manager, to._manager));
 
   return {
     getRootProps: () => ({

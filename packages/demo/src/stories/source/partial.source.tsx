@@ -3,10 +3,10 @@ import { useTimescape } from "timescape/react";
 import { input, root, separator } from "../timescape.css";
 
 const App = () => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | null>(new Date());
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChangeDate: (date) => setDate(date),
+    onDateChange: setDate,
     hour12: true,
   });
 

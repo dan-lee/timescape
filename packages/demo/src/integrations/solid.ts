@@ -5,14 +5,12 @@ import { render } from "solid-js/web";
 import { useTimescape, useTimescapeRange } from "timescape/solid";
 
 const App = () => {
-  const [date, setDate] = createSignal<Date | undefined>(
-    window.date ?? new Date(),
-  );
+  const [date, setDate] = createSignal<Date | null>(window.date ?? new Date());
 
   const { getInputProps, getRootProps } = useTimescape({
     date,
     minDate: new Date("2022-01-01"),
-    onChangeDate: (newDate) => {
+    onDateChange: (newDate) => {
       console.log("Date changed to", newDate);
       setDate(newDate);
     },

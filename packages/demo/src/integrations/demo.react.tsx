@@ -5,12 +5,12 @@ console.log("hello", window.date);
 
 export const ReactDemo = () => {
   const [hour12, setHour12] = useState(false);
-  const [date, setDate] = useState<Date | undefined>(
+  const [date, setDate] = useState<Date | null>(
     () => window.date ?? new Date(),
   );
   const { getRootProps, getInputProps } = useTimescape({
     date,
-    onChangeDate: (newDate) => {
+    onDateChange: (newDate) => {
       console.log("date changed", newDate);
       setDate(newDate);
     },
@@ -24,13 +24,13 @@ export const ReactDemo = () => {
   } = useTimescapeRange({
     from: {
       defaultDate: new Date(),
-      onChangeDate: (date) => {
+      onDateChange: (date) => {
         console.log("from date changed", date);
       },
     },
     to: {
       defaultDate: new Date(Date.now() + 31536e6 * 3), // 3 years from now
-      onChangeDate: (date) => {
+      onDateChange: (date) => {
         console.log("to date changed", date);
       },
     },

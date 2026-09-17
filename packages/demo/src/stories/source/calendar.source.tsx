@@ -14,7 +14,7 @@ const App = () => {
   const { getRootProps, getInputProps } = useTimescape({
     // Edit these options in real-time 👇
     ...options,
-    onChangeDate: (date) => {
+    onDateChange: (date) => {
       if (!date) return;
 
       setSelectedDate(date);

@@ -3,20 +3,16 @@ import { useTimescapeRange } from "timescape/react";
 import { flex, input, root, separator } from "../timescape.css";
 
 const App = () => {
-  const [fromDate, setFromDate] = useState<Date | undefined>(
-    new Date("2025-01-01"),
-  );
-  const [toDate, setToDate] = useState<Date | undefined>(
-    new Date("2025-12-31"),
-  );
+  const [fromDate, setFromDate] = useState<Date | null>(new Date("2025-01-01"));
+  const [toDate, setToDate] = useState<Date | null>(new Date("2025-12-31"));
   const { from, to, getRootProps } = useTimescapeRange({
     from: {
       date: fromDate,
-      onChangeDate: (nextDate) => setFromDate(nextDate),
+      onDateChange: setFromDate,
     },
     to: {
       date: toDate,
-      onChangeDate: (nextDate) => setToDate(nextDate),
+      onDateChange: setToDate,
     },
   });
 

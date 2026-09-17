@@ -18,7 +18,7 @@ const App = () => {
 
   const { getRootProps, getInputProps } = useTimescape({
     ...options,
-    onChangeDate: (date) => setOptions((p) => ({ ...p, date })),
+    onDateChange: (date) => setOptions((p) => ({ ...p, date })),
   });
 
   return (

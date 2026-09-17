@@ -8,7 +8,12 @@ import {
 import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
-import { bindDate } from "./shared";
+import {
+  bindDate,
+  type DateProp,
+  toDate,
+  warnControlledSwitch,
+} from "./shared";
 
 export {
   $NOW,
@@ -17,9 +22,12 @@ export {
   type ReactRangeOptions as RangeOptions,
 };
 
-export type ReactOptions = Options & {
-  defaultDate?: Date | undefined;
-  onChangeDate?: (date: Date | undefined) => void;
+export type ReactOptions = Omit<Options, "date"> & {
+  /** Controlled value. `null` is the empty date, `undefined` means uncontrolled. */
+  date?: DateProp;
+  /** Initial value for uncontrolled usage. */
+  defaultDate?: DateProp;
+  onDateChange?: (date: Date | null) => void;
 };
 
 export type ReactRangeOptions = {
@@ -28,31 +36,57 @@ export type ReactRangeOptions = {
 };
 
 export const useTimescape = (options: ReactOptions = {}) => {
-  const { date, defaultDate, onChangeDate, ...rest } = options;
-  const isControlled = date !== undefined;
+  const { date, defaultDate, onDateChange, ...rest } = options;
+
+  // Controlled once, controlled for good: a controlled input that reports an
+  // empty date must not turn into an uncontrolled one.
+  const isControlledRef = useRef(date !== undefined);
+  const isControlled = isControlledRef.current || date !== undefined;
 
   const [internalDate, setInternalDate] = useState<Date | undefined>(
-    isControlled ? undefined : defaultDate,
+    isControlled ? undefined : toDate(defaultDate),
   );
 
-  const currentDate = isControlled ? date : internalDate;
+  const currentDate = isControlled ? toDate(date) : internalDate;
   const [manager] = useState(() => new TimescapeManager(currentDate, rest));
-  const onChangeDateRef = useRef(onChangeDate);
+
+  const onDateChangeRef = useRef(onDateChange);
+  const currentDateRef = useRef(currentDate);
+  const syncRef = useRef<((date: Date | undefined) => void) | undefined>(
+    undefined,
+  );
 
   useLayoutEffect(() => {
-    onChangeDateRef.current = onChangeDate;
+    onDateChangeRef.current = onDateChange;
+    currentDateRef.current = currentDate;
   });
+
+  useEffect(() => {
+    if (isControlled && !isControlledRef.current) {
+      isControlledRef.current = true;
+      warnControlledSwitch();
+    }
+  }, [isControlled]);
 
   useEffect(() => {
     const dateBinding = bindDate(manager, {
       controlled: isControlled,
-      getDate: () => currentDate,
+      getDate: () => currentDateRef.current,
       setDate: setInternalDate,
-      onChangeDate: (nextDate) => onChangeDateRef.current?.(nextDate),
+      onDateChange: (nextDate) => onDateChangeRef.current?.(nextDate),
     });
-    dateBinding.sync(currentDate);
-    return dateBinding.unsubscribe;
-  }, [manager, isControlled, currentDate]);
+    syncRef.current = dateBinding.sync;
+    dateBinding.sync(currentDateRef.current);
+
+    return () => {
+      syncRef.current = undefined;
+      dateBinding.unsubscribe();
+    };
+  }, [manager, isControlled]);
+
+  useEffect(() => {
+    syncRef.current?.(currentDate);
+  }, [currentDate]);
 
   useEffect(() => {
     manager.minDate = rest.minDate;
@@ -82,6 +116,7 @@ export const useTimescape = (options: ReactOptions = {}) => {
   }, [manager]);
 
   return {
+    /** @internal */
     _manager: manager,
     getInputProps: (
       type: DateType,
@@ -109,9 +144,10 @@ export const useTimescapeRange = (options: ReactRangeOptions = {}) => {
   const from = useTimescape(options.from);
   const to = useTimescape(options.to);
 
-  useEffect(() => {
-    marry(from._manager, to._manager);
-  }, [from._manager, to._manager]);
+  useEffect(
+    () => marry(from._manager, to._manager),
+    [from._manager, to._manager],
+  );
 
   return {
     getRootProps: () => ({

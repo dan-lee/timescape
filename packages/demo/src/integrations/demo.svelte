@@ -3,11 +3,11 @@ import { createTimescape, createTimescapeRange } from "timescape/svelte";
 import "../IntegrationDemo.css";
 import { writable } from "svelte/store";
 
-const date = writable<Date | undefined>(window.date ?? new Date());
+const date = writable<Date | null>(window.date ?? new Date());
 
 const { inputProps, rootProps } = createTimescape({
   date,
-  onChangeDate: (newDate) => {
+  onDateChange: (newDate) => {
     console.log("Date changed to", newDate?.toLocaleString());
     date.set(newDate);
   },

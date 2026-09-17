@@ -7,6 +7,13 @@ export declare type $NOW = typeof $NOW;
 
 declare type Callback<T> = (arg: T) => void | typeof STOP_EVENT_PROPAGATION;
 
+/**
+ * `null` is an empty value, `undefined` is no value at all: passing `date`
+ * as `undefined` means "this input is uncontrolled", the same distinction
+ * React Aria and MUI draw for their date fields.
+ */
+declare type DateProp = Date | null | undefined;
+
 export declare type DateType = "days" | "months" | "years" | "hours" | "minutes" | "seconds" | "milliseconds" | "am/pm";
 
 declare type Events = {
@@ -26,9 +33,12 @@ declare type Options_2 = {
     disallowPartial?: boolean;
 };
 
-declare type ReactOptions = Options_2 & {
-    defaultDate?: Date | undefined;
-    onChangeDate?: (date: Date | undefined) => void;
+declare type ReactOptions = Omit<Options_2, "date"> & {
+    /** Controlled value. `null` is the empty date, `undefined` means uncontrolled. */
+    date?: DateProp;
+    /** Initial value for uncontrolled usage. */
+    defaultDate?: DateProp;
+    onDateChange?: (date: Date | null) => void;
 };
 export { ReactOptions as Options }
 export { ReactOptions }
@@ -67,10 +77,11 @@ declare class TimescapeManager implements Options_2 {
     remove(): void;
     focusField(which?: number): void;
     on<E extends keyof Events>(event: E, callback: Callback<Events[E]>): () => void;
+    /* Excluded from this release type: setRangeBound */
 }
 
 export declare const useTimescape: (options?: ReactOptions) => {
-    readonly _manager: TimescapeManager;
+    /* Excluded from this release type: _manager */
     readonly getInputProps: (type: DateType, opts?: {
         ref?: RefObject<HTMLInputElement | null>;
         autofocus?: boolean;
