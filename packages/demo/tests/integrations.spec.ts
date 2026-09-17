@@ -149,6 +149,27 @@ test.describe("Integration smoke tests", () => {
         expect(outputValue).toContain("2024-06-15");
       });
 
+      test("should keep the other fields when a segment is cleared and re-entered", async ({
+        page,
+      }) => {
+        const yearInput = page.locator('[aria-label="years"]').first();
+        const monthInput = page.locator('[aria-label="months"]').first();
+        const dayInput = page.locator('[aria-label="days"]').first();
+
+        await yearInput.click();
+        await page.keyboard.press("Delete");
+        await expect(yearInput).toHaveValue("");
+
+        await yearInput.pressSequentially("2024");
+
+        // The cleared date must not fall back to today for the other fields
+        await expect(monthInput).toHaveValue("02");
+        await expect(dayInput).toHaveValue("28");
+
+        const output = page.locator("#output").first();
+        await expect(output).toHaveText("2024-02-28T14:30:00.000Z");
+      });
+
       test("should auto-focus next field when typing complete values", async ({
         page,
       }) => {
