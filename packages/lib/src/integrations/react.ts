@@ -99,8 +99,9 @@ export const useTimescape = (options: ReactOptions = {}) => {
       },
     }),
     getRootProps: () => ({
-      ref: (element: HTMLElement | null) =>
-        element && manager.registerRoot(element),
+      ref: (element: HTMLElement | null) => {
+        if (element) manager.registerRoot(element);
+      },
     }),
     ampm: createAmPmHandler(manager),
     options: optionsState,
