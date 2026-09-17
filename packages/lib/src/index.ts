@@ -81,6 +81,9 @@ export class TimescapeManager implements Options {
   #timestamp: number | undefined;
   // The previous timestamp is used to render partial dates when a field has been cleared.
   #prevTimestamp: number | undefined;
+  // Bounds owned by `marry()`, kept apart from the user supplied minDate/maxDate.
+  #rangeMinDate: Date | undefined;
+  #rangeMaxDate: Date | undefined;
   #registry: Registry = new Map();
   #pubsub: ReturnType<typeof createPubSub<Events>>;
   #rootElement?: HTMLElement;
@@ -138,7 +141,7 @@ export class TimescapeManager implements Options {
   }
 
   set date(nextDate: Date | number | string | undefined) {
-    this.#setDate(nextDate ? new Date(nextDate) : undefined);
+    this.#setExternalDate(nextDate ? new Date(nextDate) : undefined);
   }
 
   constructor(initialDate?: Date, options?: Options) {
@@ -328,6 +331,11 @@ export class TimescapeManager implements Options {
       shadowElement = registryEntry.shadowElement;
     }
 
+    const listeners = this.#createListeners(element, type);
+    // Kept with the element's own listeners so re-registering (resync) does not
+    // pile up subscriptions on the pubsub.
+    listeners.push(this.on("changeDate", () => this.#syncElement(element)));
+
     this.#registry.set(type, {
       type,
       inputElement: element,
@@ -335,10 +343,9 @@ export class TimescapeManager implements Options {
       shadowElement,
       intermediateValue: "",
       isUnset: !this.#timestamp && !this.disallowPartial,
-      listeners: this.#createListeners(element, type),
+      listeners,
     } satisfies RegistryEntry);
 
-    this.on("changeDate", () => this.#syncElement(element));
     this.#syncElement(element);
 
     return element;
@@ -852,6 +859,102 @@ export class TimescapeManager implements Options {
   }
 
   /**
+   * Caps a date to the effective bounds: the user supplied minDate/maxDate and,
+   * for ranges, the bounds `marry()` derived from the other end.
+   */
+  #clampDate(date: Date): Date {
+    const userMin = this.minDate === $NOW ? new Date() : this.minDate;
+    const userMax = this.maxDate === $NOW ? new Date() : this.maxDate;
+
+    const minDate = [userMin, this.#rangeMinDate]
+      .filter((bound) => bound !== undefined)
+      .reduce<Date | undefined>(
+        (acc, bound) => (!acc || bound > acc ? bound : acc),
+        undefined,
+      );
+    const maxDate = [userMax, this.#rangeMaxDate]
+      .filter((bound) => bound !== undefined)
+      .reduce<Date | undefined>(
+        (acc, bound) => (!acc || bound < acc ? bound : acc),
+        undefined,
+      );
+
+    if (minDate && date < minDate) return minDate;
+    if (maxDate && date > maxDate) return maxDate;
+    return date;
+  }
+
+  /**
+   * Reconciles a date coming from outside (the `date` setter, and through it
+   * every integration's controlled/uncontrolled binding) with what is on
+   * screen.
+   *
+   * The owner of the date is whoever writes here, but the owner of the
+   * *editing state* -- a cleared segment, a half typed value, the date a
+   * partial entry is based on -- is this class. So an external write only
+   * reconciles when it actually changes the value; writing back what is
+   * already being edited leaves the edit alone.
+   */
+  #setExternalDate(date: Date | undefined) {
+    const nextTimestamp = date ? this.#clampDate(date).getTime() : undefined;
+
+    if (nextTimestamp === undefined) {
+      // Already empty: this is the echo of a segment the user just cleared, so
+      // keep the partial state (and the date it is based on) intact.
+      if (this.#timestamp === undefined) return;
+
+      this.#prevTimestamp = undefined;
+      this.#resetSegments(true);
+      this.#setDate(undefined);
+      this.#syncAllElements();
+      return;
+    }
+
+    if (this.#timestamp === nextTimestamp) {
+      // Same value, but a previously cleared segment may still need repainting.
+      this.#syncAllElements();
+      return;
+    }
+
+    // The date a partial entry is based on is being written back unchanged,
+    // which means the edit has not been answered yet -- leave it alone.
+    if (
+      this.#timestamp === undefined &&
+      this.#prevTimestamp === nextTimestamp
+    ) {
+      return;
+    }
+
+    // A genuinely different date from the outside resolves any partial entry.
+    this.#prevTimestamp = undefined;
+    this.#resetSegments(false);
+    this.#setDate(new Date(nextTimestamp));
+    this.#syncAllElements();
+  }
+
+  #resetSegments(isUnset: boolean) {
+    this.#registry.forEach((entry) => {
+      entry.intermediateValue = "";
+      entry.isUnset = isUnset && !this.disallowPartial;
+    });
+  }
+
+  /**
+   * Constrains this instance to one end of a range. Kept apart from
+   * minDate/maxDate so that reactive option updates cannot drop the constraint.
+   * @internal
+   */
+  public setRangeBound(bound: "min" | "max", date: Date | undefined) {
+    if (bound === "min") {
+      this.#rangeMinDate = date;
+    } else {
+      this.#rangeMaxDate = date;
+    }
+
+    if (this.#timestamp) this.#setDate(new Date(this.#timestamp));
+  }
+
+  /**
    * Sets a validated date and emits a changeDate event.
    * It also caps the date to the minDate and maxDate if they are set.
    * Only emits the changeDate event if the date is complete (in partial mode).
@@ -866,17 +969,7 @@ export class TimescapeManager implements Options {
       return;
     }
 
-    const minDate = this.minDate === $NOW ? new Date() : this.minDate;
-    const maxDate = this.maxDate === $NOW ? new Date() : this.maxDate;
-
-    let validatedDate = date;
-
-    if (minDate && validatedDate < minDate) {
-      validatedDate = minDate;
-    } else if (maxDate && validatedDate > maxDate) {
-      validatedDate = maxDate;
-    }
-
+    const validatedDate = this.#clampDate(date);
     const newTimestamp = validatedDate.getTime();
 
     // For partial dates, check if seconds are the same
