@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "pnpm@12.4.2",
   "scripts": {
     "lint": "pnpm biome lint .",
     "demo": "pnpm --filter demo run dev",
