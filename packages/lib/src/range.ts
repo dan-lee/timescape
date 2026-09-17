@@ -8,13 +8,9 @@ import type { TimescapeManager } from "./index";
 export const marry = (from: TimescapeManager, to: TimescapeManager) => {
   const unsubscribers = [
     from.on("focusWrap", (type) => to.focusField(type === "start" ? -1 : 0)),
-    from.on("changeDate", (date) => {
-      if (date) to.setRangeBound("min", date);
-    }),
+    from.on("changeDate", (date) => to.setRangeBound("min", date)),
     to.on("focusWrap", (type) => from.focusField(type === "end" ? 0 : -1)),
-    to.on("changeDate", (date) => {
-      if (date) from.setRangeBound("max", date);
-    }),
+    to.on("changeDate", (date) => from.setRangeBound("max", date)),
   ];
 
   if (from.date) to.setRangeBound("min", from.date);
