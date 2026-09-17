@@ -1,5 +1,13 @@
 # timescape
 
+## 0.9.1
+
+### Patch Changes
+
+- [#64](https://github.com/dan-lee/timescape/pull/64) [`4fa7721`](https://github.com/dan-lee/timescape/commit/4fa772160b6bd26d378a0a3b92dece5200d6cf82) Thanks [@dan-lee](https://github.com/dan-lee)! - Fix: clearing one end of a range no longer limits the other
+  
+  Emptying the `to` input left `from` stuck at the date you had just removed, and emptying `from` did the same to `to`. An empty input now stops limiting the other one.
+
 ## 0.9.0
 
 ### Minor Changes
