@@ -162,6 +162,35 @@ describe("react integration", () => {
     expect(onDateChange).toHaveBeenCalled();
   });
 
+  it("reacts to options changing after mount", async () => {
+    const Clock = ({ hour12 }: { hour12: boolean }) => {
+      const { getRootProps, getInputProps } = useTimescape({
+        date: new Date("2024-03-15T14:30:00.000Z"),
+        hour12,
+      });
+
+      return createElement(
+        "div",
+        { ...getRootProps(), "data-testid": "root" },
+        createElement("input", {
+          ...getInputProps("hours"),
+          "data-testid": "hours",
+        }),
+        createElement("input", {
+          ...getInputProps("am/pm"),
+          "data-testid": "am/pm",
+        }),
+      );
+    };
+
+    await render(createElement(Clock, { hour12: false }));
+    expect(field("hours")).toHaveValue("14");
+
+    await render(createElement(Clock, { hour12: true }));
+    expect(field("hours")).toHaveValue("02");
+    expect(field("am/pm")).toHaveValue("PM");
+  });
+
   it("warns when an uncontrolled input becomes controlled", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
