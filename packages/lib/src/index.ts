@@ -8,8 +8,8 @@ import {
   toggleAmPm,
 } from "./date";
 import {
-  type Callback,
   addElementListener,
+  type Callback,
   createPubSub,
   isTouchDevice,
 } from "./util";
@@ -81,6 +81,9 @@ export class TimescapeManager implements Options {
   #timestamp: number | undefined;
   // The previous timestamp is used to render partial dates when a field has been cleared.
   #prevTimestamp: number | undefined;
+  // Bounds owned by `marry()`, kept apart from the user supplied minDate/maxDate.
+  #rangeMinDate: Date | undefined;
+  #rangeMaxDate: Date | undefined;
   #registry: Registry = new Map();
   #pubsub: ReturnType<typeof createPubSub<Events>>;
   #rootElement?: HTMLElement;
@@ -138,7 +141,7 @@ export class TimescapeManager implements Options {
   }
 
   set date(nextDate: Date | number | string | undefined) {
-    this.#setDate(nextDate ? new Date(nextDate) : undefined);
+    this.#setExternalDate(nextDate ? new Date(nextDate) : undefined);
   }
 
   constructor(initialDate?: Date, options?: Options) {
@@ -328,6 +331,10 @@ export class TimescapeManager implements Options {
       shadowElement = registryEntry.shadowElement;
     }
 
+    const listeners = this.#createListeners(element, type);
+    // Kept with the element's listeners so resync does not pile up subscriptions.
+    listeners.push(this.on("changeDate", () => this.#syncElement(element)));
+
     this.#registry.set(type, {
       type,
       inputElement: element,
@@ -335,10 +342,9 @@ export class TimescapeManager implements Options {
       shadowElement,
       intermediateValue: "",
       isUnset: !this.#timestamp && !this.disallowPartial,
-      listeners: this.#createListeners(element, type),
+      listeners,
     } satisfies RegistryEntry);
 
-    this.on("changeDate", () => this.#syncElement(element));
     this.#syncElement(element);
 
     return element;
@@ -851,6 +857,91 @@ export class TimescapeManager implements Options {
     return listeners;
   }
 
+  /** Caps a date to minDate/maxDate and, for ranges, the bounds from the other end. */
+  #clampDate(date: Date): Date {
+    const userMin = this.minDate === $NOW ? new Date() : this.minDate;
+    const userMax = this.maxDate === $NOW ? new Date() : this.maxDate;
+
+    const minDate = [userMin, this.#rangeMinDate]
+      .filter((bound) => bound !== undefined)
+      .reduce<Date | undefined>(
+        (acc, bound) => (!acc || bound > acc ? bound : acc),
+        undefined,
+      );
+    const maxDate = [userMax, this.#rangeMaxDate]
+      .filter((bound) => bound !== undefined)
+      .reduce<Date | undefined>(
+        (acc, bound) => (!acc || bound < acc ? bound : acc),
+        undefined,
+      );
+
+    if (minDate && date < minDate) return minDate;
+    if (maxDate && date > maxDate) return maxDate;
+    return date;
+  }
+
+  /**
+   * Whoever writes here owns the date, but this class owns the editing state --
+   * a cleared segment, a half typed value, the date a partial entry is based
+   * on. So an external write only reconciles when it changes the value;
+   * writing back what is already being edited leaves the edit alone.
+   */
+  #setExternalDate(date: Date | undefined) {
+    const nextTimestamp = date ? this.#clampDate(date).getTime() : undefined;
+
+    if (nextTimestamp === undefined) {
+      // The echo of a segment the user just cleared.
+      if (this.#timestamp === undefined) return;
+
+      this.#prevTimestamp = undefined;
+      this.#resetSegments({ unset: true });
+      this.#setDate(undefined);
+      this.#syncAllElements();
+      return;
+    }
+
+    if (this.#timestamp === nextTimestamp) {
+      // Unchanged, but a cleared segment may still need repainting.
+      this.#syncAllElements();
+      return;
+    }
+
+    // The date the partial entry is based on, so the edit is unanswered.
+    if (
+      this.#timestamp === undefined &&
+      this.#prevTimestamp === nextTimestamp
+    ) {
+      return;
+    }
+
+    this.#prevTimestamp = undefined;
+    this.#resetSegments({ unset: false });
+    this.#setDate(new Date(nextTimestamp));
+    this.#syncAllElements();
+  }
+
+  #resetSegments({ unset }: { unset: boolean }) {
+    this.#registry.forEach((entry) => {
+      entry.intermediateValue = "";
+      entry.isUnset = unset && !this.disallowPartial;
+    });
+  }
+
+  /**
+   * Kept apart from minDate/maxDate so reactive option updates cannot drop the
+   * range constraint.
+   * @internal
+   */
+  public setRangeBound(bound: "min" | "max", date: Date | undefined) {
+    if (bound === "min") {
+      this.#rangeMinDate = date;
+    } else {
+      this.#rangeMaxDate = date;
+    }
+
+    if (this.#timestamp) this.#setDate(new Date(this.#timestamp));
+  }
+
   /**
    * Sets a validated date and emits a changeDate event.
    * It also caps the date to the minDate and maxDate if they are set.
@@ -858,31 +949,32 @@ export class TimescapeManager implements Options {
    */
   #setDate(date: Date | undefined) {
     if (!date) {
-      this.#timestamp = undefined;
-      this.#pubsub.emit("changeDate", undefined);
+      // Only emit if actually changing from a value to undefined
+      if (this.#timestamp !== undefined) {
+        this.#timestamp = undefined;
+        this.#pubsub.emit("changeDate", undefined);
+      }
       return;
     }
 
-    const minDate = this.minDate === $NOW ? new Date() : this.minDate;
-    const maxDate = this.maxDate === $NOW ? new Date() : this.maxDate;
+    const validatedDate = this.#clampDate(date);
+    const newTimestamp = validatedDate.getTime();
 
-    let validatedDate = date;
-
-    if (minDate && validatedDate < minDate) {
-      validatedDate = minDate;
-    } else if (maxDate && validatedDate > maxDate) {
-      validatedDate = maxDate;
-    }
-
+    // For partial dates, check if seconds are the same
     if (
       this.#timestamp &&
-      isSameSeconds(validatedDate.getTime(), this.#timestamp) &&
+      isSameSeconds(newTimestamp, this.#timestamp) &&
       !this.isCompleted()
     ) {
       return;
     }
 
-    this.#timestamp = validatedDate.getTime();
+    // For complete dates, check exact timestamp match to prevent infinite loops
+    if (this.#timestamp === newTimestamp && this.isCompleted()) {
+      return;
+    }
+
+    this.#timestamp = newTimestamp;
     this.#prevTimestamp = undefined;
 
     if (!this.isCompleted()) return;

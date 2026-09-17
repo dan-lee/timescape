@@ -1,18 +1,20 @@
 import { useDatePicker } from "@rehookify/datepicker";
 import { useState } from "react";
-import { useTimescape } from "timescape/react";
-
-import { SetOptions } from "../SetOptions";
-import { UpdateFlasher } from "../UpdateFlasher";
+import { type Options, useTimescape } from "timescape/react";
 import { Calendar } from "../calendar";
+import { SetOptions } from "../SetOptions";
 import { input, root, separator } from "../timescape.css";
+import { UpdateFlasher } from "../UpdateFlasher";
 
 const App = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const { getRootProps, getInputProps, options, update } = useTimescape({
-    // Edit these options in real-time 👇
+  const [options, setOptions] = useState<Options>({
     date: new Date(),
-    onChangeDate: (date) => {
+  });
+  const { getRootProps, getInputProps } = useTimescape({
+    // Edit these options in real-time 👇
+    ...options,
+    onDateChange: (date) => {
       if (!date) return;
 
       setSelectedDate(date);
@@ -24,7 +26,7 @@ const App = () => {
   const dpCalendar = useDatePicker({
     selectedDates: selectedDate ? [selectedDate] : [],
     onDatesChange: ([date]) => {
-      update((prev) => ({ ...prev, date }));
+      setOptions((prev) => ({ ...prev, date }));
       setSelectedDate(date);
     },
   });
@@ -52,7 +54,7 @@ const App = () => {
       <SetOptions
         enabled={["minDate", "maxDate"]}
         options={options}
-        updateFn={update}
+        updateFn={setOptions}
       />
     </div>
   );

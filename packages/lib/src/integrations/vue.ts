@@ -1,65 +1,99 @@
 import {
   type ComponentPublicInstance,
+  computed,
   onUnmounted,
   ref,
+  watch,
   watchEffect,
 } from "vue";
 
-import {
-  $NOW,
-  type DateType,
-  type Options,
-  type RangeOptions,
-  TimescapeManager,
-} from "../index";
+import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
+import { applyOptions, bindDate, type DateProp, toDate } from "./shared";
 
-export { $NOW, type DateType, type Options, type RangeOptions };
+export {
+  $NOW,
+  type DateType,
+  type VueOptions as Options,
+  type VueRangeOptions as RangeOptions,
+};
 
-export const useTimescape = (options: Options = {}) => {
-  const optionsRef = ref(options);
-  const { date, ...rest } = options;
+type BaseOptions = Omit<Options, "date">;
 
-  const manager = new TimescapeManager(date, rest);
+/** Any ref-like holder, so `Ref<Date>`, `Ref<Date | null>` and `computed` all fit. */
+export type DateRef = { readonly value: DateProp };
 
-  manager.on("changeDate", (nextDate) => {
-    optionsRef.value.date = nextDate;
+export type VueOptions = BaseOptions & {
+  /** Passing a ref makes the input controlled; its `null` is the empty date. */
+  date?: DateRef;
+  defaultDate?: DateProp;
+  onDateChange?: (date: Date | null) => void;
+};
+
+export type VueRangeOptions = {
+  from?: VueOptions;
+  to?: VueOptions;
+};
+
+export const useTimescape = (options: VueOptions = {}) => {
+  const { date, defaultDate, onDateChange, ...rest } = options;
+
+  const isControlled = date !== undefined;
+
+  const internalDate = ref<Date | undefined>(
+    isControlled ? undefined : toDate(defaultDate),
+  );
+
+  const currentDate = computed(() =>
+    date !== undefined ? toDate(date.value) : internalDate.value,
+  );
+
+  const manager = new TimescapeManager(currentDate.value, rest);
+
+  const dateBinding = bindDate(manager, {
+    controlled: isControlled,
+    getDate: () => currentDate.value,
+    setDate: (nextDate) => {
+      internalDate.value = nextDate;
+    },
+    onDateChange,
   });
 
-  watchEffect(() => {
-    manager.date = optionsRef.value.date;
-    manager.minDate = optionsRef.value.minDate;
-    manager.maxDate = optionsRef.value.maxDate;
-    manager.digits = optionsRef.value.digits;
-    manager.wrapAround = optionsRef.value.wrapAround;
-    manager.hour12 = optionsRef.value.hour12;
-    manager.snapToStep = optionsRef.value.snapToStep;
-    manager.wheelControl = optionsRef.value.wheelControl;
-    manager.disallowPartial = optionsRef.value.disallowPartial;
-  });
+  watch(currentDate, dateBinding.sync);
 
-  onUnmounted(() => manager.remove());
+  watchEffect(() => applyOptions(manager, options));
+
+  onUnmounted(() => {
+    dateBinding.unsubscribe();
+    manager.remove();
+  });
 
   return {
+    /** @internal */
     _manager: manager,
     registerElement:
-      (type: DateType) => (element: Element | ComponentPublicInstance | null) =>
-        element instanceof HTMLInputElement &&
-        manager.registerElement(element, type),
+      (type: DateType) =>
+      (element: Element | ComponentPublicInstance | null) => {
+        if (element instanceof HTMLInputElement) {
+          manager.registerElement(element, type);
+        }
+      },
     registerRoot: () => (element: Element | ComponentPublicInstance | null) => {
-      element instanceof HTMLElement && manager.registerRoot(element);
+      if (element instanceof HTMLElement) {
+        manager.registerRoot(element);
+      }
     },
     ampm: createAmPmHandler(manager),
-    options: optionsRef,
   } as const;
 };
 
-export const useTimescapeRange = (options: RangeOptions = {}) => {
+export const useTimescapeRange = (options: VueRangeOptions = {}) => {
   const from = useTimescape(options.from);
   const to = useTimescape(options.to);
 
-  marry(from._manager, to._manager);
+  const divorce = marry(from._manager, to._manager);
+  onUnmounted(divorce);
 
   return {
     registerRangeRoot:
@@ -69,13 +103,7 @@ export const useTimescapeRange = (options: RangeOptions = {}) => {
           to._manager.registerRoot(element);
         }
       },
-    from: {
-      registerElement: from.registerElement,
-      options: from.options,
-    },
-    to: {
-      registerElement: to.registerElement,
-      options: to.options,
-    },
+    from: { registerElement: from.registerElement, ampm: from.ampm },
+    to: { registerElement: to.registerElement, ampm: to.ampm },
   } as const;
 };

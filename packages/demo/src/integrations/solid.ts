@@ -1,14 +1,19 @@
-import { createEffect } from "solid-js";
+import { createSignal } from "solid-js";
 import html from "solid-js/html";
 import { render } from "solid-js/web";
 
 import { useTimescape, useTimescapeRange } from "timescape/solid";
 
 const App = () => {
-  const { getInputProps, getRootProps, options } = useTimescape({
-    date: new Date(),
+  const [date, setDate] = createSignal<Date | null>(window.date ?? new Date());
+
+  const { getInputProps, getRootProps } = useTimescape({
+    date,
     minDate: new Date("2022-01-01"),
-    maxDate: new Date("2024-01-01"),
+    onDateChange: (newDate) => {
+      console.log("Date changed to", newDate);
+      setDate(newDate);
+    },
   });
 
   const {
@@ -16,12 +21,8 @@ const App = () => {
     from,
     to,
   } = useTimescapeRange({
-    from: { date: new Date("2001") },
-    to: { date: new Date() },
-  });
-
-  createEffect(() => {
-    console.log("Date changed to", options.date);
+    from: { defaultDate: new Date() },
+    to: { defaultDate: new Date(Date.now() + 31536e6 * 3) }, // 3 years from now
   });
 
   return html` <div>
@@ -54,6 +55,9 @@ const App = () => {
       <input class="timescape-input" ...${to.getInputProps("months")} />
       <span class="separator">/</span>
       <input class="timescape-input" ...${to.getInputProps("days")} />
+    </div>
+    <div id="output" style="display: none">
+      ${() => date()?.toISOString()}
     </div>
   </div>`;
 };

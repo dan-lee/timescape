@@ -75,3 +75,30 @@ export const dayItem = style({
     },
   },
 });
+
+/*
+
+width: 35;
+height: 35;
+display: flex;
+justify-content: center;
+align-items: center;
+font-size: 95%;
+font-variant-numeric: tabular-nums;
+outline: 1px solid #dedcdc;
+color: #333;
+background-color: #fff;
+cursor: pointer;
+transition: background-color 0.2s ease-in-out, outline-color 0.2s ease-in-out;
+
+&:first-child: null;
+&:nth-child(7): null;
+&:nth-child(36): null;
+&:last-child: null;
+&:hover: null;
+&[data-current-month="false"]: null;
+&[data-selected="true"]: null;
+&[data-range="in-range"]: null;
+&[data-range="will-be-in-range"]: null;
+
+ */

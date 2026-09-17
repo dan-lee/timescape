@@ -1,87 +1,97 @@
 import { onDestroy } from "svelte";
-import { derived, writable } from "svelte/store";
-import {
-  $NOW,
-  type DateType,
-  type Options,
-  type RangeOptions,
-  TimescapeManager,
-} from "../index";
+import type { Action } from "svelte/action";
+import { get, type Readable, writable } from "svelte/store";
+import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
+import { bindDate, type DateProp, toDate } from "./shared";
 
 export {
   // Svelte import names prohibit a $ prefix, so it's renamed to NOW there
   $NOW as NOW,
   type DateType,
-  type Options,
-  type RangeOptions,
+  type SvelteOptions as Options,
+  type SvelteRangeOptions as RangeOptions,
 };
 
-export const createTimescape = (options: Options = {}) => {
-  const optionsStore = writable<Options>(options);
-  const { date, ...rest } = options;
-  const manager = new TimescapeManager(date, rest);
+type BaseOptions = Omit<Options, "date">;
 
-  manager.on("changeDate", (nextDate) => {
-    optionsStore.update((value) => ({ ...value, date: nextDate }));
+export type SvelteOptions = BaseOptions & {
+  /** Passing a store makes the input controlled; its `null` is the empty date. */
+  date?: Readable<DateProp>;
+  defaultDate?: DateProp;
+  onDateChange?: (date: Date | null) => void;
+};
+
+export type SvelteRangeOptions = {
+  from?: SvelteOptions;
+  to?: SvelteOptions;
+};
+
+export const createTimescape = (options: SvelteOptions = {}) => {
+  const { date, defaultDate, onDateChange, ...rest } = options;
+
+  const isControlled = date !== undefined;
+
+  const internalStore = writable<Date | undefined>(
+    isControlled ? undefined : toDate(defaultDate),
+  );
+
+  const dateStore = isControlled ? date : internalStore;
+
+  let currentValue = toDate(get(dateStore));
+
+  const manager = new TimescapeManager(currentValue, rest);
+
+  const dateBinding = bindDate(manager, {
+    controlled: isControlled,
+    getDate: () => currentValue,
+    setDate: (nextDate) => internalStore.set(nextDate),
+    onDateChange,
   });
 
-  optionsStore.subscribe((value) => {
-    manager.minDate = value.minDate;
-    manager.maxDate = value.maxDate;
-    manager.hour12 = value.hour12;
-    manager.digits = value.digits;
-    manager.wrapAround = value.wrapAround;
-    manager.snapToStep = value.snapToStep;
-    manager.wheelControl = value.wheelControl;
-    manager.disallowPartial = value.disallowPartial;
+  const unsubscribeDate = dateStore.subscribe((value) => {
+    currentValue = toDate(value);
+    dateBinding.sync(currentValue);
   });
 
-  derived(optionsStore, ($options) => $options.date).subscribe((value) => {
-    manager.date = value;
+  onDestroy(() => {
+    dateBinding.unsubscribe();
+    manager.remove();
+    unsubscribeDate();
   });
 
-  const inputProps = (element: HTMLInputElement, type: DateType) =>
-    manager.registerElement(element, type);
-  const rootProps = (element: HTMLElement) => manager.registerRoot(element);
-
-  onDestroy(() => manager.remove());
+  const inputProps: Action<HTMLInputElement, DateType> = (element, type) => {
+    manager.registerElement(element as HTMLInputElement, type as DateType);
+  };
+  const rootProps: Action<HTMLElement, void> = (element) => {
+    manager.registerRoot(element as HTMLElement);
+  };
 
   return {
+    /** @internal */
     _manager: manager,
     inputProps,
     rootProps,
     ampm: createAmPmHandler(manager),
-    options: optionsStore,
-    update: optionsStore.update,
+    date: dateStore,
   } as const;
 };
 
-export const createTimescapeRange = (options: RangeOptions = {}) => {
+export const createTimescapeRange = (options: SvelteRangeOptions = {}) => {
   const from = createTimescape(options.from);
   const to = createTimescape(options.to);
 
-  marry(from._manager, to._manager);
+  onDestroy(marry(from._manager, to._manager));
 
-  const rangeRootProps = (element: HTMLElement) => {
-    from.rootProps(element);
-    to.rootProps(element);
+  const rootProps: Action<HTMLElement, void> = (element) => {
+    from._manager.registerRoot(element as HTMLElement);
+    to._manager.registerRoot(element as HTMLElement);
   };
 
   return {
-    fromInputProps: from.inputProps,
-    toInputProps: to.inputProps,
-    from: {
-      inputProps: from.inputProps,
-      options: from.options,
-      update: from.update,
-    },
-    to: {
-      inputProps: to.inputProps,
-      options: to.options,
-      update: to.update,
-    },
-    rangeRootProps,
+    rootProps,
+    from: { inputProps: from.inputProps, ampm: from.ampm, date: from.date },
+    to: { inputProps: to.inputProps, ampm: to.ampm, date: to.date },
   } as const;
 };

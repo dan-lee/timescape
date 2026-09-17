@@ -1,7 +1,6 @@
 import { CameraView } from "@ksassnowski/motion-canvas-camera";
-import { type Layout, Node, Rect, Txt, makeScene2D } from "@motion-canvas/2d";
+import { type Layout, makeScene2D, Node, Rect, Txt } from "@motion-canvas/2d";
 import {
-  Vector2,
   all,
   createRef,
   delay,
@@ -11,6 +10,7 @@ import {
   linear,
   loopFor,
   useRandom,
+  Vector2,
   waitFor,
 } from "@motion-canvas/core";
 import dayjs from "dayjs";

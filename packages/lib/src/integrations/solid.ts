@@ -1,81 +1,100 @@
-import { createEffect, onCleanup } from "solid-js";
-import { createStore } from "solid-js/store";
-import {
-  $NOW,
-  type DateType,
-  type Options,
-  type RangeOptions,
-  TimescapeManager,
-} from "../index";
+import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
+import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
+import { applyOptions, bindDate, type DateProp, toDate } from "./shared";
 
-export { $NOW, type DateType, type Options, type RangeOptions };
+export {
+  $NOW,
+  type DateType,
+  type SolidOptions as Options,
+  type SolidRangeOptions as RangeOptions,
+};
 
-export const useTimescape = (options: Options = {}) => {
-  const [optionsStore, update] = createStore<Options>(options);
-  const { date, ...rest } = options;
-  const manager = new TimescapeManager(date, rest);
+type BaseOptions = Omit<Options, "date">;
 
-  createEffect(() => {
-    manager.on("changeDate", (nextDate) => {
-      update("date", nextDate);
-    });
+export type SolidOptions = BaseOptions & {
+  /** Passing an accessor makes the input controlled; its `null` is the empty date. */
+  date?: Accessor<DateProp>;
+  defaultDate?: DateProp;
+  onDateChange?: (date: Date | null) => void;
+};
+
+export type SolidRangeOptions = {
+  from?: SolidOptions;
+  to?: SolidOptions;
+};
+
+export const useTimescape = (options: SolidOptions = {}) => {
+  const { date, defaultDate, onDateChange, ...rest } = options;
+
+  const isControlled = date !== undefined;
+
+  const [internalDate, setInternalDate] = createSignal<Date | undefined>(
+    isControlled ? undefined : toDate(defaultDate),
+  );
+
+  const currentDate = () =>
+    date !== undefined ? toDate(date()) : internalDate();
+
+  const manager = new TimescapeManager(currentDate(), rest);
+
+  const dateBinding = bindDate(manager, {
+    controlled: isControlled,
+    getDate: currentDate,
+    setDate: setInternalDate,
+    onDateChange,
   });
 
+  onCleanup(dateBinding.unsubscribe);
+
   createEffect(() => {
-    manager.date = optionsStore.date;
-    manager.minDate = optionsStore.minDate;
-    manager.maxDate = optionsStore.maxDate;
-    manager.hour12 = optionsStore.hour12;
-    manager.digits = optionsStore.digits;
-    manager.wrapAround = optionsStore.wrapAround;
-    manager.snapToStep = optionsStore.snapToStep;
-    manager.wheelControl = optionsStore.wheelControl;
-    manager.disallowPartial = optionsStore.disallowPartial;
+    dateBinding.sync(currentDate());
   });
+
+  createEffect(() => applyOptions(manager, options));
 
   onCleanup(() => manager.remove());
 
   return {
+    /** @internal */
     _manager: manager,
     getInputProps: (type: DateType) => ({
-      ref: (element: HTMLInputElement | null) =>
-        element && manager.registerElement(element, type),
+      ref: (element: HTMLInputElement | null) => {
+        if (element) manager.registerElement(element, type);
+      },
     }),
     getRootProps: () => ({
-      ref: (element: HTMLElement | null) =>
-        element && manager.registerRoot(element),
+      ref: (element: HTMLElement | null) => {
+        if (element) manager.registerRoot(element);
+      },
     }),
     ampm: createAmPmHandler(manager),
-    update,
-    options: optionsStore,
   } as const;
 };
 
-export const useTimescapeRange = (options: RangeOptions = {}) => {
+export const useTimescapeRange = (options: SolidRangeOptions = {}) => {
   const from = useTimescape(options.from);
   const to = useTimescape(options.to);
 
-  marry(from._manager, to._manager);
+  onCleanup(marry(from._manager, to._manager));
 
   return {
     getRootProps: () => ({
       ref: (element: HTMLElement | null) => {
-        if (!element) return;
-        from._manager.registerRoot(element);
-        to._manager.registerRoot(element);
+        if (element) {
+          from._manager.registerRoot(element);
+          to._manager.registerRoot(element);
+        }
       },
     }),
     from: {
       getInputProps: from.getInputProps,
-      options: from.options,
-      update: from.update,
+      ampm: from.ampm,
     },
     to: {
       getInputProps: to.getInputProps,
-      options: to.options,
-      update: to.update,
+      ampm: to.ampm,
     },
   } as const;
 };

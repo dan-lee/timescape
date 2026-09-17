@@ -1,30 +1,28 @@
 import type { TimescapeManager } from "./index";
-import { STOP_EVENT_PROPAGATION } from "./util";
 
+/**
+ * Keeps two managers in a from/to relationship: focus wraps from one into the
+ * other, and neither end can cross the other.
+ * @returns a function that dissolves the relationship again
+ */
 export const marry = (from: TimescapeManager, to: TimescapeManager) => {
-  from.on("focusWrap", (type) => {
-    to.focusField(type === "start" ? -1 : 0);
-  });
-  from.on("changeDate", (date) => {
-    if (!date || !to.date) return;
+  const unsubscribers = [
+    from.on("focusWrap", (type) => to.focusField(type === "start" ? -1 : 0)),
+    from.on("changeDate", (date) => {
+      if (date) to.setRangeBound("min", date);
+    }),
+    to.on("focusWrap", (type) => from.focusField(type === "end" ? 0 : -1)),
+    to.on("changeDate", (date) => {
+      if (date) from.setRangeBound("max", date);
+    }),
+  ];
 
-    // don't allow the from date to be after the to date
-    if (date > to.date) {
-      from.date = to.date;
-      return STOP_EVENT_PROPAGATION;
-    }
-  });
+  if (from.date) to.setRangeBound("min", from.date);
+  if (to.date) from.setRangeBound("max", to.date);
 
-  to.on("focusWrap", (type) => {
-    from.focusField(type === "end" ? 0 : -1);
-  });
-  to.on("changeDate", (date) => {
-    if (!date || !from.date) return;
-
-    // don't allow the to date to be before the from date
-    if (date < from.date) {
-      to.date = from.date;
-      return STOP_EVENT_PROPAGATION;
-    }
-  });
+  return () => {
+    unsubscribers.forEach((unsubscribe) => unsubscribe());
+    to.setRangeBound("min", undefined);
+    from.setRangeBound("max", undefined);
+  };
 };

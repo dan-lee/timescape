@@ -1,10 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { useEffect } from "react";
-import { createLiveEditStory } from "storybook-addon-code-editor";
-
 import { Icon } from "@iconify-icon/react";
-import SolidLogo from "./SolidLogo";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useEffect } from "react";
+import { makeLiveEditStory } from "storybook-addon-code-editor";
 import * as styles from "./integrations.css";
+import SolidLogo from "./SolidLogo";
 
 type Integration = "react" | "preact" | "solid" | "svelte" | "vue" | "vanilla";
 const Badge = ({ integration }: { integration: Integration }) => {
@@ -101,18 +100,23 @@ export default {
   component: () => null,
   parameters: {
     layout: "fullscreen",
+    controls: { disable: true },
   },
 } satisfies Meta;
 
-const createStory = (integration: Integration, code: string): StoryObj => ({
-  ...createLiveEditStory({
+const createStory = (integration: Integration, code: string): StoryObj => {
+  const story: StoryObj = {};
+  makeLiveEditStory(story, {
     code,
     modifyEditor: ({ editor }) => {
       editor.getEditors().at(0)?.updateOptions({ readOnly: true });
     },
-  }),
-  render: () => <IframeComponent integration={integration} />,
-});
+  });
+
+  story.render = () => <IframeComponent integration={integration} />;
+
+  return story;
+};
 
 const [react, preact, solid, svelte, vue, vanilla] = await Promise.all([
   import("../integrations/demo.react.tsx?raw").then((m) => m.default),

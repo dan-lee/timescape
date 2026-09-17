@@ -5,10 +5,9 @@ import {
   waitFor,
 } from "@testing-library/dom";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
-import { PropertySymbol } from "happy-dom";
+import { type EventTarget, PropertySymbol } from "happy-dom";
 import { beforeEach, describe, expect, it } from "vitest";
-
-import { type DateType, TimescapeManager, marry } from "../src";
+import { type DateType, marry, TimescapeManager } from "../src";
 
 const register = (manager: TimescapeManager, fields: DateType[]) => {
   const container = document.createElement("div");
@@ -132,6 +131,19 @@ describe("timescape", () => {
       expect(fields.ampm).toHaveValue("AM");
     });
 
+    it("update when date changes on an input that started empty", () => {
+      document.body.innerHTML = "";
+      manager = new TimescapeManager();
+      container = register(manager, ["years", "months", "days"]);
+      document.body.appendChild(container);
+
+      manager.date = new Date("2021-01-21 11:01:21");
+
+      expect(getByTestId(container, "years")).toHaveValue("2021");
+      expect(getByTestId(container, "months")).toHaveValue("01");
+      expect(getByTestId(container, "days")).toHaveValue("21");
+    });
+
     it("should render correctly when date is undefined", () => {
       document.body.appendChild(container);
 
@@ -202,23 +214,58 @@ describe("timescape", () => {
 
       const fields = getFields();
 
-      Object.values(fields).forEach((field) => {
-        // @ts-expect-error not public API
-        const listeners = field[PropertySymbol.listeners];
-        return Object.values(listeners).forEach((l) => {
-          expect(l).not.toHaveLength(0);
-        });
+      const countListeners = (element: HTMLElement) => {
+        const { bubbling, capturing } = (element as unknown as EventTarget)[
+          PropertySymbol.listeners
+        ];
+
+        return [...capturing.values(), ...bubbling.values()].flat().length;
+      };
+
+      Object.values(fields).map((field) => {
+        expect(countListeners(field)).toBeGreaterThan(0);
       });
 
       manager.remove();
 
       Object.values(fields).forEach((field) => {
-        // @ts-expect-error not public API
-        const listeners = field[PropertySymbol.listeners];
-        return Object.values(listeners).forEach((l) => {
-          expect(l).toHaveLength(0);
-        });
+        expect(countListeners(field)).toBe(0);
       });
+    });
+
+    it("should not stack element listeners on resync", () => {
+      // Syncing an element reads its value before deciding to write, so the
+      // reads caused by one date change count the live sync subscriptions.
+      const readsPerDateChange = (resyncs: number) => {
+        document.body.innerHTML = "";
+        const instance = new TimescapeManager(baseDate);
+        const host = register(instance, ["years"]);
+        document.body.appendChild(host);
+
+        const descriptor = Object.getOwnPropertyDescriptor(
+          HTMLInputElement.prototype,
+          "value",
+        );
+        let reads = 0;
+        Object.defineProperty(getByTestId(host, "years"), "value", {
+          configurable: true,
+          get() {
+            reads++;
+            return descriptor?.get?.call(this);
+          },
+          set(next) {
+            descriptor?.set?.call(this, next);
+          },
+        });
+
+        for (let i = 0; i < resyncs; i++) instance.resync();
+
+        reads = 0;
+        instance.date = new Date("2025-06-01T00:00:00Z");
+        return reads;
+      };
+
+      expect(readsPerDateChange(5)).toBe(readsPerDateChange(0));
     });
   });
 
@@ -1245,6 +1292,36 @@ describe("timescape", () => {
       await user.keyboard("{ArrowDown}");
       expect(getByTestId(container, "from-years")).toHaveValue("2024");
     });
+
+    it("should lift the constraints once the range is dissolved", () => {
+      const from = new TimescapeManager(new Date("2024-01-01"));
+      const to = new TimescapeManager(new Date("2025-01-01"));
+      const divorce = marry(from, to);
+
+      // capped at the to date
+      from.date = new Date("2026-01-01");
+      expect(from.date).toEqual(new Date("2025-01-01"));
+
+      divorce();
+
+      from.date = new Date("2026-01-01");
+      expect(from.date).toEqual(new Date("2026-01-01"));
+    });
+
+    it("should keep a user supplied minDate when the range updates", () => {
+      const userMin = new Date("2020-06-01");
+      const from = new TimescapeManager(new Date("2024-01-01"));
+      const to = new TimescapeManager(new Date("2025-01-01"), {
+        minDate: userMin,
+      });
+      marry(from, to);
+
+      // what every integration's reactive options effect does
+      to.minDate = userMin;
+
+      to.date = new Date("2019-01-01");
+      expect(to.date).toEqual(new Date("2024-01-01"));
+    });
   });
 
   describe("milliseconds field", () => {
@@ -1446,7 +1523,7 @@ describe("timescape", () => {
       manager.date = new Date("2021-01-01T00:00:00");
       document.body.appendChild(container);
       const hoursField = queryByTestId<HTMLInputElement>(container, "hours");
-      
+
       expect(manager.ampm).toBe("am");
       expect(hoursField).toHaveValue("12");
 
