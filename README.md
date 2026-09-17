@@ -1,5 +1,10 @@
 # timescape
 
+[![npm version](https://img.shields.io/npm/v/timescape?color=8f47d4)](https://www.npmjs.com/package/timescape)
+[![bundle size](https://img.shields.io/bundlejs/size/timescape?color=8f47d4&label=min%2Bgzip)](https://bundlejs.com/?q=timescape)
+[![test status](https://github.com/dan-lee/timescape/actions/workflows/test.yml/badge.svg)](https://github.com/dan-lee/timescape/actions/workflows/test.yml)
+[![license](https://img.shields.io/npm/l/timescape?color=8f47d4)](./LICENSE)
+
 A powerful, headless library that elegantly fills the void left by HTML's native
 [`<input type="time">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/time) and
 [`<input type="date">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date).
@@ -19,13 +24,17 @@ See [Storybook](https://timescape.daniellehr.de) or [check out the examples](#ex
 ## Features
 
 - **🧢 Headless Architecture**: You control the UI – `timescape` handles the logic.
-- **🧩 Framework Compatibility**: Adapters for [React](https://react.dev/), [Preact](https://preactjs.com/),
-  [Vue](https://vuejs.org/), [Svelte](https://svelte.dev/), and [Solid](https://www.solidjs.com/).
+- **🧩 Framework Compatibility**: Adapters for [React](https://react.dev/) (17+),
+  [Preact](https://preactjs.com/) (10), [Vue](https://vuejs.org/) (3), [Svelte](https://svelte.dev/) (3, 4
+  and 5), and [Solid](https://www.solidjs.com/) (1+).
 - **⚙ Flexible API**: Hooks (or equivalents) return getters for seamless component integration. Order of
   inputs (i.e. format) is completely up to you by just rendering in the order you prefer.
-- **👥 Accessibility**: Full A11y compliance, keyboard navigation and manual input.
-- **⏰ Date and time flexibility**: Supports min/max dates and 24/12 hour clock formats.
-- **🪶 Lightweight**: No external dependencies.
+- **👥 Accessibility**: Every field is an ARIA `spinbutton` with live `aria-valuenow`, `aria-valuemin` and
+  `aria-valuemax` inside a `role="group"` root, plus keyboard navigation and manual typing.
+- **⏰ Date and time flexibility**: Fields from years down to milliseconds, min/max dates and 24/12 hour clock
+  formats.
+- **🪶 Lightweight**: ~5.3 kB min+gzip for the core, ~6 kB including a framework adapter. No runtime
+  dependencies.
 - **🔀 Enhanced input fields**: A supercharged `<input type="date/time">`, offering additional flexibility.
 - **🤳 Touch device support**: Use it on any device, including touch devices.
 
@@ -189,10 +198,10 @@ const { registerElement, registerRoot } = useTimescape({
 import { createTimescape } from "timescape/svelte";
 import { writable } from "svelte/store";
 
-// Controlled example with Svelte store
-const date = writable(new Date());
+// Controlled example with Svelte store (pass the store itself, not its value)
+const date = writable<Date | null>(new Date());
 const { inputProps, rootProps } = createTimescape({
-  date: $date,
+  date,
   onDateChange: (nextDate) => {
     console.log("Date changed to", nextDate);
     date.set(nextDate);
@@ -283,7 +292,7 @@ const timeManager = new TimescapeManager();
 
 timeManager.date = new Date();
 
-timeManager.subscribe((nextDate) => {
+timeManager.on("changeDate", (nextDate) => {
   console.log("Date changed to", nextDate);
 });
 
@@ -376,6 +385,21 @@ The [`step` attribute for input elements](https://developer.mozilla.org/en-US/do
 is supported and will be used to increment/decrement the values when the user uses the arrow keys. The default
 value is `1`, but you can set it to any value you want. Also see [`snapToStep`](#options) if you want to snap
 to the nearest step.
+
+### `ref` and `autofocus` on inputs
+
+In React and Preact, `getInputProps` takes a second argument to keep your own ref and to focus a field on
+mount:
+
+```tsx
+const inputRef = useRef<HTMLInputElement | null>(null);
+
+<input {...getInputProps("days", { ref: inputRef, autofocus: true })} />;
+```
+
+`getInputProps` already returns a `ref` callback, so passing your own through this option is the way to get
+hold of the element. The other integrations don't take these options: in Vue, Solid and Svelte you attach your
+own ref or `bind:this` alongside `registerElement`/`inputProps`.
 
 ### Preventing default `keydown` behavior
 
@@ -507,6 +531,60 @@ return (
     </div>
   </div>
 );
+```
+
+The helper that registers the shared root element is named per framework: `getRootProps` (React, Preact,
+Solid), `registerRangeRoot` (Vue) and `rootProps` (Svelte). The `from` and `to` objects expose the same input
+helpers and `ampm` object as a single instance does.
+
+In vanilla JS you tie two managers together yourself with `marry`:
+
+```ts
+import { marry, TimescapeManager } from "timescape";
+
+const from = new TimescapeManager(new Date("2000-01-01"));
+const to = new TimescapeManager(new Date());
+
+// `from` becomes the minimum of `to` and `to` the maximum of `from`, and focus
+// wraps from the last `from` field into the first `to` field (and back).
+const divorce = marry(from, to);
+
+// Untie them again – this also clears the bounds they set on each other
+divorce();
+```
+
+## Vanilla API
+
+The integrations are thin wrappers around `TimescapeManager`, which you can also use directly (see the
+[vanilla JS example](#examples) above).
+
+| Member                                       | Description                                                                                                                                                      |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `date`                                       | Getter and setter for the current date. The setter also accepts a timestamp or a date string, the getter returns `undefined` while the date is still incomplete. |
+| `registerRoot(element)`                      | Registers the root element, which handles focus management and gets `role="group"`.                                                                              |
+| `registerElement(element, type, autofocus?)` | Registers an input for a `DateType`: `"years"`, `"months"`, `"days"`, `"hours"`, `"minutes"`, `"seconds"`, `"milliseconds"` or `"am/pm"`.                        |
+| `on(event, callback)`                        | Subscribes to an event and returns an unsubscribe function. [See below](#events)                                                                                 |
+| `focusField(index)`                          | Focuses the field at the given index in registration order. Negative indices count from the end, so `-1` is the last field.                                      |
+| `resync()`                                   | Re-registers all known elements, e.g. after the inputs were moved or re-rendered.                                                                                |
+| `remove()`                                   | Tears down all listeners and observers.                                                                                                                          |
+
+All options from the [options table](#options) are plain properties on the manager and can be assigned at any
+time, e.g. `manager.hour12 = true`.
+
+### Events
+
+```ts
+manager.on("changeDate", (date: Date | undefined) => {}); // date changed (`undefined` if incomplete)
+manager.on("focusWrap", (direction: "start" | "end") => {}); // focus moved past the first or last field
+```
+
+Listeners run in subscription order. Returning `STOP_EVENT_PROPAGATION` from a listener keeps the remaining
+listeners for that event from running:
+
+```ts
+import { STOP_EVENT_PROPAGATION } from "timescape";
+
+manager.on("focusWrap", () => STOP_EVENT_PROPAGATION);
 ```
 
 ## Anatomy & styling
