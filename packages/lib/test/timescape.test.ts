@@ -232,6 +232,41 @@ describe("timescape", () => {
         expect(countListeners(field)).toBe(0);
       });
     });
+
+    it("should not stack element listeners on resync", () => {
+      // Syncing an element reads its value before deciding to write, so the
+      // reads caused by one date change count the live sync subscriptions.
+      const readsPerDateChange = (resyncs: number) => {
+        document.body.innerHTML = "";
+        const instance = new TimescapeManager(baseDate);
+        const host = register(instance, ["years"]);
+        document.body.appendChild(host);
+
+        const descriptor = Object.getOwnPropertyDescriptor(
+          HTMLInputElement.prototype,
+          "value",
+        );
+        let reads = 0;
+        Object.defineProperty(getByTestId(host, "years"), "value", {
+          configurable: true,
+          get() {
+            reads++;
+            return descriptor?.get?.call(this);
+          },
+          set(next) {
+            descriptor?.set?.call(this, next);
+          },
+        });
+
+        for (let i = 0; i < resyncs; i++) instance.resync();
+
+        reads = 0;
+        instance.date = new Date("2025-06-01T00:00:00Z");
+        return reads;
+      };
+
+      expect(readsPerDateChange(5)).toBe(readsPerDateChange(0));
+    });
   });
 
   describe("keyboard navigation", () => {
