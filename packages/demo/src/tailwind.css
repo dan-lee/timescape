@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/*
+ * Flash effect used by the UpdateFlasher demo helper (calendar + range stories).
+ * Kept as plain CSS because it relies on a multi-layer animated gradient border
+ * that has no direct utility equivalent.
+ */
+@keyframes ts-flash {
+  0% {
+    background-position: right;
+    background-image:
+      linear-gradient(white, white),
+      linear-gradient(-60deg, #6c70ff, #f5f5f5, #6c70ff);
+    opacity: 1;
+  }
+  100% {
+    background-position: left;
+    background-size: 200%;
+    background-image:
+      linear-gradient(white, white),
+      linear-gradient(120deg, #6c70ff, #f5f5f5, #6c70ff);
+  }
+}
+
+.ts-flash {
+  animation: ts-flash 800ms ease-out;
+  border-radius: 12px;
+  width: fit-content;
+  background-image:
+    linear-gradient(white, white),
+    linear-gradient(-60deg, #6c70ff, #f5f5f5, #6c70ff);
+  background-size: 200%;
+  background-position: left;
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+}

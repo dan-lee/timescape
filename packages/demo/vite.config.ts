@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
@@ -29,7 +29,7 @@ export default defineConfig({
       exclude: [/node_modules/, /\.tsx?$/],
     }),
     react(),
-    vanillaExtractPlugin(),
+    tailwindcss(),
   ],
   optimizeDeps: {
     include: [

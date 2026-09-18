@@ -1,5 +1,6 @@
 import type { Parameters } from "@storybook/react-vite";
 import { setupMonaco } from "storybook-addon-code-editor";
+import "../src/tailwind.css";
 
 setupMonaco({
   onMonacoLoad(monaco) {

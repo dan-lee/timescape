@@ -2,8 +2,15 @@ import { Icon } from "@iconify-icon/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect } from "react";
 import { makeLiveEditStory } from "storybook-addon-code-editor";
-import * as styles from "./integrations.css";
 import SolidLogo from "./SolidLogo";
+
+const styles = {
+  iframe: "absolute left-0 top-0 h-full w-full",
+  badge:
+    "absolute left-5 top-5 flex cursor-default flex-row items-center gap-2 rounded-[12px] bg-white/80 p-[15px] shadow-[rgba(50,50,93,0.25)_0px_13px_27px_-5px,rgba(0,0,0,0.3)_0px_8px_16px_-8px]",
+  badgeVersion: "translate-y-[2px] text-[11px] text-[#666]",
+  info: "absolute bottom-5 left-5 flex h-[20px] w-[20px] cursor-pointer items-center justify-center rounded-full border border-[#ccc] text-[14px] text-white shadow-[rgba(50,50,93,0.25)_0px_13px_27px_-5px,rgba(0,0,0,0.3)_0px_8px_16px_-8px] before:pointer-events-none before:absolute before:bottom-1/2 before:left-full before:w-[275px] before:translate-x-[3px] before:translate-y-[-12px] before:rounded-[10px] before:rounded-bl-[2px] before:bg-white/80 before:px-5 before:py-[10px] before:leading-[1.5] before:text-[#484848] before:opacity-0 before:shadow-[rgba(50,50,93,0.25)_0px_13px_27px_-5px,rgba(0,0,0,0.3)_0px_8px_16px_-8px] before:transition-all before:duration-200 before:content-[attr(data-text)] hover:before:pointer-events-auto hover:before:opacity-100",
+};
 
 type Integration = "react" | "preact" | "solid" | "svelte" | "vue" | "vanilla";
 const Badge = ({ integration }: { integration: Integration }) => {

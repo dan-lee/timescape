@@ -681,3 +681,44 @@ A typical anatomy of a timescape component may look like this:
   margin: 0;
 }
 ```
+
+### Tailwind CSS
+
+Prefer utility classes? Here's the same component styled with [Tailwind CSS](https://tailwindcss.com),
+ready to copy and paste:
+
+```tsx
+import { useTimescape } from "timescape/react";
+
+export function DateTimePicker() {
+  const { getRootProps, getInputProps } = useTimescape({
+    defaultDate: new Date(),
+  });
+
+  const input =
+    "max-w-12 bg-transparent text-center text-lg tabular-nums caret-transparent " +
+    "outline-none selection:bg-transparent focus:rounded-md focus:bg-indigo-500 focus:text-white";
+  const separator = "select-none text-sm text-neutral-400";
+
+  return (
+    <div
+      {...getRootProps()}
+      className="flex w-fit cursor-text select-none items-center gap-1 rounded-xl border border-neutral-300 bg-white p-2 transition focus-within:border-indigo-500 focus-within:outline focus-within:outline-indigo-500"
+    >
+      <input {...getInputProps("days")} className={input} />
+      <span className={separator}>/</span>
+      <input {...getInputProps("months")} className={input} />
+      <span className={separator}>/</span>
+      <input {...getInputProps("years")} className={input} />
+      <span className={separator}>·</span>
+      <input {...getInputProps("hours")} className={input} />
+      <span className={separator}>:</span>
+      <input {...getInputProps("minutes")} className={input} />
+    </div>
+  );
+}
+```
+
+The `tabular-nums` and `caret-transparent` utilities on each input are the important ones: they keep the
+fields from shifting as digits change and hide the text caret. Everything else is styling you can freely
+adjust — `indigo-500` mirrors the demo's accent color.

@@ -1,12 +1,15 @@
 import { type Dispatch, Fragment, type SetStateAction, useState } from "react";
 import type { Options } from "timescape/react";
-import {
-  button,
-  checkbox,
-  fieldset,
-  label,
-  optionsInput,
-} from "./timescape.css.ts";
+
+const fieldset =
+  "fixed right-0 top-0 grid translate-x-[-20px] translate-y-[10px] grid-cols-[max-content_1fr] items-center justify-items-start gap-x-4 gap-y-1 overflow-hidden rounded-[4px] border border-[#7182ec] bg-white/60 px-6 py-4 text-[14px] data-[expanded=false]:max-h-0 data-[expanded=false]:cursor-pointer data-[expanded=false]:border-black/20 data-[expanded=false]:py-0";
+const optionsInput =
+  "rounded-[10px] border border-[#bbb] px-[5px] py-[3px] transition-all duration-100 select-none focus-within:border-[#7182ec] focus-within:[outline:1px_solid_#7182ec] invalid:border-[#ce4455] invalid:[outline:1px_solid_#ce4455]";
+const checkbox =
+  "m-0 grid h-[14px] w-[14px] cursor-pointer appearance-none place-content-center rounded-[4px] border border-[#bbb] bg-transparent font-[inherit] text-current outline-none focus:border-[#7182ec] checked:before:h-[8px] checked:before:w-[8px] checked:before:rounded-[2px] checked:before:bg-[#7182ec] checked:before:content-['']";
+const label = "w-full cursor-pointer font-mono text-[90%] text-[#444]";
+const button =
+  "cursor-pointer appearance-none rounded-[4px] border border-[#bbb] bg-[#eee] px-2 py-1";
 
 const toDateTimeLocal = (date: Date) => {
   const YMD = [

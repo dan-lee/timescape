@@ -3,7 +3,6 @@ import { makeLiveEditStory } from "storybook-addon-code-editor";
 import * as timescape from "timescape/react";
 import * as CalendarComponent from "./calendar";
 import * as SetOptions from "./SetOptions";
-import * as styles from "./timescape.css";
 import * as UpdateFlasher from "./UpdateFlasher.tsx";
 
 export const createLiveStory = (code: string) => {
@@ -17,7 +16,6 @@ export const createLiveStory = (code: string) => {
       "../SetOptions": SetOptions,
       "../UpdateFlasher": UpdateFlasher,
       "../calendar": CalendarComponent,
-      "../timescape.css": styles,
     },
   });
 

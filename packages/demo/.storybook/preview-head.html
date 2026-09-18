@@ -6,6 +6,14 @@
 />
 <title>Timescape Storybook</title>
 
+<!--
+  Tailwind's browser (JIT) build. The committed examples are already styled by
+  the build-time Tailwind (the Vite plugin), so the demo looks correct without
+  this. It is loaded only so that classes a visitor types in the live code
+  editor are compiled on the fly. Dev/demo use only — not for production.
+-->
+<script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+
 <style>
   :root {
     height: 100%;
