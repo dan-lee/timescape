@@ -1565,11 +1565,12 @@ describe("timescape", () => {
     });
 
     it("should keep the picked day across time edits on the same day", async () => {
-      document.body.innerHTML = "";
-      manager = new TimescapeManager(new Date(2024, 0, 31, 10));
-      container = register(manager, ["years", "months", "days", "hours"]);
-      document.body.appendChild(container);
-      const fields = getFields();
+      const fields = setup(new Date(2024, 0, 31, 10), [
+        "years",
+        "months",
+        "days",
+        "hours",
+      ]);
 
       fields.months.focus();
       await user.keyboard("{ArrowUp}"); // Feb 29
@@ -1581,11 +1582,12 @@ describe("timescape", () => {
     });
 
     it("should update the picked day when a time edit crosses midnight", async () => {
-      document.body.innerHTML = "";
-      manager = new TimescapeManager(new Date(2024, 0, 31, 23));
-      container = register(manager, ["years", "months", "days", "hours"]);
-      document.body.appendChild(container);
-      const fields = getFields();
+      const fields = setup(new Date(2024, 0, 31, 23), [
+        "years",
+        "months",
+        "days",
+        "hours",
+      ]);
 
       fields.hours.focus();
       await user.keyboard("{ArrowUp}"); // Feb 1, 00:00

@@ -33,10 +33,10 @@ type RegistryEntry = {
   intermediateValue: string;
   autofocus?: boolean;
   isUnset: boolean;
-  // The value the user picked, used by the days entry to restore the day after
+  // The day the user picked, kept on the days entry to restore the day after
   // a month/year change had to clamp it (e.g. 31 -> Feb 28 -> Mar 31) and to
   // allow typing the day before the month/year (e.g. 29.02.2024).
-  pickedValue?: number;
+  pickedDay?: number;
   listeners: Array<() => void>;
 };
 type Registry = Map<DateType, RegistryEntry>;
@@ -225,7 +225,7 @@ export class TimescapeManager implements Options {
       this.registerElement(entry.inputElement, type, entry.autofocus, true);
 
       const nextEntry = this.#registry.get(type);
-      if (nextEntry) nextEntry.pickedValue = entry.pickedValue;
+      if (nextEntry) nextEntry.pickedDay = entry.pickedDay;
     });
   }
 
@@ -641,7 +641,7 @@ export class TimescapeManager implements Options {
                 Math.min(typedValue, daysInMonth(this.#currentDate)),
               );
               // Remember the typed day, the month/year may not be entered yet
-              registryEntry.pickedValue = typedValue;
+              registryEntry.pickedDay = typedValue;
               this.#focusNextField(type);
             }
             break;
@@ -936,7 +936,7 @@ export class TimescapeManager implements Options {
   #resetSegments({ unset }: { unset: boolean }) {
     this.#registry.forEach((entry) => {
       entry.intermediateValue = "";
-      entry.pickedValue = undefined;
+      entry.pickedDay = undefined;
       entry.isUnset = unset && !this.disallowPartial;
     });
   }
@@ -965,14 +965,14 @@ export class TimescapeManager implements Options {
 
     if (days) {
       if (type === "months" || type === "years") {
-        days.pickedValue ??= this.#currentDate.getDate();
-        date = set(date, "days", Math.min(days.pickedValue, daysInMonth(date)));
+        days.pickedDay ??= this.#currentDate.getDate();
+        date = set(date, "days", Math.min(days.pickedDay, daysInMonth(date)));
       } else if (
         type === "days" ||
         date.getDate() !== this.#currentDate.getDate()
       ) {
         // Time edits only count once they move the date to another day
-        days.pickedValue = date.getDate();
+        days.pickedDay = date.getDate();
       }
     }
 
