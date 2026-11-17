@@ -6,11 +6,15 @@ export const isSameSeconds = (ts1: number, ts2: number) =>
 const isLeapYear = (year: number) =>
   (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 
-export const daysInMonth = (date: Date) => {
-  const month = date.getMonth();
-  const year = date.getFullYear();
-  return new Date(year, month + 1, 0).getDate();
+const daysInYearMonth = (year: number, month: number) => {
+  // `new Date(year, …)` maps years 0-99 to 1900-1999, setFullYear doesn't
+  const date = new Date(0);
+  date.setFullYear(year, month + 1, 0);
+  return date.getDate();
 };
+
+export const daysInMonth = (date: Date) =>
+  daysInYearMonth(date.getFullYear(), date.getMonth());
 
 // Hopefully this can be replaced by the Temporal API in the future
 export const add = (date: Date, type: DateType, amount: number) => {
@@ -71,16 +75,23 @@ export const set = (date: Date, type: DateType, value: number) => {
       // Set the day of the month to the minimum of the current day of the month
       // and the last day of the new month
       const currentDay = newDate.getDate();
-      const daysInNewMonth = daysInMonth(
-        new Date(newDate.getFullYear(), value),
-      );
+      const daysInNewMonth = daysInYearMonth(newDate.getFullYear(), value);
       newDate.setDate(Math.min(currentDay, daysInNewMonth));
       newDate.setMonth(value);
       break;
     }
-    case "years":
+    case "years": {
+      const isLeapDay = newDate.getMonth() === 1 && newDate.getDate() === 29;
+
       newDate.setFullYear(value);
+
+      // Same as `add`: clamp Feb 29 to Feb 28 when the new year isn't a leap
+      // year, instead of letting the Date overflow to Mar 1
+      if (isLeapDay && !isLeapYear(value)) {
+        newDate.setMonth(1, 28);
+      }
       break;
+    }
     case "hours":
       newDate.setHours(value);
       break;

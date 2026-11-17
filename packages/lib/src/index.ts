@@ -33,6 +33,10 @@ type RegistryEntry = {
   intermediateValue: string;
   autofocus?: boolean;
   isUnset: boolean;
+  // The day the user picked, kept on the days entry to restore the day after
+  // a month/year change had to clamp it (e.g. 31 -> Feb 28 -> Mar 31) and to
+  // allow typing the day before the month/year (e.g. 29.02.2024).
+  pickedDay?: number;
   listeners: Array<() => void>;
 };
 type Registry = Map<DateType, RegistryEntry>;
@@ -219,6 +223,9 @@ export class TimescapeManager implements Options {
       entry.listeners.forEach((listener) => listener());
       this.#registry.delete(type);
       this.registerElement(entry.inputElement, type, entry.autofocus, true);
+
+      const nextEntry = this.#registry.get(type);
+      if (nextEntry) nextEntry.pickedDay = entry.pickedDay;
     });
   }
 
@@ -471,7 +478,7 @@ export class TimescapeManager implements Options {
   #clearIntermediateState(registryEntry: RegistryEntry) {
     const { intermediateValue, type } = registryEntry;
     if (intermediateValue) {
-      this.#setDate(
+      this.#setUserDate(
         set(
           this.#currentDate,
           type,
@@ -479,6 +486,7 @@ export class TimescapeManager implements Options {
             ? Number(intermediateValue) - 1
             : Number(intermediateValue),
         ),
+        type,
       );
       registryEntry.intermediateValue = "";
       this.#cursorPosition = 0;
@@ -531,10 +539,11 @@ export class TimescapeManager implements Options {
           step = elementStep * factor;
         }
 
-        this.#setDate(
+        this.#setUserDate(
           this.wrapAround || !this.isCompleted()
             ? this.#wrapDateAround(step, type)
             : add(date, type, step),
+          type,
         );
         this.#syncAllElements();
         break;
@@ -604,8 +613,8 @@ export class TimescapeManager implements Options {
           registryEntry.intermediateValue = "";
           registryEntry.isUnset = false;
 
-          this.#setDate(newDate);
-          this.#syncElement(inputElement);
+          this.#setUserDate(newDate, unit);
+          this.#syncAllElements();
           this.#cursorPosition = 0;
         };
 
@@ -622,15 +631,17 @@ export class TimescapeManager implements Options {
                 this.#cursorPosition = 1;
               }
             } else {
-              // Between 1 and days in month for the current year
-              const finalValue = Math.max(
+              const typedValue = Math.max(
                 1,
-                Math.min(
-                  Number(intermediateValue + key),
-                  daysInMonth(this.#currentDate),
-                ),
+                Math.min(Number(intermediateValue + key), 31),
               );
-              setValue("days", finalValue);
+              // Between 1 and days in month for the current year
+              setValue(
+                "days",
+                Math.min(typedValue, daysInMonth(this.#currentDate)),
+              );
+              // Remember the typed day, the month/year may not be entered yet
+              registryEntry.pickedDay = typedValue;
               this.#focusNextField(type);
             }
             break;
@@ -845,11 +856,13 @@ export class TimescapeManager implements Options {
         addElementListener(element, "wheel", (e) => {
           e.preventDefault();
           const step = Math.sign(e.deltaY);
-          this.#setDate(
+          this.#setUserDate(
             this.wrapAround
               ? this.#wrapDateAround(step, type)
               : add(this.#currentDate, type, step),
+            type,
           );
+          this.#syncAllElements();
         }),
       );
     }
@@ -923,6 +936,7 @@ export class TimescapeManager implements Options {
   #resetSegments({ unset }: { unset: boolean }) {
     this.#registry.forEach((entry) => {
       entry.intermediateValue = "";
+      entry.pickedDay = undefined;
       entry.isUnset = unset && !this.disallowPartial;
     });
   }
@@ -940,6 +954,29 @@ export class TimescapeManager implements Options {
     }
 
     if (this.#timestamp) this.#setDate(new Date(this.#timestamp));
+  }
+
+  /**
+   * Sets a date changed by user input on the given field and keeps track of
+   * the day the user picked.
+   */
+  #setUserDate(date: Date, type: DateType) {
+    const days = this.#registry.get("days");
+
+    if (days) {
+      if (type === "months" || type === "years") {
+        days.pickedDay ??= this.#currentDate.getDate();
+        date = set(date, "days", Math.min(days.pickedDay, daysInMonth(date)));
+      } else if (
+        type === "days" ||
+        date.getDate() !== this.#currentDate.getDate()
+      ) {
+        // Time edits only count once they move the date to another day
+        days.pickedDay = date.getDate();
+      }
+    }
+
+    this.#setDate(date);
   }
 
   /**
