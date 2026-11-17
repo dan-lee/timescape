@@ -142,6 +142,42 @@ describe("date helper", () => {
     expect(newDate.toISOString()).toEqual("2022-02-28T00:00:00.000Z");
   });
 
+  test("set non-leap year on leap day clamps to Feb 28", () => {
+    const date = new Date(2024, 1, 29);
+    const newDate = set(date, "years", 2023);
+    expect(newDate.getFullYear()).toEqual(2023);
+    expect(newDate.getMonth()).toEqual(1);
+    expect(newDate.getDate()).toEqual(28);
+  });
+
+  test("set leap year on leap day keeps Feb 29", () => {
+    const date = new Date(2024, 1, 29);
+    const newDate = set(date, "years", 2028);
+    expect(newDate.getMonth()).toEqual(1);
+    expect(newDate.getDate()).toEqual(29);
+  });
+
+  test("set two-digit year on leap day", () => {
+    const date = new Date(2024, 1, 29);
+    expect(set(date, "years", 23).getDate()).toEqual(28);
+    // year 0 is a leap year (unlike 1900, which `new Date(0, …)` maps to)
+    expect(set(date, "years", 0).getDate()).toEqual(29);
+  });
+
+  test("daysInMonth handles years 0-99", () => {
+    const date = new Date(2024, 1, 1);
+    date.setFullYear(0);
+    expect(daysInMonth(date)).toEqual(29);
+    date.setFullYear(1);
+    expect(daysInMonth(date)).toEqual(28);
+  });
+
+  test("set month on year 0 uses that year's month length", () => {
+    const date = new Date(2024, 0, 31);
+    date.setFullYear(0);
+    expect(set(date, "months", 1).getDate()).toEqual(29);
+  });
+
   test("get", () => {
     const date = new Date("2021-12-31T21:59:59.000Z");
     expect(get(date, "days")).toEqual(31);

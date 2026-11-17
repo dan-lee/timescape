@@ -6,7 +6,7 @@ import {
 } from "@testing-library/dom";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { type EventTarget, PropertySymbol } from "happy-dom";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type DateType, marry, TimescapeManager } from "../src";
 
 const register = (manager: TimescapeManager, fields: DateType[]) => {
@@ -1167,6 +1167,37 @@ describe("timescape", () => {
       unsubscribe();
     });
 
+    it("should clamp Feb 29 to Feb 28 when typing a non-leap year", async () => {
+      manager = new TimescapeManager(new Date(2024, 1, 29));
+      container = register(manager, ["years", "months", "days"]);
+      document.body.appendChild(container);
+
+      const fields = getFields();
+      fields.years.focus();
+      await user.keyboard("2023");
+
+      expect(fields.years).toHaveValue("2023");
+      expect(fields.months).toHaveValue("02");
+      expect(fields.days).toHaveValue("28");
+    });
+
+    it("should clamp Feb 29 to Feb 28 when blurring a partial non-leap year", async () => {
+      manager = new TimescapeManager(new Date(2024, 1, 29));
+      container = register(manager, ["years", "months", "days"]);
+      document.body.appendChild(container);
+
+      const fields = getFields();
+      fields.years.focus();
+      await user.keyboard("23");
+      fields.years.blur();
+
+      await waitFor(() => {
+        expect(manager.date?.getFullYear()).toBe(23);
+      });
+      expect(manager.date?.getMonth()).toBe(1);
+      expect(manager.date?.getDate()).toBe(28);
+    });
+
     it("should work with partial input disabled", async () => {
       const now = new Date();
       manager = new TimescapeManager(now, {
@@ -1434,6 +1465,160 @@ describe("timescape", () => {
       await user.keyboard("456");
 
       expect(manager.date?.getMilliseconds()).toBe(456);
+    });
+  });
+
+  describe("day clamping", () => {
+    const setup = (date: Date | undefined, fields: DateType[]) => {
+      document.body.innerHTML = "";
+      manager = new TimescapeManager(date);
+      container = register(manager, fields);
+      document.body.appendChild(container);
+      return getFields();
+    };
+    const value = () => {
+      const { years, months, days } = getFields();
+      return `${years.value}-${months.value}-${days.value}`;
+    };
+
+    beforeEach(() => {
+      // "today" is in a non-leap year and a 30-day month
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date(2026, 10, 14));
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should allow typing a leap day before the year (dd/mm/yyyy)", async () => {
+      const fields = setup(undefined, ["days", "months", "years"]);
+      fields.days.focus();
+      await user.keyboard("29022024");
+      expect(value()).toBe("2024-02-29");
+    });
+
+    it("should allow typing a leap day before the year (mm/dd/yyyy)", async () => {
+      const fields = setup(undefined, ["months", "days", "years"]);
+      fields.months.focus();
+      await user.keyboard("02292024");
+      expect(value()).toBe("2024-02-29");
+    });
+
+    it("should allow retyping a leap day over a non-leap date", async () => {
+      const fields = setup(new Date(2023, 2, 15), ["days", "months", "years"]);
+      fields.days.focus();
+      await user.keyboard("29022024");
+      expect(value()).toBe("2024-02-29");
+    });
+
+    it("should still clamp a leap day typed for a non-leap year", async () => {
+      const fields = setup(undefined, ["days", "months", "years"]);
+      fields.days.focus();
+      await user.keyboard("29022023");
+      expect(value()).toBe("2023-02-28");
+    });
+
+    it("should allow typing a 31st before a month that has it", async () => {
+      const fields = setup(undefined, ["days", "months", "years"]);
+      fields.days.focus();
+      await user.keyboard("31122024");
+      expect(value()).toBe("2024-12-31");
+    });
+
+    it("should keep the typed day when a controlled value is echoed back", async () => {
+      const fields = setup(new Date(2023, 2, 15), ["days", "months", "years"]);
+      manager.on("changeDate", (date) => {
+        manager.date = date;
+      });
+      fields.days.focus();
+      await user.keyboard("29022024");
+      expect(value()).toBe("2024-02-29");
+    });
+
+    it("should restore the day when stepping through shorter months", async () => {
+      const fields = setup(new Date(2024, 0, 31), ["years", "months", "days"]);
+      fields.months.focus();
+      await user.keyboard("{ArrowUp}");
+      expect(value()).toBe("2024-02-29");
+      await user.keyboard("{ArrowUp}");
+      expect(value()).toBe("2024-03-31");
+    });
+
+    it("should restore a leap day when stepping years back and forth", async () => {
+      const fields = setup(new Date(2024, 1, 29), ["years", "months", "days"]);
+      fields.years.focus();
+      await user.keyboard("{ArrowDown}");
+      expect(value()).toBe("2023-02-28");
+      await user.keyboard("{ArrowUp}");
+      expect(value()).toBe("2024-02-29");
+    });
+
+    it("should forget the picked day once the day itself changes", async () => {
+      const fields = setup(new Date(2024, 0, 31), ["years", "months", "days"]);
+      fields.months.focus();
+      await user.keyboard("{ArrowUp}"); // Feb 29
+      fields.days.focus();
+      await user.keyboard("{ArrowDown}"); // Feb 28
+      fields.months.focus();
+      await user.keyboard("{ArrowUp}");
+      expect(value()).toBe("2024-03-28");
+    });
+
+    it("should keep the picked day across time edits on the same day", async () => {
+      document.body.innerHTML = "";
+      manager = new TimescapeManager(new Date(2024, 0, 31, 10));
+      container = register(manager, ["years", "months", "days", "hours"]);
+      document.body.appendChild(container);
+      const fields = getFields();
+
+      fields.months.focus();
+      await user.keyboard("{ArrowUp}"); // Feb 29
+      fields.hours.focus();
+      await user.keyboard("{ArrowUp}");
+      fields.months.focus();
+      await user.keyboard("{ArrowUp}");
+      expect(value()).toBe("2024-03-31");
+    });
+
+    it("should update the picked day when a time edit crosses midnight", async () => {
+      document.body.innerHTML = "";
+      manager = new TimescapeManager(new Date(2024, 0, 31, 23));
+      container = register(manager, ["years", "months", "days", "hours"]);
+      document.body.appendChild(container);
+      const fields = getFields();
+
+      fields.hours.focus();
+      await user.keyboard("{ArrowUp}"); // Feb 1, 00:00
+      fields.months.focus();
+      await user.keyboard("{ArrowUp}");
+      expect(value()).toBe("2024-03-01");
+    });
+
+    it("should keep the picked day across a resync", async () => {
+      const fields = setup(new Date(2024, 0, 31), ["years", "months", "days"]);
+      fields.months.focus();
+      await user.keyboard("{ArrowUp}"); // Feb 29
+      manager.wheelControl = true;
+      await user.keyboard("{ArrowUp}");
+      expect(value()).toBe("2024-03-31");
+    });
+
+    it("should forget the picked day when the date is set externally", async () => {
+      const fields = setup(new Date(2024, 0, 31), ["years", "months", "days"]);
+      fields.months.focus();
+      await user.keyboard("{ArrowUp}"); // Feb 29
+      manager.date = new Date(2024, 3, 15);
+      await user.keyboard("{ArrowUp}");
+      expect(value()).toBe("2024-05-15");
+    });
+
+    it("should allow Feb 29 in year 0000", async () => {
+      const date = new Date(2024, 1, 1);
+      date.setFullYear(0);
+      const fields = setup(date, ["years", "months", "days"]);
+      fields.days.focus();
+      await user.keyboard("29");
+      expect(value()).toBe("0000-02-29");
     });
   });
 
