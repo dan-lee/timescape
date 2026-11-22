@@ -45,7 +45,7 @@ jobs:
         run: pnpm run build
 
       - name: Run unit tests
-        run: pnpm --filter timescape -- test run --coverage.enabled=true --coverage.reporter=text
+        run: pnpm --filter timescape -- test --coverage.enabled=true --coverage.reporter=text
 
   e2e:
     name: Playwright integration tests

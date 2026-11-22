@@ -49,7 +49,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run tests
-        run: pnpm --filter timescape -- test run
+        run: pnpm --filter timescape -- test
 
       - name: Create PR or publish
         id: changesets

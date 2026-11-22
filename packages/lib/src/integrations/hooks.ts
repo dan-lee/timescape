@@ -4,26 +4,36 @@ import { createAmPmHandler } from "../util";
 import {
   applyOptions,
   bindDate,
+  type DateCallbacks,
   type DateProp,
   toDate,
   warnControlledSwitch,
 } from "./shared";
 
-export type HookOptions = Omit<Options, "date"> & {
-  /** Controlled value. `null` is the empty date, `undefined` means uncontrolled. */
-  date?: DateProp;
-  defaultDate?: DateProp;
-  onDateChange?: (date: Date | null) => void;
-};
+export type HookOptions = Omit<Options, "date"> &
+  DateCallbacks & {
+    /** Controlled value. `null` is the empty date, `undefined` means uncontrolled. */
+    date?: DateProp;
+    defaultDate?: DateProp;
+  };
 
 export type HookRangeOptions = {
   from?: HookOptions;
   to?: HookOptions;
 };
 
+type Ref<T> = ((element: T | null) => unknown) | { current: T | null } | null;
+
 export type InputPropsOptions = {
-  ref?: { current: HTMLInputElement | null };
+  ref?: Ref<HTMLInputElement>;
+  autoFocus?: boolean;
+  /** @deprecated Use the React-style `autoFocus` option instead. */
   autofocus?: boolean;
+};
+
+export type RootPropsOptions = {
+  /** Focusing the root focuses the first input. */
+  ref?: Ref<HTMLElement>;
 };
 
 type Effect = () => undefined | (() => void);
@@ -39,6 +49,45 @@ export type Hooks = {
   useLayoutEffect: (effect: Effect, deps?: unknown[]) => void;
 };
 
+// Return void so detach routes through the same callback in React and Preact.
+const composeRef = <T>(
+  ref: Ref<T> | undefined,
+  attach: (element: T) => void,
+) => {
+  let cleanup: (() => void) | undefined;
+
+  return (element: T | null) => {
+    if (typeof ref === "function") {
+      if (element) {
+        const result = ref(element);
+        cleanup =
+          typeof result === "function" ? (result as () => void) : undefined;
+      } else {
+        cleanup ? cleanup() : ref(null);
+        cleanup = undefined;
+      }
+    } else if (ref) {
+      ref.current = element;
+    }
+
+    if (element) attach(element);
+  };
+};
+
+// Mirror the manager's static attributes for server rendering.
+const inputProps = {
+  type: "text",
+  role: "spinbutton",
+  autoComplete: "off",
+  enterKeyHint: "next",
+  spellCheck: false,
+  autoCapitalize: "off",
+  tabIndex: 0,
+  "data-timescape-input": "",
+} as const;
+
+const rootProps = { role: "group", tabIndex: -1 } as const;
+
 export const createHooks = ({
   useState,
   useRef,
@@ -46,7 +95,9 @@ export const createHooks = ({
   useLayoutEffect,
 }: Hooks) => {
   const useTimescape = (options: HookOptions = {}) => {
-    const { date, defaultDate, onDateChange, ...rest } = options;
+    const { date, defaultDate, onDateChange, onInputChange, onBlur, ...rest } =
+      options;
+    const hasInputChange = onInputChange !== undefined;
 
     // Controlled once, controlled for good: a controlled input reporting an
     // empty date must not turn into an uncontrolled one.
@@ -60,15 +111,14 @@ export const createHooks = ({
     const currentDate = isControlled ? toDate(date) : internalDate;
     const [manager] = useState(() => new TimescapeManager(currentDate, rest));
 
-    const onDateChangeRef = useRef(onDateChange);
-    const currentDateRef = useRef(currentDate);
+    const props = { date: currentDate, onDateChange, onInputChange, onBlur };
+    const latest = useRef(props);
     const syncRef = useRef<((date: Date | undefined) => void) | undefined>(
       undefined,
     );
 
     useLayoutEffect(() => {
-      onDateChangeRef.current = onDateChange;
-      currentDateRef.current = currentDate;
+      latest.current = props;
       return undefined;
     });
 
@@ -83,18 +133,23 @@ export const createHooks = ({
     useEffect(() => {
       const dateBinding = bindDate(manager, {
         controlled: isControlled,
-        getDate: () => currentDateRef.current,
+        getDate: () => latest.current.date,
         setDate: setInternalDate,
-        onDateChange: (nextDate) => onDateChangeRef.current?.(nextDate),
+        onDateChange: (nextDate) => latest.current.onDateChange?.(nextDate),
+        onInputChange: hasInputChange
+          ? (nextDate, details) =>
+              latest.current.onInputChange?.(nextDate, details)
+          : undefined,
+        onBlur: () => latest.current.onBlur?.(),
       });
       syncRef.current = dateBinding.sync;
-      dateBinding.sync(currentDateRef.current);
+      dateBinding.sync(latest.current.date);
 
       return () => {
         syncRef.current = undefined;
         dateBinding.unsubscribe();
       };
-    }, [manager, isControlled]);
+    }, [manager, isControlled, hasInputChange]);
 
     useEffect(() => {
       syncRef.current?.(currentDate);
@@ -125,18 +180,25 @@ export const createHooks = ({
     return {
       /** @internal */
       _manager: manager,
-      getInputProps: (type: DateType, opts?: InputPropsOptions) => ({
-        ref: (element: HTMLInputElement | null) => {
-          if (!element) return;
-          manager.registerElement(element, type, opts?.autofocus);
-          if (opts?.ref) opts.ref.current = element;
-        },
+      getInputProps: (type: DateType, opts: InputPropsOptions = {}) => {
+        const autoFocus = opts.autoFocus ?? opts.autofocus;
+        return {
+          ...inputProps,
+          inputMode: type === "am/pm" ? undefined : ("numeric" as const),
+          autoFocus,
+          // Preact sets the autofocus attribute without focusing on mount.
+          ref: composeRef(opts.ref, (element: HTMLInputElement) =>
+            manager.registerElement(element, type, autoFocus),
+          ),
+        };
+      },
+      getRootProps: (opts: RootPropsOptions = {}) => ({
+        ...rootProps,
+        ref: composeRef(opts.ref, (element: HTMLElement) =>
+          manager.registerRoot(element),
+        ),
       }),
-      getRootProps: () => ({
-        ref: (element: HTMLElement | null) => {
-          if (element) manager.registerRoot(element);
-        },
-      }),
+      focusField: (type?: DateType) => manager.focusField(type),
       ampm: createAmPmHandler(manager),
     } as const;
   };
@@ -150,16 +212,22 @@ export const createHooks = ({
       [from._manager, to._manager],
     );
 
+    const fields = ({ getInputProps, focusField, ampm }: typeof from) => ({
+      getInputProps,
+      focusField,
+      ampm,
+    });
+
     return {
-      getRootProps: () => ({
-        ref: (element: HTMLElement | null) => {
-          if (!element) return;
+      getRootProps: (opts: RootPropsOptions = {}) => ({
+        ...rootProps,
+        ref: composeRef(opts.ref, (element: HTMLElement) => {
           from._manager.registerRoot(element);
           to._manager.registerRoot(element);
-        },
+        }),
       }),
-      from: { getInputProps: from.getInputProps, ampm: from.ampm },
-      to: { getInputProps: to.getInputProps, ampm: to.ampm },
+      from: fields(from),
+      to: fields(to),
     } as const;
   };
 

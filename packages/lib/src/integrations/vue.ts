@@ -7,19 +7,25 @@ import {
   watchEffect,
 } from "vue";
 
-import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
+import { type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
-import { applyOptions, bindDate, type DateProp, toDate } from "./shared";
+import {
+  applyOptions,
+  bindDate,
+  type DateCallbacks,
+  type DateProp,
+  toDate,
+} from "./shared";
 
-export {
-  $NOW,
-  type DateType,
-  type VueOptions as Options,
-  type VueRangeOptions as RangeOptions,
+export { $NOW, type InputChangeDetails, type InputState } from "../index";
+export type {
+  DateType,
+  VueOptions as Options,
+  VueRangeOptions as RangeOptions,
 };
 
-type BaseOptions = Omit<Options, "date">;
+type BaseOptions = Omit<Options, "date"> & DateCallbacks;
 
 /** Any ref-like holder, so `Ref<Date>`, `Ref<Date | null>` and `computed` all fit. */
 export type DateRef = { readonly value: DateProp };
@@ -28,7 +34,6 @@ export type VueOptions = BaseOptions & {
   /** Passing a ref makes the input controlled; its `null` is the empty date. */
   date?: DateRef;
   defaultDate?: DateProp;
-  onDateChange?: (date: Date | null) => void;
 };
 
 export type VueRangeOptions = {
@@ -37,7 +42,8 @@ export type VueRangeOptions = {
 };
 
 export const useTimescape = (options: VueOptions = {}) => {
-  const { date, defaultDate, onDateChange, ...rest } = options;
+  const { date, defaultDate, onDateChange, onInputChange, onBlur, ...rest } =
+    options;
 
   const isControlled = date !== undefined;
 
@@ -58,6 +64,8 @@ export const useTimescape = (options: VueOptions = {}) => {
       internalDate.value = nextDate;
     },
     onDateChange,
+    onInputChange,
+    onBlur,
   });
 
   watch(currentDate, dateBinding.sync);
@@ -84,6 +92,7 @@ export const useTimescape = (options: VueOptions = {}) => {
         manager.registerRoot(element);
       }
     },
+    focusField: (type?: DateType) => manager.focusField(type),
     ampm: createAmPmHandler(manager),
   } as const;
 };
@@ -103,7 +112,15 @@ export const useTimescapeRange = (options: VueRangeOptions = {}) => {
           to._manager.registerRoot(element);
         }
       },
-    from: { registerElement: from.registerElement, ampm: from.ampm },
-    to: { registerElement: to.registerElement, ampm: to.ampm },
+    from: {
+      registerElement: from.registerElement,
+      focusField: from.focusField,
+      ampm: from.ampm,
+    },
+    to: {
+      registerElement: to.registerElement,
+      focusField: to.focusField,
+      ampm: to.ampm,
+    },
   } as const;
 };

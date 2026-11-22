@@ -1,23 +1,28 @@
 import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
-import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
+import { type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
-import { applyOptions, bindDate, type DateProp, toDate } from "./shared";
+import {
+  applyOptions,
+  bindDate,
+  type DateCallbacks,
+  type DateProp,
+  toDate,
+} from "./shared";
 
-export {
-  $NOW,
-  type DateType,
-  type SolidOptions as Options,
-  type SolidRangeOptions as RangeOptions,
+export { $NOW, type InputChangeDetails, type InputState } from "../index";
+export type {
+  DateType,
+  SolidOptions as Options,
+  SolidRangeOptions as RangeOptions,
 };
 
-type BaseOptions = Omit<Options, "date">;
+type BaseOptions = Omit<Options, "date"> & DateCallbacks;
 
 export type SolidOptions = BaseOptions & {
   /** Passing an accessor makes the input controlled; its `null` is the empty date. */
   date?: Accessor<DateProp>;
   defaultDate?: DateProp;
-  onDateChange?: (date: Date | null) => void;
 };
 
 export type SolidRangeOptions = {
@@ -26,7 +31,8 @@ export type SolidRangeOptions = {
 };
 
 export const useTimescape = (options: SolidOptions = {}) => {
-  const { date, defaultDate, onDateChange, ...rest } = options;
+  const { date, defaultDate, onDateChange, onInputChange, onBlur, ...rest } =
+    options;
 
   const isControlled = date !== undefined;
 
@@ -44,6 +50,8 @@ export const useTimescape = (options: SolidOptions = {}) => {
     getDate: currentDate,
     setDate: setInternalDate,
     onDateChange,
+    onInputChange,
+    onBlur,
   });
 
   onCleanup(dateBinding.unsubscribe);
@@ -69,6 +77,7 @@ export const useTimescape = (options: SolidOptions = {}) => {
         if (element) manager.registerRoot(element);
       },
     }),
+    focusField: (type?: DateType) => manager.focusField(type),
     ampm: createAmPmHandler(manager),
   } as const;
 };
@@ -90,10 +99,12 @@ export const useTimescapeRange = (options: SolidRangeOptions = {}) => {
     }),
     from: {
       getInputProps: from.getInputProps,
+      focusField: from.focusField,
       ampm: from.ampm,
     },
     to: {
       getInputProps: to.getInputProps,
+      focusField: to.focusField,
       ampm: to.ampm,
     },
   } as const;

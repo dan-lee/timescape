@@ -1,4 +1,4 @@
-import type { Options, TimescapeManager } from "../index";
+import type { InputChangeDetails, Options, TimescapeManager } from "../index";
 
 /**
  * `null` is an empty date, `undefined` is no date at all -- passing `date` as
@@ -23,11 +23,17 @@ export const applyOptions = (
   manager.disallowPartial = options.disallowPartial;
 };
 
-type DateBindingOptions = {
+export type DateCallbacks = {
+  onDateChange?: (date: Date | null) => void;
+  onInputChange?: (date: Date | null, details: InputChangeDetails) => void;
+  /** Called once focus leaves all of the date's inputs. */
+  onBlur?: () => void;
+};
+
+type DateBindingOptions = DateCallbacks & {
   controlled: boolean;
   getDate: () => Date | undefined;
   setDate: (date: Date | undefined) => void;
-  onDateChange?: (date: Date | null) => void;
 };
 
 export const bindDate = (
@@ -35,8 +41,16 @@ export const bindDate = (
   options: DateBindingOptions,
 ) => {
   let syncing = false;
+  // A replacement date cancels the expected echo of a reported clear.
+  let echoFrom: number | undefined;
 
   const sync = (date: Date | undefined) => {
+    if (date === undefined && echoFrom !== undefined) {
+      echoFrom = undefined;
+      return;
+    }
+    if (date?.getTime() !== echoFrom) echoFrom = undefined;
+
     syncing = true;
     try {
       manager.date = date;
@@ -45,18 +59,41 @@ export const bindDate = (
     }
   };
 
-  const unsubscribe = manager.on("changeDate", (date) => {
-    if (syncing) return;
+  const { onDateChange, onInputChange, onBlur } = options;
+
+  const follow = (date: Date | undefined, notify: () => void) => {
+    // Capture the parent's value before the callback can change it.
+    if (date) echoFrom = undefined;
+    else echoFrom ??= options.getDate()?.getTime();
 
     if (!options.controlled) options.setDate(date);
-    options.onDateChange?.(date ?? null);
-    // Reverts an edit the parent did not accept. The manager ignores the write
-    // when it would overwrite an edit in progress, so a cleared segment
-    // survives until the parent answers.
-    if (options.controlled) sync(options.getDate());
-  });
+    notify();
+    if (!options.controlled) return;
 
-  return { sync, unsubscribe };
+    // Writing back an unchanged empty value would clear the draft.
+    const parentDate = options.getDate();
+    if (parentDate?.getTime() !== date?.getTime()) sync(parentDate);
+  };
+
+  const unsubscribers = [
+    manager.on("changeDate", (date) => {
+      if (syncing) return;
+      const notify = () => onDateChange?.(date ?? null);
+      // Keep legacy notifications when changeInput drives the binding.
+      onInputChange ? notify() : follow(date, notify);
+    }),
+    onInputChange &&
+      manager.on("changeInput", ({ date, state }) => {
+        if (!syncing)
+          follow(date, () => onInputChange(date ?? null, { state }));
+      }),
+    manager.on("blur", () => onBlur?.()),
+  ];
+
+  return {
+    sync,
+    unsubscribe: () => unsubscribers.forEach((unsubscribe) => unsubscribe?.()),
+  };
 };
 
 export const warnControlledSwitch = () => {

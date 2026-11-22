@@ -1,5 +1,4 @@
 import { ChangeEvent } from 'react';
-import { RefObject } from 'react';
 
 export declare const $NOW: "$NOW";
 
@@ -7,10 +6,17 @@ export declare type $NOW = typeof $NOW;
 
 declare type Callback<T> = (arg: T) => void | typeof STOP_EVENT_PROPAGATION;
 
+declare type DateCallbacks = {
+    onDateChange?: (date: Date | null) => void;
+    onInputChange?: (date: Date | null, details: InputChangeDetails) => void;
+    /** Called once focus leaves all of the date's inputs. */
+    onBlur?: () => void;
+};
+
 /**
- * `null` is an empty value, `undefined` is no value at all: passing `date`
- * as `undefined` means "this input is uncontrolled", the same distinction
- * React Aria and MUI draw for their date fields.
+ * `null` is an empty date, `undefined` is no date at all -- passing `date` as
+ * `undefined` leaves the input uncontrolled. Same distinction React Aria and
+ * MUI draw for their date fields.
  */
 declare type DateProp = Date | null | undefined;
 
@@ -18,8 +24,36 @@ export declare type DateType = "days" | "months" | "years" | "hours" | "minutes"
 
 declare type Events = {
     changeDate: Date | undefined;
+    changeInput: InputChangeDetails & {
+        date: Date | undefined;
+    };
     focusWrap: "start" | "end";
+    blur: undefined;
 };
+
+declare type HookOptions = Omit<Options_2, "date"> & DateCallbacks & {
+    /** Controlled value. `null` is the empty date, `undefined` means uncontrolled. */
+    date?: DateProp;
+    defaultDate?: DateProp;
+};
+
+declare type HookRangeOptions = {
+    from?: HookOptions;
+    to?: HookOptions;
+};
+
+export declare type InputChangeDetails = {
+    state: InputState;
+};
+
+export declare type InputPropsOptions = {
+    ref?: Ref<HTMLInputElement>;
+    autoFocus?: boolean;
+    /** @deprecated Use the React-style `autoFocus` option instead. */
+    autofocus?: boolean;
+};
+
+export declare type InputState = "empty" | "partial" | "complete";
 
 declare type Options_2 = {
     date?: Date;
@@ -33,22 +67,22 @@ declare type Options_2 = {
     disallowPartial?: boolean;
 };
 
-declare type ReactOptions = Omit<Options_2, "date"> & {
-    /** Controlled value. `null` is the empty date, `undefined` means uncontrolled. */
-    date?: DateProp;
-    /** Initial value for uncontrolled usage. */
-    defaultDate?: DateProp;
-    onDateChange?: (date: Date | null) => void;
-};
+declare type ReactOptions = HookOptions;
 export { ReactOptions as Options }
 export { ReactOptions }
 
-declare type ReactRangeOptions = {
-    from?: ReactOptions;
-    to?: ReactOptions;
-};
+declare type ReactRangeOptions = HookRangeOptions;
 export { ReactRangeOptions as RangeOptions }
 export { ReactRangeOptions }
+
+declare type Ref<T> = ((element: T | null) => unknown) | {
+    current: T | null;
+} | null;
+
+export declare type RootPropsOptions = {
+    /** Focusing the root focuses the first input. */
+    ref?: Ref<HTMLElement>;
+};
 
 declare const STOP_EVENT_PROPAGATION: unique symbol;
 
@@ -75,22 +109,32 @@ declare class TimescapeManager implements Options_2 {
      */
     isCompleted(): boolean;
     remove(): void;
-    focusField(which?: number): void;
+    focusField(which?: number | DateType): void;
     on<E extends keyof Events>(event: E, callback: Callback<Events[E]>): () => void;
     /* Excluded from this release type: setRangeBound */
 }
 
-export declare const useTimescape: (options?: ReactOptions) => {
-    /* Excluded from this release type: _manager */
-    readonly getInputProps: (type: DateType, opts?: {
-        ref?: RefObject<HTMLInputElement | null>;
-        autofocus?: boolean;
-    }) => {
+export declare const useTimescape: (options?: HookOptions) => {
+    readonly _manager: TimescapeManager;
+    readonly getInputProps: (type: DateType, opts?: InputPropsOptions) => {
+        type: "text";
+        role: "spinbutton";
+        autoComplete: "off";
+        enterKeyHint: "next";
+        spellCheck: false;
+        autoCapitalize: "off";
+        tabIndex: 0;
+        "data-timescape-input": "";
+        inputMode: "numeric" | undefined;
+        autoFocus: boolean | undefined;
         ref: (element: HTMLInputElement | null) => void;
     };
-    readonly getRootProps: () => {
+    readonly getRootProps: (opts?: RootPropsOptions) => {
+        role: "group";
+        tabIndex: -1;
         ref: (element: HTMLElement | null) => void;
     };
+    readonly focusField: (type?: DateType) => void;
     readonly ampm: {
         readonly value: "am" | "pm" | undefined;
         set: (value: "am" | "pm") => void;
@@ -102,17 +146,27 @@ export declare const useTimescape: (options?: ReactOptions) => {
     };
 };
 
-export declare const useTimescapeRange: (options?: ReactRangeOptions) => {
-    readonly getRootProps: () => {
+export declare const useTimescapeRange: (options?: HookRangeOptions) => {
+    readonly getRootProps: (opts?: RootPropsOptions) => {
+        role: "group";
+        tabIndex: -1;
         ref: (element: HTMLElement | null) => void;
     };
     readonly from: {
-        readonly getInputProps: (type: DateType, opts?: {
-            ref?: RefObject<HTMLInputElement | null>;
-            autofocus?: boolean;
-        }) => {
+        readonly getInputProps: (type: DateType, opts?: InputPropsOptions) => {
+            type: "text";
+            role: "spinbutton";
+            autoComplete: "off";
+            enterKeyHint: "next";
+            spellCheck: false;
+            autoCapitalize: "off";
+            tabIndex: 0;
+            "data-timescape-input": "";
+            inputMode: "numeric" | undefined;
+            autoFocus: boolean | undefined;
             ref: (element: HTMLInputElement | null) => void;
         };
+        readonly focusField: (type?: DateType) => void;
         readonly ampm: {
             readonly value: "am" | "pm" | undefined;
             set: (value: "am" | "pm") => void;
@@ -124,12 +178,20 @@ export declare const useTimescapeRange: (options?: ReactRangeOptions) => {
         };
     };
     readonly to: {
-        readonly getInputProps: (type: DateType, opts?: {
-            ref?: RefObject<HTMLInputElement | null>;
-            autofocus?: boolean;
-        }) => {
+        readonly getInputProps: (type: DateType, opts?: InputPropsOptions) => {
+            type: "text";
+            role: "spinbutton";
+            autoComplete: "off";
+            enterKeyHint: "next";
+            spellCheck: false;
+            autoCapitalize: "off";
+            tabIndex: 0;
+            "data-timescape-input": "";
+            inputMode: "numeric" | undefined;
+            autoFocus: boolean | undefined;
             ref: (element: HTMLInputElement | null) => void;
         };
+        readonly focusField: (type?: DateType) => void;
         readonly ampm: {
             readonly value: "am" | "pm" | undefined;
             set: (value: "am" | "pm") => void;

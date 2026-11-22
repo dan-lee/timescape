@@ -41,6 +41,17 @@ type RegistryEntry = {
 };
 type Registry = Map<DateType, RegistryEntry>;
 
+const placeholders: Record<DateType, string> = {
+  days: "dd",
+  months: "mm",
+  years: "yyyy",
+  hours: "--",
+  minutes: "--",
+  seconds: "--",
+  milliseconds: "----",
+  "am/pm": "am",
+};
+
 export const $NOW = "$NOW" as const;
 export type $NOW = typeof $NOW;
 
@@ -63,9 +74,15 @@ export type RangeOptions = {
   to?: Options & { date?: Date };
 };
 
+export type InputState = "empty" | "partial" | "complete";
+
+export type InputChangeDetails = { state: InputState };
+
 type Events = {
   changeDate: Date | undefined;
+  changeInput: InputChangeDetails & { date: Date | undefined };
   focusWrap: "start" | "end";
+  blur: undefined;
 };
 
 export class TimescapeManager implements Options {
@@ -92,7 +109,10 @@ export class TimescapeManager implements Options {
   #pubsub: ReturnType<typeof createPubSub<Events>>;
   #rootElement?: HTMLElement;
   #rootListener?: () => void;
+  // The last changeInput event, so an unchanged one isn't sent again.
+  #lastInputChange?: { state: InputState; timestamp?: number };
   #cursorPosition = 0;
+  #focusInside = false;
   #resizeObserver =
     typeof window !== "undefined"
       ? new ResizeObserver((entries) => {
@@ -132,6 +152,7 @@ export class TimescapeManager implements Options {
                 entry.shadowElement.remove();
                 entry.listeners.forEach((listener) => listener());
                 this.#registry.delete(entry.type);
+                this.#emitInputChange();
               });
             });
           }
@@ -162,6 +183,8 @@ export class TimescapeManager implements Options {
       this.wheelControl = options.wheelControl;
       this.disallowPartial = options.disallowPartial;
     }
+
+    this.#emitInputChange();
 
     return new Proxy(this, {
       get: (target: this, property: keyof this & string) => {
@@ -276,28 +299,12 @@ export class TimescapeManager implements Options {
     element.autocapitalize = "off";
     element.setAttribute("role", "spinbutton");
     element.dataset.timescapeInput = "";
-
-    switch (type) {
-      case "days":
-        element.placeholder ||= "dd";
-        break;
-      case "months":
-        element.placeholder ||= "mm";
-        break;
-      case "years":
-        element.placeholder ||= "yyyy";
-        break;
-      case "hours":
-      case "minutes":
-      case "seconds":
-        element.placeholder ||= "--";
-        break;
-      case "milliseconds":
-        element.placeholder ||= "----";
-        break;
-      case "am/pm":
-        element.placeholder ||= "am";
-        break;
+    element.placeholder ||= placeholders[type];
+    if (
+      !element.hasAttribute("aria-label") &&
+      !element.hasAttribute("aria-labelledby")
+    ) {
+      element.setAttribute("aria-label", type);
     }
 
     if (autofocus) {
@@ -353,6 +360,7 @@ export class TimescapeManager implements Options {
     } satisfies RegistryEntry);
 
     this.#syncElement(element);
+    this.#emitInputChange();
 
     return element;
   }
@@ -378,11 +386,41 @@ export class TimescapeManager implements Options {
     this.#mutationObserver?.disconnect();
   }
 
-  public focusField(which = 0) {
-    const entries = [...this.#registry.values()];
-    const type = entries.at(which)?.type;
+  public focusField(which: number | DateType = 0) {
+    const entry =
+      typeof which === "number"
+        ? [...this.#registry.values()].at(which)
+        : this.#registry.get(which);
 
-    type && this.#registry.get(type)?.inputElement.focus();
+    entry?.inputElement.focus();
+  }
+
+  #getInputState(): InputState {
+    const entries = [...this.#registry.values()];
+    // Without partial dates, segments are never unset, so only typing counts.
+    const isEmpty =
+      this.#timestamp === undefined &&
+      entries.every((entry) =>
+        this.disallowPartial ? !entry.intermediateValue : entry.isUnset,
+      );
+
+    if (isEmpty) return "empty";
+    if (entries.some((entry) => entry.intermediateValue)) return "partial";
+    return this.date ? "complete" : "partial";
+  }
+
+  #emitInputChange() {
+    const state = this.#getInputState();
+    const timestamp = state === "complete" ? this.#timestamp : undefined;
+
+    const last = this.#lastInputChange;
+    if (last?.state === state && last.timestamp === timestamp) return;
+
+    this.#lastInputChange = { state, timestamp };
+    this.#pubsub.emit("changeInput", {
+      date: timestamp === undefined ? undefined : new Date(timestamp),
+      state,
+    });
   }
 
   public on<E extends keyof Events>(event: E, callback: Callback<Events[E]>) {
@@ -478,17 +516,15 @@ export class TimescapeManager implements Options {
   #clearIntermediateState(registryEntry: RegistryEntry) {
     const { intermediateValue, type } = registryEntry;
     if (intermediateValue) {
-      this.#setUserDate(
-        set(
-          this.#currentDate,
-          type,
-          type === "months"
-            ? Number(intermediateValue) - 1
-            : Number(intermediateValue),
-        ),
+      const date = set(
+        this.#currentDate,
         type,
+        type === "months"
+          ? Number(intermediateValue) - 1
+          : Number(intermediateValue),
       );
       registryEntry.intermediateValue = "";
+      this.#setUserDate(date, type);
       this.#cursorPosition = 0;
     }
   }
@@ -756,6 +792,8 @@ export class TimescapeManager implements Options {
       e.preventDefault();
       e.stopPropagation();
     }
+
+    this.#emitInputChange();
   }
 
   #handleClick(e: MouseEvent) {
@@ -767,6 +805,7 @@ export class TimescapeManager implements Options {
     const target = e.target as HTMLInputElement;
     target.setAttribute("aria-selected", "true");
     this.#cursorPosition = 0;
+    this.#focusInside = true;
   }
 
   #handleBlur(e: FocusEvent) {
@@ -777,6 +816,18 @@ export class TimescapeManager implements Options {
 
         const target = e.target as HTMLInputElement;
         target.removeAttribute("aria-selected");
+      }
+
+      const active = document.activeElement;
+      if (
+        this.#focusInside &&
+        active !== this.#rootElement &&
+        !this.#findByInputElement(active)
+      ) {
+        this.#focusInside = false;
+        // Multiple focusout handlers can still be queued for this frame.
+        this.#registry.forEach((entry) => this.#clearIntermediateState(entry));
+        this.#pubsub.emit("blur", undefined);
       }
     });
   }
@@ -810,7 +861,6 @@ export class TimescapeManager implements Options {
     if (element.value === value) return;
 
     element.value = value;
-    element.setAttribute("aria-label", type);
 
     if (type !== "am/pm") {
       // removes leading zeroes
@@ -903,8 +953,9 @@ export class TimescapeManager implements Options {
     const nextTimestamp = date ? this.#clampDate(date).getTime() : undefined;
 
     if (nextTimestamp === undefined) {
-      // The echo of a segment the user just cleared.
-      if (this.#timestamp === undefined) return;
+      // Integrations filter out echoes before a clear reaches the manager.
+      if (this.#timestamp === undefined && this.#getInputState() === "empty")
+        return;
 
       this.#prevTimestamp = undefined;
       this.#resetSegments({ unset: true });
@@ -934,6 +985,7 @@ export class TimescapeManager implements Options {
   }
 
   #resetSegments({ unset }: { unset: boolean }) {
+    this.#cursorPosition = 0;
     this.#registry.forEach((entry) => {
       entry.intermediateValue = "";
       entry.pickedDay = undefined;
@@ -979,43 +1031,27 @@ export class TimescapeManager implements Options {
     this.#setDate(date);
   }
 
-  /**
-   * Sets a validated date and emits a changeDate event.
-   * It also caps the date to the minDate and maxDate if they are set.
-   * Only emits the changeDate event if the date is complete (in partial mode).
-   */
   #setDate(date: Date | undefined) {
     if (!date) {
-      // Only emit if actually changing from a value to undefined
       if (this.#timestamp !== undefined) {
         this.#timestamp = undefined;
         this.#pubsub.emit("changeDate", undefined);
       }
-      return;
+    } else {
+      const validatedDate = this.#clampDate(date);
+      const newTimestamp = validatedDate.getTime();
+      const unchanged = this.isCompleted()
+        ? this.#timestamp === newTimestamp
+        : this.#timestamp && isSameSeconds(newTimestamp, this.#timestamp);
+
+      if (!unchanged) {
+        this.#timestamp = newTimestamp;
+        this.#prevTimestamp = undefined;
+        if (this.isCompleted()) this.#pubsub.emit("changeDate", validatedDate);
+      }
     }
 
-    const validatedDate = this.#clampDate(date);
-    const newTimestamp = validatedDate.getTime();
-
-    // For partial dates, check if seconds are the same
-    if (
-      this.#timestamp &&
-      isSameSeconds(newTimestamp, this.#timestamp) &&
-      !this.isCompleted()
-    ) {
-      return;
-    }
-
-    // For complete dates, check exact timestamp match to prevent infinite loops
-    if (this.#timestamp === newTimestamp && this.isCompleted()) {
-      return;
-    }
-
-    this.#timestamp = newTimestamp;
-    this.#prevTimestamp = undefined;
-
-    if (!this.isCompleted()) return;
-    this.#pubsub.emit("changeDate", validatedDate);
+    this.#emitInputChange();
   }
 
   /**
