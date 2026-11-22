@@ -209,6 +209,29 @@ describe("timescape", () => {
       expect(years).toHaveAttribute("placeholder", "YYYY");
     });
 
+    it("adds a fallback label without replacing consumer labels", () => {
+      document.body.innerHTML = "";
+      manager = new TimescapeManager();
+      container.innerHTML = `
+        <div data-testid="root">
+          <input data-testid="days" />
+          <input data-testid="months" aria-label="months" />
+          <input data-testid="years" aria-labelledby="year-label" />
+        </div>
+      `;
+      document.body.appendChild(container);
+
+      const { root, days, months, years } = getFields();
+      manager.registerRoot(root);
+      (["days", "months", "years"] satisfies DateType[]).forEach((type) =>
+        manager.registerElement(getByTestId(root, type), type),
+      );
+
+      expect(days).toHaveAttribute("aria-label", "days");
+      expect(months).toHaveAttribute("aria-label", "months");
+      expect(years).not.toHaveAttribute("aria-label");
+    });
+
     it("should cleanup correctly", () => {
       document.body.appendChild(container);
 
@@ -1213,6 +1236,55 @@ describe("timescape", () => {
       await user.keyboard("{Delete}");
 
       expect(manager.date).toStrictEqual(now);
+    });
+
+    describe("with partial input disabled and no initial date", () => {
+      const values = () => {
+        const { years, months, days } = getFields();
+        return [years.value, months.value, days.value];
+      };
+
+      beforeEach(() => {
+        manager = new TimescapeManager(undefined, { disallowPartial: true });
+        container = register(manager, ["years", "months", "days"]);
+        document.body.appendChild(container);
+      });
+
+      it("fills every field when stepping one", async () => {
+        getFields().days.focus();
+        await user.keyboard("{ArrowUp}");
+
+        const date = manager.date;
+        if (!date) throw new Error("Expected a date");
+        expect(values()).toStrictEqual([
+          String(date.getFullYear()),
+          String(date.getMonth() + 1),
+          String(date.getDate()),
+        ]);
+      });
+
+      it("fills every field when typing one", async () => {
+        getFields().years.focus();
+        await user.keyboard("2024");
+
+        expect(manager.date?.getFullYear()).toBe(2024);
+        expect(values().every(Boolean)).toBe(true);
+      });
+
+      it("fills every field when an edit is committed on blur", async () => {
+        const changes: string[] = [];
+        manager.on("changeInput", ({ state }) => {
+          changes.push(state);
+        });
+
+        getFields().days.focus();
+        await user.keyboard("2");
+        getFields().days.blur();
+
+        await waitFor(() => expect(manager.date?.getDate()).toBe(2));
+        expect(values().every(Boolean)).toBe(true);
+        expect(changes.at(-1)).toBe("complete");
+      });
     });
   });
 

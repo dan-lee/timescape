@@ -7,11 +7,11 @@
   "bugs": "https://github.com/dan-lee/timescape/issues",
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build": "tsup",
     "generate:demo-types": "tsc --declaration --emitDeclarationOnly --skipLibCheck --noEmit false && api-extractor run ; rm -rf dist",
-    "prepublishOnly": "pnpm test run && pnpm typecheck && pnpm build && cp ../../README.md . && cp ../../LICENSE ."
+    "prepublishOnly": "pnpm test && pnpm typecheck && pnpm build && cp ../../README.md . && cp ../../LICENSE ."
   },
   "publishConfig": {
     "access": "public"

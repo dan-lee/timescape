@@ -309,7 +309,7 @@ timeManager.registerElement(container.querySelector('[data-type="years"]')!, "ye
 
 `timescape` supports both controlled and uncontrolled modes:
 
-- **Controlled**: Use `date` prop and `onDateChange` callback to manage state externally
+- **Controlled**: Use `date` with `onDateChange` or `onInputChange` to manage state externally
 - **Uncontrolled**: Use `defaultDate` for initial value, component manages state internally
 
 Pass `null` for an empty controlled date, and `undefined` only to opt out of
@@ -327,7 +327,12 @@ what is on screen.
 type Options = {
   date?: Date | null; // For controlled mode, `null` is the empty date
   defaultDate?: Date | null; // For uncontrolled mode
-  onDateChange?: (date: Date | null) => void; // Called on any date change
+  onDateChange?: (date: Date | null) => void;
+  onInputChange?: (
+    date: Date | null,
+    details: { state: "empty" | "partial" | "complete" },
+  ) => void;
+  onBlur?: () => void;
   minDate?: Date | $NOW; // see more about $NOW below
   maxDate?: Date | $NOW;
   hour12?: boolean;
@@ -341,9 +346,11 @@ type Options = {
 
 | Option            | Default     | Description                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `date`            | `undefined` | The current date value for controlled mode. When provided, you must handle updates via `onDateChange`. Use `null` for an empty value; `undefined` means uncontrolled.                                                                                                                                                                                                                                                           |
+| `date`            | `undefined` | The current date value for controlled mode. When provided, you must handle updates via `onDateChange` or `onInputChange`. Use `null` for an empty value; `undefined` means uncontrolled.                                                                                                                                                                                                                                                           |
 | `defaultDate`     | `undefined` | The initial date for uncontrolled mode. Component manages state internally.                                                                                                                                                                                                                                                                                      |
-| `onDateChange`    | `undefined` | Callback fired when the date changes, with `null` when the date is empty or incomplete. Required for controlled mode, optional for uncontrolled.                                                                                                                                                                                                                                                                   |
+| `onDateChange`    | `undefined` | Callback fired when the date changes, with `null` when the date is cleared or incomplete. Existing callbacks keep their behavior. Required for controlled mode unless you use `onInputChange`.                                                                                                                                                                                   |
+| `onInputChange`   | `undefined` | Opt-in callback fired when the date or editing state changes. The date is `null` while empty or incomplete; `details.state` distinguishes `"empty"`, `"partial"` and `"complete"`. Use this for form libraries that must not submit an old date during an edit.                                                                                              |
+| `onBlur`          | `undefined` | Callback fired once focus leaves all of the date's inputs, after a half-typed value is committed. Moving between the inputs doesn't trigger it. Use this to mark a form field as touched.                                                                                                                                                                         |
 | `minDate`         | `undefined` | The minimum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-vavue)                                                                                                                                                                                                                     |
 | `maxDate`         | `undefined` | The maximum date that the user can select. `$NOW` is a special value that represents the current date and time. [See more below](#now-value)                                                                                                                                                                                                                     |
 | `hour12`          | `false`     | If set to `true`, the time input will use a 12-hour format (with AM/PM). If set to `false`, it will use a 24-hour format.                                                                                                                                                                                                                                        |
@@ -386,20 +393,135 @@ is supported and will be used to increment/decrement the values when the user us
 value is `1`, but you can set it to any value you want. Also see [`snapToStep`](#options) if you want to snap
 to the nearest step.
 
-### `ref` and `autofocus` on inputs
+### Input props, refs and focus
 
-In React and Preact, `getInputProps` takes a second argument to keep your own ref and to focus a field on
-mount:
+In React and Preact, `getInputProps` returns the input's static attributes, like its role, input mode and
+autocomplete behavior. Everything else, including the value, `placeholder` and `aria-label`, is written by
+the manager once the element is registered, and it never overwrites attributes you set yourself.
+
+It takes a second argument to compose your own callback or object ref and to focus a field on mount:
 
 ```tsx
 const inputRef = useRef<HTMLInputElement | null>(null);
 
-<input {...getInputProps("days", { ref: inputRef, autofocus: true })} />;
+<input {...getInputProps("days", { ref: inputRef, autoFocus: true })} />;
 ```
 
-`getInputProps` already returns a `ref` callback, so passing your own through this option is the way to get
-hold of the element. The other integrations don't take these options: in Vue, Solid and Svelte you attach your
-own ref or `bind:this` alongside `registerElement`/`inputProps`.
+The composed ref receives `null` when the input unmounts, and `autoFocus` is passed through to the element,
+so the framework focuses it on mount. The previous `autofocus` spelling remains supported. The other
+integrations don't take these options: in Vue, Solid and Svelte you attach your own ref or `bind:this`
+alongside `registerElement`/`inputProps`.
+
+`getRootProps` takes a `ref` the same way. Focusing the root focuses the first input, which is what form
+libraries rely on to focus a field with a validation error:
+
+```tsx
+<div {...getRootProps({ ref: rootRef })}>
+```
+
+The hook also returns an action for focusing a field by name:
+
+```tsx
+const { focusField } = useTimescape();
+
+focusField("days");
+```
+
+For accessible localization, use the native attributes directly. Timescape
+only supplies an English fallback when neither one is present:
+
+```tsx
+<input {...getInputProps("days")} aria-label="Tag" />
+<input {...getInputProps("months")} aria-labelledby="month-label" />
+```
+
+### `onDateChange` or `onInputChange`
+
+`onDateChange` reports the settled date: it fires when a complete date changes
+or is cleared, and stays quiet while a value is half-typed. Use it for filters,
+data fetching or display.
+
+`onInputChange` reports what the input currently holds: `null` while it's empty
+or incomplete, with `details.state` saying which. Use it with form libraries, so
+a form never submits the previous date during an edit:
+
+```tsx
+useTimescape({
+  onInputChange: (date, { state }) => {
+    if (state === "complete") save(date);
+    if (state === "empty") clear();
+  },
+});
+```
+
+### React Hook Form
+
+Use one [React Hook Form `Controller`](https://react-hook-form.com/docs/usecontroller/controller)
+for the whole date. Timescape manages the individual inputs;
+React Hook Form owns their shared `Date | null` value. Start with `null` so the
+field is controlled from its first render.
+
+```tsx
+import {
+  Controller,
+  type ControllerRenderProps,
+  useForm,
+} from "react-hook-form";
+import { useTimescape } from "timescape/react";
+
+type FormValues = { appointment: Date | null };
+
+function DateField({
+  field,
+}: {
+  field: ControllerRenderProps<FormValues, "appointment">;
+}) {
+  const { getRootProps, getInputProps } = useTimescape({
+    date: field.value,
+    onInputChange: field.onChange,
+    onBlur: field.onBlur,
+  });
+
+  return (
+    <div {...getRootProps({ ref: field.ref })} aria-label="Appointment date">
+      <input {...getInputProps("months")} aria-label="Month" />
+      <input {...getInputProps("days")} aria-label="Day" />
+      <input {...getInputProps("years")} aria-label="Year" />
+    </div>
+  );
+}
+
+function AppointmentForm() {
+  const { control, handleSubmit } = useForm<FormValues>({
+    defaultValues: { appointment: null },
+  });
+
+  return (
+    <form onSubmit={handleSubmit(({ appointment }) => console.log(appointment))}>
+      <Controller
+        name="appointment"
+        control={control}
+        rules={{ required: "Enter a date" }}
+        render={({ field, fieldState }) => (
+          <>
+            <DateField field={field} />
+            {fieldState.error && <span role="alert">{fieldState.error.message}</span>}
+          </>
+        )}
+      />
+      <button type="submit">Save</button>
+    </form>
+  );
+}
+```
+
+`onInputChange` sends `null` while an edit is incomplete, so validation cannot
+submit the previous complete date. `onBlur` marks the date as touched only when
+focus leaves all of its inputs, and passing `field.ref` to the root lets React
+Hook Form focus the first input when validation fails.
+
+The same three options fit other form libraries, e.g. TanStack Form's
+`field.handleChange` and `field.handleBlur`.
 
 ### Preventing default `keydown` behavior
 
@@ -564,7 +686,8 @@ The integrations are thin wrappers around `TimescapeManager`, which you can also
 | `registerRoot(element)`                      | Registers the root element, which handles focus management and gets `role="group"`.                                                                              |
 | `registerElement(element, type, autofocus?)` | Registers an input for a `DateType`: `"years"`, `"months"`, `"days"`, `"hours"`, `"minutes"`, `"seconds"`, `"milliseconds"` or `"am/pm"`.                        |
 | `on(event, callback)`                        | Subscribes to an event and returns an unsubscribe function. [See below](#events)                                                                                 |
-| `focusField(index)`                          | Focuses the field at the given index in registration order. Negative indices count from the end, so `-1` is the last field.                                      |
+| `isCompleted()`                              | Returns whether every registered field has a value. Always `true` with `disallowPartial`.                                                                       |
+| `focusField(indexOrType)`                    | Focuses a field by `DateType` or registration index. Negative indices count from the end, so `-1` is the last field.                                             |
 | `resync()`                                   | Re-registers all known elements, e.g. after the inputs were moved or re-rendered.                                                                                |
 | `remove()`                                   | Tears down all listeners and observers.                                                                                                                          |
 
@@ -575,8 +698,13 @@ time, e.g. `manager.hour12 = true`.
 
 ```ts
 manager.on("changeDate", (date: Date | undefined) => {}); // date changed (`undefined` if incomplete)
+manager.on("changeInput", ({ date, state }) => {}); // date or editing state changed
 manager.on("focusWrap", (direction: "start" | "end") => {}); // focus moved past the first or last field
+manager.on("blur", () => {}); // focus left all registered inputs
 ```
+
+`changeInput` reports `date: undefined` during an unfinished digit edit, while
+`manager.date` keeps its previous committed value until the edit is complete.
 
 Listeners run in subscription order. Returning `STOP_EVENT_PROPAGATION` from a listener keeps the remaining
 listeners for that event from running:

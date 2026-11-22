@@ -1,26 +1,29 @@
 import { onDestroy } from "svelte";
 import type { Action } from "svelte/action";
 import { get, type Readable, writable } from "svelte/store";
-import { $NOW, type DateType, type Options, TimescapeManager } from "../index";
+import { type DateType, type Options, TimescapeManager } from "../index";
 import { marry } from "../range";
 import { createAmPmHandler } from "../util";
-import { bindDate, type DateProp, toDate } from "./shared";
+import { bindDate, type DateCallbacks, type DateProp, toDate } from "./shared";
 
+// Svelte import names prohibit a $ prefix.
 export {
-  // Svelte import names prohibit a $ prefix, so it's renamed to NOW there
   $NOW as NOW,
-  type DateType,
-  type SvelteOptions as Options,
-  type SvelteRangeOptions as RangeOptions,
+  type InputChangeDetails,
+  type InputState,
+} from "../index";
+export type {
+  DateType,
+  SvelteOptions as Options,
+  SvelteRangeOptions as RangeOptions,
 };
 
-type BaseOptions = Omit<Options, "date">;
+type BaseOptions = Omit<Options, "date"> & DateCallbacks;
 
 export type SvelteOptions = BaseOptions & {
   /** Passing a store makes the input controlled; its `null` is the empty date. */
   date?: Readable<DateProp>;
   defaultDate?: DateProp;
-  onDateChange?: (date: Date | null) => void;
 };
 
 export type SvelteRangeOptions = {
@@ -29,7 +32,8 @@ export type SvelteRangeOptions = {
 };
 
 export const createTimescape = (options: SvelteOptions = {}) => {
-  const { date, defaultDate, onDateChange, ...rest } = options;
+  const { date, defaultDate, onDateChange, onInputChange, onBlur, ...rest } =
+    options;
 
   const isControlled = date !== undefined;
 
@@ -48,6 +52,8 @@ export const createTimescape = (options: SvelteOptions = {}) => {
     getDate: () => currentValue,
     setDate: (nextDate) => internalStore.set(nextDate),
     onDateChange,
+    onInputChange,
+    onBlur,
   });
 
   const unsubscribeDate = dateStore.subscribe((value) => {
@@ -73,6 +79,7 @@ export const createTimescape = (options: SvelteOptions = {}) => {
     _manager: manager,
     inputProps,
     rootProps,
+    focusField: (type?: DateType) => manager.focusField(type),
     ampm: createAmPmHandler(manager),
     date: dateStore,
   } as const;
@@ -91,7 +98,17 @@ export const createTimescapeRange = (options: SvelteRangeOptions = {}) => {
 
   return {
     rootProps,
-    from: { inputProps: from.inputProps, ampm: from.ampm, date: from.date },
-    to: { inputProps: to.inputProps, ampm: to.ampm, date: to.date },
+    from: {
+      inputProps: from.inputProps,
+      focusField: from.focusField,
+      ampm: from.ampm,
+      date: from.date,
+    },
+    to: {
+      inputProps: to.inputProps,
+      focusField: to.focusField,
+      ampm: to.ampm,
+      date: to.date,
+    },
   } as const;
 };
